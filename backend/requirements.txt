@@ -1,0 +1,10 @@
+fastapi[standard]
+uvicorn
+psycopg2-binary
+sqlmodel
+pydantic
+pydantic_settings
+python-dotenv
+requests
+qrcode[pil]
+python-openstackclient
