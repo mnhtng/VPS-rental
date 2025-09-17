@@ -1,0 +1,222 @@
+{
+    "metadata": {
+        "title": "VStack - Giải pháp VPS Hosting chuyên nghiệp",
+        "description": "Khám phá dịch vụ VPS hosting đáng tin cậy và giá cả phải chăng với VStack. Tận hưởng tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ chuyên gia 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
+        "keywords": "VPS hosting, máy chủ đám mây, SSD VPS, NVMe VPS, VPS giá rẻ, VPS ổn định, web hosting, máy chủ ảo riêng"
+    },
+    "pages": {
+        "plans": {
+            "title": "Gói VPS - VStack",
+            "description": "Lựa chọn các gói VPS hosting linh hoạt với lưu trữ SSD/NVMe, tài nguyên riêng và hỗ trợ 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
+            "keywords": "gói VPS, giá VPS, gói máy chủ đám mây, SSD VPS, NVMe VPS, gói hosting"
+        },
+        "support": {
+            "title": "Trung tâm Hỗ trợ - VStack",
+            "description": "Nhận trợ giúp cho dịch vụ VPS của bạn. Truy cập tài liệu, gửi yêu cầu hỗ trợ và liên hệ đội ngũ kỹ thuật 24/7.",
+            "keywords": "hỗ trợ VPS, hỗ trợ kỹ thuật, trợ giúp hosting, tài liệu, chăm sóc khách hàng"
+        },
+        "dashboard": {
+            "title": "Bảng điều khiển - VStack",
+            "description": "Quản lý VPS, theo dõi hiệu suất và truy cập tất cả dịch vụ hosting của bạn từ một bảng điều khiển tập trung.",
+            "keywords": "bảng điều khiển VPS, quản lý máy chủ, control panel hosting, giám sát VPS"
+        },
+        "login": {
+            "title": "Đăng nhập - VStack",
+            "description": "Truy cập tài khoản VStack của bạn để quản lý VPS, thanh toán và các dịch vụ hosting.",
+            "keywords": "đăng nhập VPS, đăng nhập hosting, truy cập tài khoản, đăng nhập quản lý máy chủ"
+        },
+        "register": {
+            "title": "Đăng ký - VStack",
+            "description": "Tạo tài khoản VStack và bắt đầu hành trình VPS hosting của bạn với máy chủ đám mây đáng tin cậy cùng hỗ trợ chuyên gia.",
+            "keywords": "đăng ký VPS, đăng ký hosting, tạo tài khoản, tài khoản VPS hosting"
+        }
+    },
+    "header": {
+        "home": "Trang chủ",
+        "plans": "Dịch vụ VPS",
+        "support": "Hỗ trợ",
+        "profile": "Hồ sơ",
+        "my_orders": "Đơn hàng của tôi",
+        "support_tickets": "Yêu cầu hỗ trợ",
+        "admin": "Quản trị",
+        "login": "Đăng nhập",
+        "register": "Đăng ký",
+        "logout": "Đăng xuất",
+        "menu": "Menu",
+        "nav": "Điều hướng",
+        "auth": "Xác thực",
+        "acc": "Tài khoản"
+    },
+    "language": {
+        "select_language": "Chọn ngôn ngữ",
+        "en": "Tiếng Anh",
+        "vi": "Tiếng Việt"
+    },
+    "home": {
+        "hero": {
+            "badge": "Dịch vụ VPS cao cấp",
+            "title": "Giải pháp VPS Hosting chuyên nghiệp",
+            "subtitle": "Sở hữu máy chủ đám mây đáng tin cậy với tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ chuyên gia 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
+            "cta": "Xem gói dịch vụ",
+            "learn_more": "Liên hệ kinh doanh",
+            "visual_alt": "Bảng điều khiển VPS",
+            "visual_desc": "Quản lý máy chủ dễ dàng",
+            "features": [
+                "Cam kết Uptime 99.9%",
+                "Hỗ trợ chuyên gia 24/7",
+                "Lưu trữ SSD & NVMe",
+                "Cài đặt ngay lập tức"
+            ],
+            "services": {
+                "web_server": "Web Server",
+                "database": "Cơ sở dữ liệu",
+                "backup": "Sao lưu",
+                "monitoring": "Giám sát"
+            },
+            "performance": {
+                "label": {
+                    "uptime": "Uptime",
+                    "deploy": "Triển khai",
+                    "support": "Hỗ trợ"
+                },
+                "value": {
+                    "uptime": "99.9%",
+                    "deploy": "1-Click",
+                    "support": "24/7"
+                }
+            }
+        },
+        "features": {
+            "title": "Tính năng nổi bật",
+            "description": "Khám phá những tính năng cốt lõi giúp dịch vụ VPS của chúng tôi vượt trội",
+            "uptime": "Uptime SLA 99.9%",
+            "uptime_desc": "Cam kết uptime hàng đầu cùng giám sát 24/7",
+            "support": "Hỗ trợ 24/7",
+            "support_desc": "Đội ngũ kỹ thuật chuyên gia luôn sẵn sàng",
+            "security": "Bảo mật nâng cao",
+            "security_desc": "Giải pháp bảo mật tiên tiến để bảo vệ dữ liệu",
+            "backup": "Sao lưu hàng ngày",
+            "backup_desc": "Tự động sao lưu hàng ngày để yên tâm tuyệt đối"
+        },
+        "popular_plans": {
+            "title": "Các gói VPS phổ biến",
+            "subtitle": "Chọn gói dịch vụ phù hợp với nhu cầu của bạn",
+            "storage": "Dung lượng",
+            "memory": "RAM",
+            "cpu_cores": "Số lõi CPU",
+            "bandwidth": "Băng thông",
+            "per_month": "/tháng",
+            "select_plan": "Chọn gói",
+            "most_popular": "Phổ biến nhất"
+        },
+        "advantages": {
+            "title": "Tại sao chọn VPS của chúng tôi?",
+            "description": "Chúng tôi cung cấp hạ tầng đạt chuẩn doanh nghiệp với hiệu năng, độ tin cậy và hỗ trợ vượt trội để vận hành ứng dụng của bạn",
+            "get_started": "Bắt đầu ngay hôm nay",
+            "items": [
+                {
+                    "title": "Cài đặt siêu nhanh",
+                    "description": "Khởi tạo VPS của bạn trong chưa đầy 60 giây với hệ thống triển khai tự động."
+                },
+                {
+                    "title": "Phần cứng cao cấp",
+                    "description": "Lưu trữ SSD và NVMe hiệu năng cao với bộ xử lý thế hệ mới nhất."
+                },
+                {
+                    "title": "Giá trị tốt nhất",
+                    "description": "Giá cả cạnh tranh, không phí ẩn. Linh hoạt mở rộng hoặc thu hẹp mà không cần hợp đồng dài hạn."
+                },
+                {
+                    "title": "Toàn quyền Root",
+                    "description": "Toàn quyền kiểm soát môi trường máy chủ với root access và cấu hình tùy chỉnh."
+                }
+            ]
+        }
+    },
+    "plans": {
+        "title": "Các gói VPS phổ biến",
+        "subtitle": "Chọn gói dịch vụ phù hợp với nhu cầu của bạn",
+        "storage": "Dung lượng",
+        "memory": "RAM",
+        "cpu_cores": "Số lõi CPU",
+        "bandwidth": "Băng thông",
+        "per_month": "/tháng",
+        "select_plan": "Chọn gói",
+        "most_popular": "Phổ biến nhất"
+    },
+    "footer": {
+        "description": "Giải pháp VPS chuyên nghiệp với cam kết uptime 99.9%. Phát triển doanh nghiệp của bạn với hạ tầng đám mây đáng tin cậy và hỗ trợ 24/7.",
+        "quick_links": "Liên kết nhanh",
+        "plans": "Gói VPS",
+        "support": "Trung tâm hỗ trợ",
+        "faq": "Câu hỏi thường gặp",
+        "contact": "Liên hệ",
+        "24_7": "Hỗ trợ 24/7",
+        "24_7_desc": "Đội ngũ kỹ thuật của chúng tôi luôn sẵn sàng hỗ trợ bạn mọi lúc.",
+        "all_rights_reserved": "Đã đăng ký bản quyền.",
+        "privacy": "Chính sách bảo mật",
+        "terms": "Điều khoản dịch vụ",
+        "cookies": "Chính sách Cookie"
+    },
+    "common": {
+        "loading": "Đang tải...",
+        "error": "Lỗi",
+        "success": "Thành công",
+        "cancel": "Hủy",
+        "save": "Lưu",
+        "delete": "Xóa",
+        "edit": "Chỉnh sửa",
+        "add": "Thêm",
+        "search": "Tìm kiếm",
+        "close": "Đóng",
+        "submit": "Gửi"
+    },
+    "errors": {
+        "notFound": {
+            "title": "Không tìm thấy trang",
+            "subtitle": "Trang bạn tìm kiếm không tồn tại hoặc đã được di chuyển. Vui lòng kiểm tra lại URL hoặc quay về trang chủ.",
+            "backHome": "Về trang chủ",
+            "goBack": "Quay lại",
+            "whyTitle": "Tại sao bạn thấy trang này?",
+            "reasons": [
+                "Trang bạn tìm kiếm không tồn tại",
+                "URL có thể bị sai chính tả",
+                "Trang đã bị di chuyển hoặc xóa",
+                "Bạn có thể không có quyền truy cập trang này"
+            ],
+            "needHelp": "Cần hỗ trợ?",
+            "contactUs": "Liên hệ với chúng tôi"
+        },
+        "unauthorized": {
+            "title": "Truy cập bị từ chối",
+            "subtitle": "Bạn không có quyền truy cập trang này. Vui lòng đăng nhập hoặc liên hệ quản trị viên để được hỗ trợ.",
+            "login": "Đăng nhập",
+            "backHome": "Về trang chủ",
+            "goBack": "Quay lại",
+            "whyTitle": "Tại sao bạn thấy trang này?",
+            "reasons": [
+                "Bạn chưa đăng nhập vào hệ thống",
+                "Tài khoản của bạn không có quyền truy cập",
+                "Phiên đăng nhập của bạn đã hết hạn",
+                "Trang này yêu cầu quyền truy cập đặc biệt"
+            ],
+            "needHelp": "Cần hỗ trợ?",
+            "contactUs": "Liên hệ với chúng tôi"
+        },
+        "serverError": {
+            "title": "Lỗi máy chủ",
+            "subtitle": "Chúng tôi xin lỗi, đã xảy ra sự cố không mong muốn. Vui lòng thử lại sau hoặc liên hệ hỗ trợ nếu vấn đề tiếp tục.",
+            "backHome": "Về trang chủ",
+            "tryAgain": "Thử lại",
+            "whyTitle": "Bạn có thể làm gì?",
+            "reasons": [
+                "Tải lại trang và thử lại",
+                "Xóa cache và cookie trình duyệt",
+                "Kiểm tra kết nối internet",
+                "Liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn"
+            ],
+            "needHelp": "Cần hỗ trợ?",
+            "contactUs": "Liên hệ với chúng tôi"
+        }
+    }
+}

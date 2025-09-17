@@ -1,0 +1,230 @@
+{
+    "metadata": {
+        "title": "VStack - Professional VPS Hosting Solutions",
+        "description": "Discover reliable and affordable VPS hosting with VStack. Enjoy dedicated resources, SSD/NVMe storage, and 24/7 expert support. Perfect for websites, applications, and development.",
+        "keywords": "VPS hosting, cloud servers, SSD VPS, NVMe VPS, affordable VPS, reliable VPS, web hosting, virtual private server"
+    },
+    "pages": {
+        "plans": {
+            "title": "VPS Plans - VStack",
+            "description": "Choose from our flexible VPS hosting plans with SSD/NVMe storage, dedicated resources, and 24/7 support. Perfect for websites, applications, and development.",
+            "keywords": "VPS plans, VPS pricing, cloud server plans, SSD VPS, NVMe VPS, hosting plans"
+        },
+        "support": {
+            "title": "Support Center - VStack",
+            "description": "Get help with your VPS hosting services. Access documentation, submit tickets, and contact our 24/7 technical support team.",
+            "keywords": "VPS support, technical support, hosting help, documentation, customer service"
+        },
+        "dashboard": {
+            "title": "Dashboard - VStack",
+            "description": "Manage your VPS servers, monitor performance, and access all your hosting services from one centralized dashboard.",
+            "keywords": "VPS dashboard, server management, hosting control panel, VPS monitoring"
+        },
+        "login": {
+            "title": "Login - VStack",
+            "description": "Access your VStack account to manage your VPS servers, billing, and hosting services.",
+            "keywords": "VPS login, hosting login, account access, server management login"
+        },
+        "register": {
+            "title": "Sign Up - VStack",
+            "description": "Create your VStack account and start your VPS hosting journey with reliable cloud servers and expert support.",
+            "keywords": "VPS signup, hosting registration, create account, VPS hosting account"
+        }
+    },
+    "header": {
+        "home": "Home",
+        "plans": "VPS Plans",
+        "support": "Support",
+        "profile": "Profile",
+        "my_orders": "My Orders",
+        "support_tickets": "Support Tickets",
+        "admin": "Admin",
+        "login": "Login",
+        "register": "Sign Up",
+        "logout": "Logout",
+        "menu": "Menu",
+        "nav": "Navigation",
+        "auth": "Authentication",
+        "acc": "Account"
+    },
+    "language": {
+        "select_language": "Select Language",
+        "en": "English",
+        "vi": "Vietnamese"
+    },
+    "home": {
+        "hero": {
+            "badge": "Premium VPS Hosting",
+            "title": "Professional VPS Hosting Solutions",
+            "subtitle": "Get reliable cloud servers with dedicated resources, SSD/NVMe storage, and 24/7 expert support. Perfect for websites, applications, and development.",
+            "cta": "View Plans",
+            "learn_more": "Contact Sales",
+            "visual_alt": "VPS Control Panel",
+            "visual_desc": "Manage your servers with ease",
+            "features": [
+                "99.9% Uptime Guarantee",
+                "24/7 Expert Support",
+                "SSD & NVMe Storage",
+                "Instant Setup"
+            ],
+            "services": {
+                "web_server": "Web Server",
+                "database": "Database",
+                "backup": "Backup",
+                "monitoring": "Monitoring"
+            },
+            "performance": {
+                "label": {
+                    "uptime": "Uptime",
+                    "deploy": "Deploy",
+                    "support": "Support"
+                },
+                "value": {
+                    "uptime": "99.9%",
+                    "deploy": "1-Click",
+                    "support": "24/7"
+                }
+            }
+        },
+        "features": {
+            "title": "Key Features",
+            "description": "Discover the essential features that make our VPS hosting stand out",
+            "uptime": "99.9% Uptime SLA",
+            "uptime_desc": "Industry-leading uptime guarantee with 24/7 monitoring",
+            "support": "24/7 Support",
+            "support_desc": "Expert technical support available around the clock",
+            "security": "Enhanced Security",
+            "security_desc": "Advanced security measures to protect your data",
+            "backup": "Daily Backups",
+            "backup_desc": "Automated daily backups for peace of mind"
+        },
+        "popular_plans": {
+            "title": "Popular VPS Plans",
+            "subtitle": "Choose the perfect plan for your needs",
+            "storage": "Storage",
+            "memory": "RAM",
+            "cpu_cores": "CPU Core",
+            "bandwidth": "Bandwidth",
+            "per_month": "/month",
+            "select_plan": "Choose Plan",
+            "most_popular": "Most Popular"
+        },
+        "advantages": {
+            "title": "Why Choose Our VPS Hosting?",
+            "description": "We provide enterprise-grade infrastructure with unmatched performance, reliability, and support to power your applications",
+            "get_started": "Get Started Today",
+            "items": [
+                {
+                    "title": "Lightning Fast Setup",
+                    "description": "Get your VPS up and running in under 60 seconds with our automated deployment system."
+                },
+                {
+                    "title": "Premium Hardware",
+                    "description": "High-performance SSD and NVMe storage with latest generation processors for maximum speed."
+                },
+                {
+                    "title": "Best Value Pricing",
+                    "description": "Competitive pricing with no hidden fees. Scale up or down anytime without long-term contracts."
+                },
+                {
+                    "title": "Full Root Access",
+                    "description": "Complete control over your server environment with root access and custom configurations."
+                }
+            ]
+        }
+    },
+    "plans": {
+        "title": "Choose Your VPS Plan",
+        "subtitle": "Scalable, reliable, and high-performance VPS hosting solutions for every need",
+        "filter": {
+            "title": "Filter Plans",
+            "show": "{count} of {total} plans shown",
+            "reset": "Reset All",
+            "all": "All",
+            "ssd": "SSD",
+            "nvme": "NVMe"
+        },
+        "storage": "Storage",
+        "memory": "RAM",
+        "cpu_cores": "CPU Core",
+        "bandwidth": "Bandwidth",
+        "per_month": "/month",
+        "select_plan": "Choose Plan",
+        "most_popular": "Most Popular"
+    },
+    "footer": {
+        "description": "Professional VPS hosting solutions with 99.9% uptime guarantee. Scale your business with our reliable cloud infrastructure and 24/7 support.",
+        "quick_links": "Quick Links",
+        "plans": "VPS Plans",
+        "support": "Support Center",
+        "faq": "FAQ",
+        "contact": "Contact Us",
+        "24_7": "24/7 Support",
+        "24_7_desc": "Our technical support team is available around the clock to help you.",
+        "all_rights_reserved": "All rights reserved.",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "cookies": "Cookie Policy"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "add": "Add",
+        "search": "Search",
+        "close": "Close",
+        "submit": "Submit"
+    },
+    "errors": {
+        "notFound": {
+            "title": "Page Not Found",
+            "subtitle": "The page you're looking for doesn't exist or has been moved. Please check the URL or navigate back to the homepage.",
+            "backHome": "Back to Home",
+            "goBack": "Go Back",
+            "whyTitle": "Why am I seeing this page?",
+            "reasons": [
+                "The page you're looking for doesn't exist",
+                "The URL might be misspelled",
+                "The page has been moved or deleted",
+                "You might not have permission to access this page"
+            ],
+            "needHelp": "Need help?",
+            "contactUs": "Contact us"
+        },
+        "unauthorized": {
+            "title": "Unauthorized Access",
+            "subtitle": "You don't have permission to access this page. Please log in or contact the administrator for support.",
+            "login": "Log in",
+            "backHome": "Back to Home",
+            "goBack": "Go Back",
+            "whyTitle": "Why am I seeing this page?",
+            "reasons": [
+                "You are not logged into the system",
+                "Your account doesn't have access rights",
+                "Your login session has expired",
+                "The page requires special permissions"
+            ],
+            "needHelp": "Need help?",
+            "contactUs": "Contact us"
+        },
+        "serverError": {
+            "title": "Server Error",
+            "subtitle": "We apologize, but an unexpected error has occurred. Please try again later or contact support if the problem persists.",
+            "backHome": "Back to Home",
+            "tryAgain": "Try Again",
+            "whyTitle": "What can you do?",
+            "reasons": [
+                "Refresh the page and try again",
+                "Clear your browser cache and cookies",
+                "Check your internet connection",
+                "Contact support if the problem persists"
+            ],
+            "needHelp": "Need help?",
+            "contactUs": "Contact us"
+        }
+    }
+}
