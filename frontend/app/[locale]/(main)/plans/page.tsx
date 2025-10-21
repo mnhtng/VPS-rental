@@ -23,7 +23,7 @@ import {
     DollarSign,
     Eye
 } from 'lucide-react';
-import { VPSPlan } from '@/lib/types';
+import { VPSPlan } from '@/types/types';
 import { useTranslations } from 'next-intl';
 import { formatPrice, convertUSDToVND, formatPriceNumber } from '@/utils/currency';
 
@@ -245,8 +245,8 @@ const PlansPage = () => {
                                 )}
                             </div>
 
-                            <div className="relative flex justify-between gap-6 flex-col md:flex-row">
-                                <div className='flex justify-between items-center gap-6 md:w-[50%]'>
+                            <div className="relative flex justify-between gap-6 flex-col lg:flex-row">
+                                <div className='flex justify-between items-center gap-6 lg:w-[50%]'>
                                     {/* Category Filter */}
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">

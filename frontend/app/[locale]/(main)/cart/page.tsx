@@ -21,7 +21,7 @@ import {
     Rocket,
     BrushCleaning
 } from 'lucide-react';
-import { VPSPlan } from '@/lib/types';
+import { VPSPlan } from '@/types/types';
 import { Label } from '@radix-ui/react-label';
 import { formatPrice, convertUSDToVND } from '@/utils/currency';
 

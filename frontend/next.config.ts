@@ -26,6 +26,20 @@ const nextConfig: NextConfig = {
       new URL('https://cdn.cloudflare.steamstatic.com/**'),
     ]
   },
+  // Turbopack configuration for NextAuth.js compatibility
+  // turbopack: {
+  //   resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
+  // },
+  // Webpack fallback for better compatibility
+  // webpack: (config: any) => {
+  //   config.resolve.fallback = {
+  //     ...config.resolve.fallback,
+  //     "crypto": require.resolve("crypto-browserify"), // npm install crypto-browserify
+  //     "stream": require.resolve("stream-browserify"), // npm install stream-browserify
+  //     "buffer": require.resolve("buffer"), // npm install buffer
+  //   };
+  //   return config;
+  // },
 };
 
 export default withNextIntl(nextConfig);

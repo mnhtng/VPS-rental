@@ -13,9 +13,9 @@ export default function HeroSection({
     locale: string;
     t: (key: string) => string;
 }) {
-    const localTheme = localStorage.getItem('theme') === 'system'
+    const localTheme = localStorage?.getItem('theme') === 'system'
         ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-        : (localStorage.getItem('theme') || 'light');
+        : (localStorage?.getItem('theme') || 'light');
 
     const { resolvedTheme } = useTheme();
     const [theme, setTheme] = useState(localTheme);

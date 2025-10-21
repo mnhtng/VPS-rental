@@ -1,6 +1,6 @@
 'use client';
 
-import { colorsHex } from '@/utils/styleUtil/color';
+import { colorsHex } from '@/utils/color';
 import { ProgressProvider } from '@bprogress/next/app';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';

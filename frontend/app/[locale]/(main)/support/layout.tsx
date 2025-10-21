@@ -1,4 +1,4 @@
-import { generatePageMetadata } from '@/lib/page-metadata';
+import { generatePageMetadata } from '@/utils/page-metadata';
 import { Metadata } from 'next';
 
 export async function generateMetadata({

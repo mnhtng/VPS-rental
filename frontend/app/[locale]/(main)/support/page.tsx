@@ -27,7 +27,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
-import { ChatMessage } from '@/lib/types';
+import { ChatMessage } from '@/types/types';
 import { formatPrice, convertUSDToVND } from '@/utils/currency';
 
 // Mock FAQ data
@@ -103,6 +103,7 @@ const SupportPage = () => {
     const [ticketForm, setTicketForm] = useState({
         subject: '',
         email: '',
+        phone: '',
         category: '',
         priority: 'medium',
         description: ''
@@ -158,7 +159,7 @@ const SupportPage = () => {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         setSubmitStatus('success');
-        setTicketForm({ subject: '', email: '', category: '', priority: 'medium', description: '' });
+        setTicketForm({ subject: '', email: '', phone: '', category: '', priority: 'medium', description: '' });
 
         setTimeout(() => setSubmitStatus('idle'), 3000);
     };
@@ -357,19 +358,20 @@ const SupportPage = () => {
                                 )}
 
                                 <form onSubmit={handleTicketSubmit} className="space-y-4">
+                                    <div className='space-y-2'>
+                                        <Label htmlFor="subject">Subject *</Label>
+                                        <Input
+                                            id="subject"
+                                            name="subject"
+                                            value={ticketForm.subject}
+                                            onChange={handleInputChange}
+                                            required
+                                            placeholder="Brief description of your issue"
+                                            className='border border-dashed border-gray-400/50 rounded-md focus:outline-none'
+                                        />
+                                    </div>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className='space-y-2'>
-                                            <Label htmlFor="subject">Subject *</Label>
-                                            <Input
-                                                id="subject"
-                                                name="subject"
-                                                value={ticketForm.subject}
-                                                onChange={handleInputChange}
-                                                required
-                                                placeholder="Brief description of your issue"
-                                                className='border border-dashed border-gray-400/50 rounded-md focus:outline-none'
-                                            />
-                                        </div>
                                         <div className='space-y-2'>
                                             <Label htmlFor="email">Email Address *</Label>
                                             <Input
@@ -380,6 +382,20 @@ const SupportPage = () => {
                                                 onChange={handleInputChange}
                                                 required
                                                 placeholder="your@email.com"
+                                                className='border border-dashed border-gray-400/50 rounded-md focus:outline-none'
+                                            />
+                                        </div>
+
+                                        <div className='space-y-2'>
+                                            <Label htmlFor="phone">Phone Number *</Label>
+                                            <Input
+                                                id="phone"
+                                                name="phone"
+                                                type="tel"
+                                                value={ticketForm.phone}
+                                                onChange={handleInputChange}
+                                                required
+                                                placeholder="+84 912 345 678"
                                                 className='border border-dashed border-gray-400/50 rounded-md focus:outline-none'
                                             />
                                         </div>

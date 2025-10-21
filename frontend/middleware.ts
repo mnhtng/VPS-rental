@@ -1,15 +1,16 @@
 import createMiddleware from 'next-intl/middleware';
 import { routing } from '@/i18n/routing';
 import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { getServerLocale, SupportedLocale, isValidLocale } from '@/utils/locale';
 
 const intlMiddleware = createMiddleware(routing);
 
-type Locale = 'en' | 'vi';
-
-// Type-safe locale checker
-const isValidLocale = (locale: string): locale is Locale => {
-    return routing.locales.includes(locale as Locale);
-};
+// Interface for request objects that can handle both NextRequest and auth-enhanced request
+interface RequestWithHeaders {
+    cookies: { get: (name: string) => { value: string } | undefined };
+    headers: { get: (name: string) => string | null };
+}
 
 // Cache for route patterns - more scalable than hardcoded array
 const ROUTE_PATTERNS = new Set([
@@ -21,41 +22,41 @@ const ROUTE_PATTERNS = new Set([
     'checkout',
     'profile',
     'my-orders',
-    'admin'
+    'my-tickets',
+    'admin',
+    'error',
+    'not-found'
 ]);
 
-// Optimized locale detection with caching
-const getPreferredLocale = (() => {
-    const cache = new Map<string, Locale>();
+// Protected routes that require authentication
+const PROTECTED_ROUTES = new Set([
+    'profile',
+    'my-orders',
+    'my-tickets',
+    'cart',
+    'checkout',
+    'admin',
+]);
 
-    return (request: NextRequest): Locale => {
-        // 1. Get locale from NEXT_LOCALE cookie
-        const nextLocaleCookie = request.cookies.get('NEXT_LOCALE')?.value;
-        if (nextLocaleCookie && isValidLocale(nextLocaleCookie)) {
-            return nextLocaleCookie;
-        }
+/**
+ * Helper function to get locale from NextRequest using our centralized utility
+ * This replaces the previous complex caching logic with a unified approach
+ * Priority: cookies (NEXT_LOCALE > locale) > pathname > Accept-Language > default
+ */
+const getPreferredLocale = (request: RequestWithHeaders, pathname?: string): SupportedLocale => {
+    // Get all cookies and convert to string format for getServerLocale
+    const nextLocaleCookie = request.cookies.get('NEXT_LOCALE')?.value;
+    const localeCookie = request.cookies.get('locale')?.value;
 
-        // 2. Fallback to Accept-Language header
-        const acceptLanguage = request.headers.get('accept-language');
-        if (!acceptLanguage) return 'en';
+    const cookieString = [
+        nextLocaleCookie ? `NEXT_LOCALE=${nextLocaleCookie}` : null,
+        localeCookie ? `locale=${localeCookie}` : null
+    ].filter(Boolean).join('; ') || undefined;
 
-        // Check cache first
-        if (cache.has(acceptLanguage)) {
-            return cache.get(acceptLanguage)!;
-        }
+    const acceptLanguage = request.headers.get('accept-language');
 
-        // Parse Accept-Language header
-        const languages = acceptLanguage.split(',')
-            .map(lang => lang.split(';')[0].trim().split('-')[0].toLowerCase())
-            .filter(lang => isValidLocale(lang));
-
-        const result: Locale = languages.length > 0 ? languages[0] as Locale : 'en';
-
-        // Cache the result
-        cache.set(acceptLanguage, result);
-        return result;
-    };
-})();
+    return getServerLocale(cookieString, acceptLanguage, pathname);
+};
 
 // Fast path checking for system routes
 const isSystemRoute = (pathname: string): boolean => {
@@ -90,7 +91,21 @@ const isValidAppRoute = (pathname: string): boolean => {
 };
 
 
-export default function middleware(request: NextRequest) {
+// Check if a route is protected
+const isProtectedRoute = (pathname: string): boolean => {
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length === 0) return false;
+
+    // Check if first segment is locale
+    const firstSegment = segments[0];
+    const isLocaleFirst = isValidLocale(firstSegment);
+
+    // For routes like /en/profile or /vi/admin or /profile
+    const routeSegment = isLocaleFirst ? segments[1] : segments[0];
+    return routeSegment ? PROTECTED_ROUTES.has(routeSegment) : false;
+};
+
+export default async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     // Fast exit for system routes
@@ -98,16 +113,28 @@ export default function middleware(request: NextRequest) {
         return intlMiddleware(request);
     }
 
+    // Check authentication for protected routes
+    if (isProtectedRoute(pathname)) {
+        // Get JWT token instead of using auth() wrapper to avoid bcrypt in Edge Runtime
+        const token = await getToken({
+            req: request,
+            secret: process.env.AUTH_SECRET
+        });
+
+        if (!token) {
+            // User is not authenticated, redirect to login
+            const locale = getPreferredLocale(request, pathname);
+
+            const loginUrl = new URL(`/${locale}/login`, request.url);
+            loginUrl.searchParams.set('callbackUrl', pathname);
+            return NextResponse.redirect(loginUrl);
+        }
+    }
+
     // Check if route is valid
     if (!isValidAppRoute(pathname)) {
-        // Determine target locale efficiently
-        const pathSegments = pathname.split('/').filter(Boolean);
-        const firstSegment = pathSegments[0];
-        const localeFromPath = isValidLocale(firstSegment);
-
-        const targetLocale = localeFromPath
-            ? firstSegment
-            : getPreferredLocale(request);
+        // Determine target locale efficiently using our enhanced function
+        const targetLocale = getPreferredLocale(request, pathname);
 
         // Rewrite to localized not-found page while preserving URL
         return NextResponse.rewrite(new URL(`/${targetLocale}/not-found`, request.url));

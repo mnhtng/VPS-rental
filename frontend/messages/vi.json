@@ -1,33 +1,33 @@
 {
     "metadata": {
-        "title": "VStack - Giải pháp VPS Hosting chuyên nghiệp",
-        "description": "Khám phá dịch vụ VPS hosting đáng tin cậy và giá cả phải chăng với VStack. Tận hưởng tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ chuyên gia 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
+        "title": "PCloud - Giải pháp VPS Hosting chuyên nghiệp",
+        "description": "Khám phá dịch vụ VPS hosting đáng tin cậy và giá cả phải chăng với PCloud. Tận hưởng tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ chuyên gia 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
         "keywords": "VPS hosting, máy chủ đám mây, SSD VPS, NVMe VPS, VPS giá rẻ, VPS ổn định, web hosting, máy chủ ảo riêng"
     },
     "pages": {
         "plans": {
-            "title": "Gói VPS - VStack",
+            "title": "Gói VPS - PCloud",
             "description": "Lựa chọn các gói VPS hosting linh hoạt với lưu trữ SSD/NVMe, tài nguyên riêng và hỗ trợ 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
             "keywords": "gói VPS, giá VPS, gói máy chủ đám mây, SSD VPS, NVMe VPS, gói hosting"
         },
         "support": {
-            "title": "Trung tâm Hỗ trợ - VStack",
+            "title": "Trung tâm Hỗ trợ - PCloud",
             "description": "Nhận trợ giúp cho dịch vụ VPS của bạn. Truy cập tài liệu, gửi yêu cầu hỗ trợ và liên hệ đội ngũ kỹ thuật 24/7.",
             "keywords": "hỗ trợ VPS, hỗ trợ kỹ thuật, trợ giúp hosting, tài liệu, chăm sóc khách hàng"
         },
         "dashboard": {
-            "title": "Bảng điều khiển - VStack",
+            "title": "Bảng điều khiển - PCloud",
             "description": "Quản lý VPS, theo dõi hiệu suất và truy cập tất cả dịch vụ hosting của bạn từ một bảng điều khiển tập trung.",
             "keywords": "bảng điều khiển VPS, quản lý máy chủ, control panel hosting, giám sát VPS"
         },
         "login": {
-            "title": "Đăng nhập - VStack",
-            "description": "Truy cập tài khoản VStack của bạn để quản lý VPS, thanh toán và các dịch vụ hosting.",
+            "title": "Đăng nhập - PCloud",
+            "description": "Truy cập tài khoản PCloud của bạn để quản lý VPS, thanh toán và các dịch vụ hosting.",
             "keywords": "đăng nhập VPS, đăng nhập hosting, truy cập tài khoản, đăng nhập quản lý máy chủ"
         },
         "register": {
-            "title": "Đăng ký - VStack",
-            "description": "Tạo tài khoản VStack và bắt đầu hành trình VPS hosting của bạn với máy chủ đám mây đáng tin cậy cùng hỗ trợ chuyên gia.",
+            "title": "Đăng ký - PCloud",
+            "description": "Tạo tài khoản PCloud và bắt đầu hành trình VPS hosting của bạn với máy chủ đám mây đáng tin cậy cùng hỗ trợ chuyên gia.",
             "keywords": "đăng ký VPS, đăng ký hosting, tạo tài khoản, tài khoản VPS hosting"
         }
     },

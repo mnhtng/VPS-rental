@@ -3,22 +3,26 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Shield, Lock, Home, LogIn, RefreshCw, AlertTriangle, ArrowLeft } from "lucide-react"
+import { Shield, Lock, Home, RefreshCw, AlertTriangle, ArrowLeft, LogIn } from "lucide-react"
 import { useLocale } from "next-intl"
 import { useTranslations } from "use-intl"
-// import { useSession } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 
 export default function Error({
     statusCode = 500
 }: {
     statusCode?: number
 }) {
-    // const { data: session } = useSession()
+    const { data: session } = useSession()
+
+    const searchParams = useSearchParams()
+    const errorParam = searchParams.get('status')
 
     const locale = useLocale()
     const t = useTranslations('errors')
 
-    if (statusCode && statusCode === 401) {
+    if ((statusCode && statusCode === 401) || (errorParam && parseInt(errorParam) === 401)) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-red-950/50 dark:via-gray-900 dark:to-orange-950/50 flex items-center justify-center p-4">
                 <Card className="max-w-2xl mx-auto shadow-2xl border-0 dark:bg-gray-800/50 dark:border-gray-700">
@@ -60,10 +64,10 @@ export default function Error({
                                 size="lg"
                                 className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 dark:from-red-500 dark:to-orange-500 dark:hover:from-red-600 dark:hover:to-orange-600 w-full sm:w-auto"
                             >
-                                {/* <Link href={`${session ? ("/" + locale) : "/" + locale + "/login"}`}>
-                                    {session ? <Home className="w-4 h-4 mr-2" /> : <LogIn className="w-4 h-4 mr-2" /> }
+                                <Link href={`${session ? ("/" + locale) : "/" + locale + "/login"}`}>
+                                    {session ? <Home className="w-4 h-4 mr-2" /> : <LogIn className="w-4 h-4 mr-2" />}
                                     {session ? t('unauthorized.backHome') : t('unauthorized.login')}
-                                </Link> */}
+                                </Link>
                             </Button>
                             <Button
                                 variant="outline"

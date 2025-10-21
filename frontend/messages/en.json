@@ -1,34 +1,59 @@
 {
     "metadata": {
-        "title": "VStack - Professional VPS Hosting Solutions",
-        "description": "Discover reliable and affordable VPS hosting with VStack. Enjoy dedicated resources, SSD/NVMe storage, and 24/7 expert support. Perfect for websites, applications, and development.",
+        "title": "PCloud - Professional VPS Hosting Solutions",
+        "description": "Discover reliable and affordable VPS hosting with PCloud. Enjoy dedicated resources, SSD/NVMe storage, and 24/7 expert support. Perfect for websites, applications, and development.",
         "keywords": "VPS hosting, cloud servers, SSD VPS, NVMe VPS, affordable VPS, reliable VPS, web hosting, virtual private server"
     },
     "pages": {
+        "login": {
+            "title": "Login - PCloud",
+            "description": "Access your PCloud account to manage your VPS servers, billing, and hosting services.",
+            "keywords": "VPS login, hosting login, account access, server management login"
+        },
+        "register": {
+            "title": "Sign Up - PCloud",
+            "description": "Create your PCloud account and start your VPS hosting journey with reliable cloud servers and expert support.",
+            "keywords": "VPS signup, hosting registration, create account, VPS hosting account"
+        },
         "plans": {
-            "title": "VPS Plans - VStack",
+            "title": "VPS Plans - PCloud",
             "description": "Choose from our flexible VPS hosting plans with SSD/NVMe storage, dedicated resources, and 24/7 support. Perfect for websites, applications, and development.",
             "keywords": "VPS plans, VPS pricing, cloud server plans, SSD VPS, NVMe VPS, hosting plans"
         },
         "support": {
-            "title": "Support Center - VStack",
+            "title": "Support Center - PCloud",
             "description": "Get help with your VPS hosting services. Access documentation, submit tickets, and contact our 24/7 technical support team.",
             "keywords": "VPS support, technical support, hosting help, documentation, customer service"
         },
-        "dashboard": {
-            "title": "Dashboard - VStack",
-            "description": "Manage your VPS servers, monitor performance, and access all your hosting services from one centralized dashboard.",
-            "keywords": "VPS dashboard, server management, hosting control panel, VPS monitoring"
+        "profile": {
+            "title": "My Profile - PCloud",
+            "description": "Manage your PCloud account settings, billing information, and VPS services from your profile dashboard.",
+            "keywords": "VPS profile, account settings, billing management, server management"
         },
-        "login": {
-            "title": "Login - VStack",
-            "description": "Access your VStack account to manage your VPS servers, billing, and hosting services.",
-            "keywords": "VPS login, hosting login, account access, server management login"
+        "orders": {
+            "title": "My Orders - PCloud",
+            "description": "View and manage your VPS hosting orders, invoices, and billing history in your PCloud account.",
+            "keywords": "VPS orders, billing history, invoices, order management"
         },
-        "register": {
-            "title": "Sign Up - VStack",
-            "description": "Create your VStack account and start your VPS hosting journey with reliable cloud servers and expert support.",
-            "keywords": "VPS signup, hosting registration, create account, VPS hosting account"
+        "tickets": {
+            "title": "Support Tickets - PCloud",
+            "description": "View and manage your support tickets. Get help from our technical support team for your VPS hosting services.",
+            "keywords": "VPS support tickets, technical support, ticket management, hosting help"
+        },
+        "cart": {
+            "title": "Shopping Cart - PCloud",
+            "description": "Review your selected VPS hosting plans and proceed to checkout to complete your purchase.",
+            "keywords": "VPS cart, checkout, purchase VPS, hosting plans"
+        },
+        "checkout": {
+            "title": "Checkout - PCloud",
+            "description": "Complete your purchase of VPS hosting plans with secure payment options and instant setup.",
+            "keywords": "VPS checkout, secure payment, purchase VPS, hosting plans"
+        },
+        "admin": {
+            "title": "Admin Dashboard - PCloud",
+            "description": "Access the admin dashboard to manage users, VPS plans, and site settings for your PCloud hosting services.",
+            "keywords": "VPS admin, hosting management, user management, server administration"
         }
     },
     "header": {
@@ -37,7 +62,7 @@
         "support": "Support",
         "profile": "Profile",
         "my_orders": "My Orders",
-        "support_tickets": "Support Tickets",
+        "my_tickets": "My Tickets",
         "admin": "Admin",
         "login": "Login",
         "register": "Sign Up",
@@ -153,7 +178,7 @@
         "most_popular": "Most Popular"
     },
     "footer": {
-        "description": "Professional VPS hosting solutions with 99.9% uptime guarantee. Scale your business with our reliable cloud infrastructure and 24/7 support.",
+        "description": "PCloud provides reliable and affordable VPS hosting solutions with 99.9% uptime guarantee, high-performance SSD/NVMe storage, and dedicated 24/7 expert support. Perfect for websites, applications, and growing businesses that need scalable cloud infrastructure with full control.",
         "quick_links": "Quick Links",
         "plans": "VPS Plans",
         "support": "Support Center",
@@ -179,7 +204,14 @@
         "close": "Close",
         "submit": "Submit"
     },
+    "api": {
+        "login": {}
+    },
     "errors": {
+        "common": {
+            "failed": "Failed to {action}!",
+            "unknown": "An unexpected error occurred during {action}"
+        },
         "notFound": {
             "title": "Page Not Found",
             "subtitle": "The page you're looking for doesn't exist or has been moved. Please check the URL or navigate back to the homepage.",

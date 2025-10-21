@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { SessionProvider } from "next-auth/react";
 import BProgressProviders from "@/contexts/progressbar";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
@@ -39,15 +40,15 @@ export async function generateMetadata({
         description: t('description'),
         keywords: t('keywords'),
         icons: {
-            icon: "/logo.ico",
-            shortcut: "/logo.ico",
-            apple: "/logo.ico",
+            icon: "/logo.png",
+            shortcut: "/logo.png",
+            apple: "/logo.png",
         },
         openGraph: {
             title: t('title'),
             description: t('description'),
             url: `${defaultUrl}/${locale}`,
-            siteName: 'VStack',
+            siteName: 'PCloud',
             locale: locale,
             type: 'website',
         },
@@ -95,23 +96,25 @@ export default async function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <BProgressProviders>
-                        <NextIntlClientProvider>
-                            <>
-                                <ClickSpark
-                                    sparkColor="#69fc74"
-                                    sparkSize={10}
-                                    sparkRadius={15}
-                                    sparkCount={8}
-                                    duration={400}
-                                >
-                                    {children}
-                                </ClickSpark>
-                            </>
+                    <SessionProvider>
+                        <BProgressProviders>
+                            <NextIntlClientProvider>
+                                <>
+                                    <ClickSpark
+                                        sparkColor="#69fc74"
+                                        sparkSize={10}
+                                        sparkRadius={15}
+                                        sparkCount={8}
+                                        duration={400}
+                                    >
+                                        {children}
+                                    </ClickSpark>
+                                </>
 
-                            <Toaster richColors />
-                        </NextIntlClientProvider>
-                    </BProgressProviders>
+                                <Toaster richColors />
+                            </NextIntlClientProvider>
+                        </BProgressProviders>
+                    </SessionProvider>
                 </ThemeProvider>
             </body>
         </html>

@@ -2,39 +2,24 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getClientLocale } from '@/utils/locale';
 
-export default function NotFound() {
+export default function Error({
+    error,
+}: {
+    error?: Error;
+    reset?: () => void;
+}) {
     const router = useRouter();
 
     useEffect(() => {
-        const getPreferredLocale = () => {
-            if (typeof window !== 'undefined') {
-                // 1. Check NEXT_LOCALE cookie
-                const cookies = document.cookie.split(';');
-                const nextLocaleCookie = cookies
-                    .find(cookie => cookie.trim().startsWith('NEXT_LOCALE='))
-                    ?.split('=')[1]
-                    ?.trim();
+        const getPreferredLocale = getClientLocale();
+        const locale = getPreferredLocale || 'en';
 
-                if (nextLocaleCookie && ['en', 'vi'].includes(nextLocaleCookie)) {
-                    return nextLocaleCookie;
-                }
+        const statusCode = error?.message && !isNaN(Number(error.message)) ? Number(error.message) : 500;
 
-                // 2. Check localStorage 
-                const storedLocale = localStorage.getItem('locale');
-                if (storedLocale && ['en', 'vi'].includes(storedLocale)) {
-                    return storedLocale;
-                }
+        router.replace(`/${locale}/error?status=${statusCode}`);
+    }, [router, error]);
 
-                // 3. Fallback to browser language
-                const browserLang = navigator.language.split('-')[0];
-                return ['en', 'vi'].includes(browserLang) ? browserLang : 'en';
-            }
-            return 'en';
-        };
-
-        const locale = getPreferredLocale();
-
-        router.replace(`/${locale}/error`);
-    }, [router]);
+    return null;
 }

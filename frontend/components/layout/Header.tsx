@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -39,8 +40,11 @@ import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { LanguageBadge } from '@/components/ui/language-badge';
 import { Separator } from '@radix-ui/react-separator';
 import { usePathname } from 'next/navigation';
+import { logout } from '@/utils/auth';
+import { useSession } from 'next-auth/react';
 
 export const Header = () => {
+    const { data: session } = useSession()
     const t = useTranslations('header');
     const locale = useLocale();
 
@@ -63,9 +67,10 @@ export const Header = () => {
         setActive(newPath);
     }, [locale, pathname]);
 
-    const handleLogout = () => {
-        // logout();
+    const handleLogout = async () => {
         setMobileMenuOpen(false);
+        await logout();
+        window.location.href = `/${locale}/login`;
     };
 
     return (
@@ -75,13 +80,17 @@ export const Header = () => {
                     {/* Logo */}
                     <div className="flex items-center">
                         <Link href={`/${locale}`} className="flex items-center space-x-2">
-                            <Server className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                            <span className="text-xl font-bold">VStack</span>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src="/logo.png"
+                                alt="Logo"
+                                className="h-8 w-8 sm:h-13 sm:w-13"
+                            />
                         </Link>
                     </div>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center space-x-5 lg:space-x-8">
+                    <nav className="hidden lg:flex items-center space-x-5 lg:space-x-8">
                         {navigation.map((item) => (
                             <Link
                                 key={item.name}
@@ -101,106 +110,113 @@ export const Header = () => {
 
                     {/* Right side actions */}
                     <div className="flex items-center">
-                        {/* {isAuthenticated && user ? ( */}
-                        <div className="hidden md:flex items-center space-x-4">
-                            {/* Cart */}
-                            <Link href={`/${locale}/cart`} className="relative">
-                                <Button variant="ghost" size="sm" className="relative">
-                                    <ShoppingCart className="h-5 w-5" />
-                                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                                        2
-                                    </Badge>
-                                </Button>
-                            </Link>
-
-                            <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
-
-                            {/* Preferences */}
-                            <ThemeSwitcher />
-                            <LanguageBadge activeTab={setActive} />
-
-                            <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
-
-                            {/* User */}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="relative h-8 w-8 rounded-full hidden md:inline-flex">
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarImage src="https://github.com/shadcn.png" />
-                                            <AvatarFallback>US</AvatarFallback>
-                                        </Avatar>
+                        {session && session.user ? (
+                            <div className="hidden lg:flex items-center space-x-4">
+                                {/* Cart */}
+                                <Link href={`/${locale}/cart`} className="relative">
+                                    <Button variant="ghost" size="sm" className="relative">
+                                        <ShoppingCart className="h-5 w-5" />
+                                        <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                                            2
+                                        </Badge>
                                     </Button>
-                                </DropdownMenuTrigger>
+                                </Link>
 
-                                <DropdownMenuContent className="w-56" align="end" forceMount>
-                                    <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">
-                                                MnhTng
-                                            </p>
-                                            <p className="text-xs leading-none text-muted-foreground">
-                                                mnh.tng@example.com
-                                            </p>
-                                        </div>
-                                    </DropdownMenuLabel>
+                                <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
 
-                                    <DropdownMenuSeparator />
+                                {/* Preferences */}
+                                <ThemeSwitcher />
+                                <LanguageBadge activeTab={setActive} />
 
-                                    <DropdownMenuItem asChild>
-                                        <Link href={`/${locale}/profile`} className="flex items-center">
-                                            <User className="mr-2 h-4 w-4" />
-                                            {t('profile')}
-                                        </Link>
-                                    </DropdownMenuItem>
+                                <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
 
-                                    <DropdownMenuItem asChild>
-                                        <Link href={`/${locale}/my-orders`} className="flex items-center">
-                                            <Package className="mr-2 h-4 w-4" />
-                                            {t('my_orders')}
-                                        </Link>
-                                    </DropdownMenuItem>
+                                {/* User */}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="relative h-8 w-8 rounded-full hidden md:inline-flex">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={session.user.image || ''} />
+                                                <AvatarFallback>
+                                                    {session.user.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </Button>
+                                    </DropdownMenuTrigger>
 
-                                    <DropdownMenuItem asChild>
-                                        <Link href={`/${locale}/support`} className="flex items-center">
-                                            <HelpCircle className="mr-2 h-4 w-4" />
-                                            {t('support_tickets')}
-                                        </Link>
-                                    </DropdownMenuItem>
+                                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                                        <DropdownMenuLabel className="font-normal">
+                                            <div className="flex flex-col space-y-1">
+                                                <p className="text-sm font-medium leading-none">
+                                                    {session.user.name || 'User'}
+                                                </p>
+                                                <p className="text-xs leading-none text-muted-foreground">
+                                                    {session.user.email}
+                                                </p>
+                                            </div>
+                                        </DropdownMenuLabel>
 
-                                    <>
                                         <DropdownMenuSeparator />
 
                                         <DropdownMenuItem asChild>
-                                            <Link href={`/${locale}/admin`} className="flex items-center">
-                                                <Shield className="mr-2 h-4 w-4" />
-                                                {t('admin')}
+                                            <Link href={`/${locale}/profile`} className="flex items-center">
+                                                <User className="mr-2 h-4 w-4" />
+                                                {t('profile')}
                                             </Link>
                                         </DropdownMenuItem>
-                                    </>
 
-                                    <DropdownMenuSeparator />
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/${locale}/my-orders`} className="flex items-center">
+                                                <Package className="mr-2 h-4 w-4" />
+                                                {t('my_orders')}
+                                            </Link>
+                                        </DropdownMenuItem>
 
-                                    <DropdownMenuItem onClick={handleLogout}>
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        {t('logout')}
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                        {/* ) : ( */}
-                        {/* <div className="hidden md:flex items-center space-x-2">
-                            <Link href={`/${locale}/login`}>
-                                <Button variant="ghost" size="sm">
-                                    {t('login')}
-                                </Button>
-                            </Link>
-                            <Link href={`/${locale}/register`}>
-                                <Button size="sm">
-                                    {t('register')}
-                                </Button>
-                            </Link>
-                        </div> */}
-                        {/* )} */}
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/${locale}/my-tickets`} className="flex items-center">
+                                                <HelpCircle className="mr-2 h-4 w-4" />
+                                                {t('my_tickets')}
+                                            </Link>
+                                        </DropdownMenuItem>
+
+                                        <>
+                                            <DropdownMenuSeparator />
+
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/${locale}/admin`} className="flex items-center">
+                                                    <Shield className="mr-2 h-4 w-4" />
+                                                    {t('admin')}
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </>
+
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem onClick={handleLogout}>
+                                            <LogOut className="mr-2 h-4 w-4" />
+                                            {t('logout')}
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        ) : (
+                            <div className="hidden lg:flex items-center space-x-2">
+                                <ThemeSwitcher />
+                                <LanguageBadge activeTab={setActive} />
+
+                                <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
+
+                                <Link href={`/${locale}/login`}>
+                                    <Button variant="ghost" size="sm">
+                                        {t('login')}
+                                    </Button>
+                                </Link>
+                                <Link href={`/${locale}/register`}>
+                                    <Button size="sm">
+                                        {t('register')}
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
 
                         {/* Mobile Navigation */}
                         <Sheet>
@@ -208,7 +224,7 @@ export const Header = () => {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="md:hidden"
+                                    className="lg:hidden"
                                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                 >
                                     <Menu className="h-5 w-5" />
@@ -246,102 +262,99 @@ export const Header = () => {
                                         </Link>
                                     ))}
 
-                                    {/* {!isAuthenticated && ( */}
-                                    <>
-                                        <Separator className="h-[1px] bg-accent/50 my-2" />
+                                    {!session || !session.user ? (
+                                        <>
+                                            <Separator className="h-[1px] bg-accent/50 my-2" />
 
-                                        <SheetTitle className="mb-2">
-                                            {t('auth')}
-                                        </SheetTitle>
+                                            <SheetTitle className="mb-2">
+                                                {t('auth')}
+                                            </SheetTitle>
 
-                                        <Link
-                                            href={`/${locale}/login`}
-                                            className='hover:ml-2 block transition-all duration-200'
-                                            onClick={() => setMobileMenuOpen(false)}
-                                        >
-                                            <Button variant="ghost" className="w-full justify-start">
-                                                <KeyRound className="mr-2 h-4 w-4" />
-                                                {t('login')}
-                                            </Button>
-                                        </Link>
-                                        <Link
-                                            href={`/${locale}/register`}
-                                            className='hover:ml-2 block transition-all duration-200'
-                                            onClick={() => setMobileMenuOpen(false)}
-                                        >
-                                            <Button variant="ghost" className="w-full justify-start">
-                                                <UserRoundPlus className="mr-2 h-4 w-4" />
-                                                {t('register')}
-                                            </Button>
-                                        </Link>
-                                    </>
-                                    {/* )} */}
-
-
-                                    {/* {isAuthenticated && user && ( */}
-                                    <>
-                                        <Separator className="h-[1px] bg-accent/50 my-2" />
-
-                                        <SheetTitle className="mb-2">
-                                            {t('acc')}
-                                        </SheetTitle>
-
-                                        <div className="space-y-1">
                                             <Link
-                                                href={`/${locale}/profile`}
+                                                href={`/${locale}/login`}
                                                 className='hover:ml-2 block transition-all duration-200'
                                                 onClick={() => setMobileMenuOpen(false)}
                                             >
                                                 <Button variant="ghost" className="w-full justify-start">
-                                                    <User className="mr-2 h-4 w-4" />
-                                                    {t('profile')}
+                                                    <KeyRound className="mr-2 h-4 w-4" />
+                                                    {t('login')}
                                                 </Button>
                                             </Link>
                                             <Link
-                                                href={`/${locale}/orders`}
+                                                href={`/${locale}/register`}
                                                 className='hover:ml-2 block transition-all duration-200'
                                                 onClick={() => setMobileMenuOpen(false)}
                                             >
                                                 <Button variant="ghost" className="w-full justify-start">
-                                                    <Package className="mr-2 h-4 w-4" />
-                                                    {t('my_orders')}
+                                                    <UserRoundPlus className="mr-2 h-4 w-4" />
+                                                    {t('register')}
                                                 </Button>
                                             </Link>
-                                            <Link
-                                                href={`/${locale}/support/tickets`}
-                                                className='hover:ml-2 block transition-all duration-200'
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                <Button variant="ghost" className="w-full justify-start">
-                                                    <HelpCircle className="mr-2 h-4 w-4" />
-                                                    {t('support_tickets')}
-                                                </Button>
-                                            </Link>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Separator className="h-[1px] bg-accent/50 my-2" />
 
-                                            {/* {user.role === 'admin' && ( */}
-                                            <Link
-                                                href={`/${locale}/admin`}
-                                                className='hover:ml-2 block transition-all duration-200'
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                <Button variant="ghost" className="w-full justify-start">
-                                                    <Shield className="mr-2 h-4 w-4" />
-                                                    {t('admin')}
-                                                </Button>
-                                            </Link>
-                                            {/* )} */}
+                                            <SheetTitle className="mb-2">
+                                                {t('acc')}
+                                            </SheetTitle>
 
-                                            <Button
-                                                variant="ghost"
-                                                className="hover:ml-2 transition-all duration-200 w-full justify-start"
-                                                onClick={handleLogout}
-                                            >
-                                                <LogOut className="mr-2 h-4 w-4" />
-                                                {t('logout')}
-                                            </Button>
-                                        </div>
-                                    </>
-                                    {/* )} */}
+                                            <div className="space-y-1">
+                                                <Link
+                                                    href={`/${locale}/profile`}
+                                                    className='hover:ml-2 block transition-all duration-200'
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    <Button variant="ghost" className="w-full justify-start">
+                                                        <User className="mr-2 h-4 w-4" />
+                                                        {t('profile')}
+                                                    </Button>
+                                                </Link>
+                                                <Link
+                                                    href={`/${locale}/orders`}
+                                                    className='hover:ml-2 block transition-all duration-200'
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    <Button variant="ghost" className="w-full justify-start">
+                                                        <Package className="mr-2 h-4 w-4" />
+                                                        {t('my_orders')}
+                                                    </Button>
+                                                </Link>
+                                                <Link
+                                                    href={`/${locale}/my-tickets`}
+                                                    className='hover:ml-2 block transition-all duration-200'
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    <Button variant="ghost" className="w-full justify-start">
+                                                        <HelpCircle className="mr-2 h-4 w-4" />
+                                                        {t('my_tickets')}
+                                                    </Button>
+                                                </Link>
+
+                                                {session.user.role === 'ADMIN' && (
+                                                    <Link
+                                                        href={`/${locale}/admin`}
+                                                        className='hover:ml-2 block transition-all duration-200'
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                    >
+                                                        <Button variant="ghost" className="w-full justify-start">
+                                                            <Shield className="mr-2 h-4 w-4" />
+                                                            {t('admin')}
+                                                        </Button>
+                                                    </Link>
+                                                )}
+
+                                                <Button
+                                                    variant="ghost"
+                                                    className="hover:ml-2 transition-all duration-200 w-full justify-start"
+                                                    onClick={handleLogout}
+                                                >
+                                                    <LogOut className="mr-2 h-4 w-4" />
+                                                    {t('logout')}
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </SheetContent>
                         </Sheet>

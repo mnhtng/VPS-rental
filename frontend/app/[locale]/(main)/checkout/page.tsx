@@ -32,7 +32,7 @@ interface CartItem {
 
 interface CheckoutFormData {
     // Customer Information
-    fullName: string;
+    name: string;
     email: string;
     phone: string;
 
@@ -57,7 +57,7 @@ const CheckoutPage: React.FC = () => {
     const router = useRouter();
     const [step, setStep] = useState<'info' | 'payment' | 'processing' | 'success'>('info');
     const [formData, setFormData] = useState<CheckoutFormData>({
-        fullName: '',
+        name: '',
         email: '',
         phone: '',
         address: '',
@@ -115,7 +115,7 @@ const CheckoutPage: React.FC = () => {
     };
 
     const validateCustomerInfo = () => {
-        if (!formData.fullName.trim()) throw new Error('Full name is required');
+        if (!formData.name.trim()) throw new Error('Full name is required');
         if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) {
             throw new Error('Valid email is required');
         }
@@ -369,11 +369,11 @@ const CheckoutPage: React.FC = () => {
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="fullName" className="text-sm font-medium">Full Name *</Label>
+                                                    <Label htmlFor="name" className="text-sm font-medium">Full Name *</Label>
                                                     <Input
-                                                        id="fullName"
-                                                        name="fullName"
-                                                        value={formData.fullName}
+                                                        id="name"
+                                                        name="name"
+                                                        value={formData.name}
                                                         onChange={handleInputChange}
                                                         required
                                                         className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"

@@ -2,9 +2,13 @@ fastapi[standard]
 uvicorn
 psycopg2-binary
 sqlmodel
+sqlalchemy
 pydantic
 pydantic_settings
 python-dotenv
 requests
 qrcode[pil]
-python-openstackclient
+jose
+passlib[bcrypt]
+email-validator
+proxmoxer

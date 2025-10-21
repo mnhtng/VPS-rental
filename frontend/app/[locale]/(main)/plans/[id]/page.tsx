@@ -19,7 +19,7 @@ import {
     Calendar,
     MonitorCog
 } from 'lucide-react';
-import { VPSPlan } from '@/lib/types';
+import { VPSPlan } from '@/types/types';
 import { toast } from 'sonner';
 import { formatPrice } from '@/utils/currency';
 import { Label } from '@radix-ui/react-label';

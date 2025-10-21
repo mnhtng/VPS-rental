@@ -2,39 +2,48 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
-import { BubbleBackground } from '@/components/ui/bubble-background';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle
+} from '@/components/ui/card';
+import {
+    Eye,
+    EyeOff,
+    Mail,
+    Lock,
+    LogIn
+} from 'lucide-react';
+import { BeamsBackground } from '@/components/ui/beam-background';
+import { GitHub, Google } from '@/components/custom/icon/brand';
+import { signIn } from 'next-auth/react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
     const router = useRouter();
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-    });
+    const serachParams = useSearchParams();
+    const callbackUrl = serachParams.get('callbackUrl') || '/';
+
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-        // Clear error when user starts typing
-        if (error) setError(null);
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        setError(null);
+
+        const submitData = new FormData(e.target as HTMLFormElement);
+        const formData = {
+            email: submitData.get('email') as string,
+            password: submitData.get('password') as string,
+        };
 
         try {
             // Validate form
@@ -63,28 +72,30 @@ const LoginPage: React.FC = () => {
             } else {
                 throw new Error('Invalid email or password');
             }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch {
+            toast.error("An error occurred during login. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleOauthSignIn = (provider: 'google' | 'github') => async () => {
+        setIsLoading(true);
+
+        try {
+            await signIn(provider, {
+                callbackUrl,
+                redirect: true
+            });
+        } catch {
+            toast.error("An error occurred during login. Please try again.");
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <BubbleBackground
-            colors={{
-                objects: [
-                    'bg-emerald-500/30',
-                    'bg-teal-500/30',
-                    'bg-green-500/30',
-                    'bg-lime-500/30',
-                    'bg-cyan-500/30',
-                    'bg-blue-500/30',
-                ],
-            }}
-            className='relative w-full min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 py-10 md:py-15'
-            objectCount={10}
-        >
+        <BeamsBackground>
             <div className="max-w-md w-full space-y-8">
                 {/* Header */}
                 <div className="text-center">
@@ -98,7 +109,7 @@ const LoginPage: React.FC = () => {
                     </h2>
                     <p className="mt-2 text-sm text-muted-foreground">
                         Don&apos;t have an account?{' '}
-                        <Link href="/register" className="text-blue-600 hover:text-blue-500 font-medium">
+                        <Link href="/register" className="text-blue-600 dark:text-blue-400 hover:text-blue-500 font-medium">
                             Create one here
                         </Link>
                     </p>
@@ -114,12 +125,6 @@ const LoginPage: React.FC = () => {
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                        {error && (
-                            <Alert variant="destructive">
-                                <AlertDescription>{error}</AlertDescription>
-                            </Alert>
-                        )}
-
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Email Field */}
                             <div className="space-y-2">
@@ -136,8 +141,7 @@ const LoginPage: React.FC = () => {
                                         required
                                         placeholder="Enter your email"
                                         className="pl-10"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
+                                        disabled={isLoading}
                                     />
                                 </div>
                             </div>
@@ -157,8 +161,7 @@ const LoginPage: React.FC = () => {
                                         required
                                         placeholder="Enter your password"
                                         className="pl-10 pr-10"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
+                                        disabled={isLoading}
                                     />
                                     <button
                                         type="button"
@@ -177,11 +180,11 @@ const LoginPage: React.FC = () => {
                             {/* Remember Me & Forgot Password */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center">
-                                    <input
+                                    <Checkbox
                                         id="remember-me"
                                         name="remember-me"
-                                        type="checkbox"
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        className="border border-accent"
+                                        disabled={isLoading}
                                     />
                                     <Label htmlFor="remember-me" className="ml-2 text-sm">
                                         Remember me
@@ -189,7 +192,10 @@ const LoginPage: React.FC = () => {
                                 </div>
 
                                 <div className="text-sm">
-                                    <Link href="/forgot-password" className="text-blue-600 hover:text-blue-500">
+                                    <Link href="/forgot-password" className={cn(
+                                        "text-blue-600 hover:text-blue-500",
+                                        isLoading && "pointer-events-none select-none"
+                                    )}>
                                         Forgot your password?
                                     </Link>
                                 </div>
@@ -215,6 +221,41 @@ const LoginPage: React.FC = () => {
                                 )}
                             </Button>
                         </form>
+
+                        {/* Divider */}
+                        <div className="relative my-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-400 to-transparent"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="bg-card px-4 text-muted-foreground">Or continue with</span>
+                            </div>
+                        </div>
+
+                        {/* Social Login Buttons */}
+                        <div className="grid grid-cols-2 gap-3">
+                            {/* Google Login */}
+                            <Button
+                                variant="ghost"
+                                className="flex items-center justify-center gap-2"
+                                onClick={handleOauthSignIn('google')}
+                                disabled={isLoading}
+                            >
+                                <Google />
+                                {isLoading ? 'Connecting...' : 'Google'}
+                            </Button>
+
+                            {/* GitHub Login */}
+                            <Button
+                                variant="ghost"
+                                className="flex items-center justify-center gap-2"
+                                onClick={handleOauthSignIn('github')}
+                                disabled={isLoading}
+                            >
+                                <GitHub />
+                                {isLoading ? 'Connecting...' : 'GitHub'}
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -222,17 +263,23 @@ const LoginPage: React.FC = () => {
                 <div className="text-center">
                     <p className="text-xs text-muted-foreground">
                         By signing in, you agree to our{' '}
-                        <Link href="#" className="text-blue-600 hover:text-blue-500">
+                        <Link href="#" className={cn(
+                            "text-blue-600 hover:text-blue-500",
+                            isLoading && "pointer-events-none select-none"
+                        )}>
                             Terms of Service
                         </Link>{' '}
                         and{' '}
-                        <Link href="#" className="text-blue-600 hover:text-blue-500">
+                        <Link href="#" className={cn(
+                            "text-blue-600 hover:text-blue-500",
+                            isLoading && "pointer-events-none select-none"
+                        )}>
                             Privacy Policy
                         </Link>
                     </p>
                 </div>
             </div>
-        </BubbleBackground>
+        </BeamsBackground>
     );
 };
 
