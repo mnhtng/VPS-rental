@@ -1,7 +1,12 @@
 import uuid
-from datetime import datetime
 from typing import Optional, TYPE_CHECKING
-from sqlmodel import PrimaryKeyConstraint, SQLModel, Field, Relationship
+from pydantic import ConfigDict
+from sqlmodel import (
+    PrimaryKeyConstraint,
+    SQLModel,
+    Field,
+    Relationship,
+)
 
 if TYPE_CHECKING:
     from .users import User
@@ -14,8 +19,15 @@ class Authenticator(SQLModel, table=True):
     Attributes:
         id: Unique identifier for the authenticator.
         name: Name of the authenticator.
-        created_at: Timestamp when the authenticator was created.
-        updated_at: Timestamp when the authenticator was last updated.
+        user_id: Foreign key to users table.
+        provider_account_id: Account ID from the provider.
+        credential_public_key: Public key of the credential.
+        counter: Counter for the authenticator.
+        credential_device_type: Type of device for the credential.
+        credential_backed_up: Indicates if the credential is backed up.
+        transports: Optional transports information.
+
+        user: Relationship to the User model (1-to-N).
     """
 
     __tablename__ = "authenticators"
@@ -30,30 +42,22 @@ class Authenticator(SQLModel, table=True):
     credential_id: str = Field(
         unique=True,
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     user_id: uuid.UUID = Field(
         foreign_key="users.id",
-        nullable=False,
         ondelete="CASCADE",
-        sa_column_kwargs={
-            "onupdate": "CASCADE",
-        },
     )
     provider_account_id: str = Field(
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     credential_public_key: str = Field(
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     counter: int = Field(
         nullable=False,
     )
     credential_device_type: str = Field(
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     credential_backed_up: bool = Field(
         nullable=False,
@@ -61,7 +65,6 @@ class Authenticator(SQLModel, table=True):
     transports: Optional[str] = Field(
         default=None,
         nullable=True,
-        sa_column_kwargs={"type_": "TEXT"},
     )
 
     user: Optional["User"] = Relationship(
@@ -72,12 +75,6 @@ class Authenticator(SQLModel, table=True):
     def __repr__(self) -> str:
         """Represent the Authenticator model as a string"""
         return f"<Authenticator(credential_id='{self.credential_id}', user_id='{self.user_id}')>"
-
-    def __str__(self) -> str:
-        """String representation of the Authenticator model"""
-        return (
-            f"Authenticator(credential_id={self.credential_id}, user_id={self.user_id})"
-        )
 
     def to_dict(self) -> dict:
         """Convert model instance to dictionary"""
@@ -92,8 +89,8 @@ class Authenticator(SQLModel, table=True):
             "transports": self.transports,
         }
 
-    def __eq__(self, other) -> bool:
-        """Check equality based on credential ID and user ID"""
+    def __eq__(self, other: object) -> bool:
+        """Check equality between two Authenticator instances"""
         if isinstance(other, Authenticator):
             return (self.credential_id, self.user_id) == (
                 other.credential_id,
@@ -101,15 +98,4 @@ class Authenticator(SQLModel, table=True):
             )
         return False
 
-    def __hash__(self) -> int:
-        """Hash based on credential ID and user ID"""
-        return hash((self.credential_id, self.user_id))
-
-    class Config:
-        """Pydantic model configuration"""
-
-        orm_mode = True
-        json_encoders = {
-            uuid.UUID: lambda v: str(v),
-            datetime: lambda v: v.isoformat() if v else None,
-        }
+    model_config = ConfigDict(from_attributes=True)

@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
-from sqlmodel import SQLModel, Field, Relationship
+from pydantic import ConfigDict
+from sqlmodel import SQLModel, Field
 
 
 class VerificationToken(SQLModel, table=True):
@@ -24,18 +25,13 @@ class VerificationToken(SQLModel, table=True):
     identifier: str = Field(
         index=True,
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     token: str = Field(
         unique=True,
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     expires: datetime = Field(
         nullable=False,
-        sa_column_kwargs={
-            "type_": "TIMESTAMP(3)",
-        },
     )
 
     def __repr__(self) -> str:
@@ -44,10 +40,6 @@ class VerificationToken(SQLModel, table=True):
             f"<VerificationToken(identifier='{self.identifier}', token='{self.token}', "
             f"expires='{self.expires}')>"
         )
-
-    def __str__(self) -> str:
-        """String representation of the VerificationToken model"""
-        return f"VerificationToken(identifier={self.identifier}, token={self.token})"
 
     def to_dict(self) -> dict:
         """Convert model instance to dictionary"""
@@ -58,21 +50,10 @@ class VerificationToken(SQLModel, table=True):
             "expires": self.expires,
         }
 
-    def __eq__(self, other) -> bool:
-        """Check equality based on id"""
+    def __eq__(self, other: object) -> bool:
+        """Check equality between two VerificationToken instances"""
         if isinstance(other, VerificationToken):
             return self.id == other.id
         return False
 
-    def __hash__(self) -> int:
-        """Hash based on id"""
-        return hash(self.id)
-
-    class Config:
-        """Pydantic model configuration"""
-
-        orm_mode = True
-        json_encoders = {
-            uuid.UUID: lambda v: str(v),
-            datetime: lambda v: v.isoformat() if v else None,
-        }
+    model_config = ConfigDict(from_attributes=True)

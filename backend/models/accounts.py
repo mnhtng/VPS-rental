@@ -1,7 +1,13 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint
+from pydantic import ConfigDict
+from sqlmodel import (
+    SQLModel,
+    Field,
+    Relationship,
+    UniqueConstraint,
+)
 
 if TYPE_CHECKING:
     from .users import User
@@ -27,7 +33,7 @@ class Account(SQLModel, table=True):
         created_at: Account creation timestamp.
         updated_at: Last update timestamp.
 
-        user: Relationship to the User model.
+        user: Relationship to the User model (1-to-1).
     """
 
     __tablename__ = "accounts"
@@ -45,35 +51,26 @@ class Account(SQLModel, table=True):
         nullable=False,
     )
     user_id: uuid.UUID = Field(
-        foreign_key="users.id",
-        nullable=False,
         index=True,
+        foreign_key="users.id",
         ondelete="CASCADE",
-        sa_column_kwargs={
-            "onupdate": "CASCADE",
-        },
     )
     type: str = Field(
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     provider: str = Field(
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     provider_account_id: str = Field(
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     refresh_token: Optional[str] = Field(
         default=None,
         nullable=True,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     access_token: Optional[str] = Field(
         default=None,
         nullable=True,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     expires_at: Optional[int] = Field(
         default=None,
@@ -82,36 +79,28 @@ class Account(SQLModel, table=True):
     token_type: Optional[str] = Field(
         default=None,
         nullable=True,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     scope: Optional[str] = Field(
         default=None,
         nullable=True,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     id_token: Optional[str] = Field(
         default=None,
         nullable=True,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     session_state: Optional[str] = Field(
         default=None,
         nullable=True,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
-        sa_column_kwargs={
-            "type_": "TIMESTAMP(3)",
-        },
     )
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
         sa_column_kwargs={
-            "type_": "TIMESTAMP(3)",
-            "onupdate": datetime.utcnow,
+            "onupdate": lambda: datetime.now(timezone.utc),
         },
     )
 
@@ -123,10 +112,6 @@ class Account(SQLModel, table=True):
     def __repr__(self) -> str:
         """Represent the Account model as a string"""
         return f"<Account(provider='{self.provider}', user_id='{self.user_id}')>"
-
-    def __str__(self) -> str:
-        """String representation of the Account model"""
-        return f"{self.provider}:{self.provider_account_id}"
 
     def to_dict(self) -> dict:
         """Convert model instance to dictionary"""
@@ -143,26 +128,14 @@ class Account(SQLModel, table=True):
             "scope": self.scope,
             "id_token": self.id_token,
             "session_state": self.session_state,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
-    def __eq__(self, other) -> bool:
-        """Check equality based on id"""
+    def __eq__(self, other: object) -> bool:
+        """Check equality between two Account instances"""
         if isinstance(other, Account):
             return self.id == other.id
         return False
 
-    def __hash__(self) -> int:
-        """Hash based on id"""
-        return hash(self.id)
-
-    class Config:
-        """Pydantic model configuration"""
-
-        orm_mode = True  # Help smooth conversion between ORM and Pydantic models
-        json_encoders = {
-            # Help JSON serialization of complex types (when use in FastAPI responses or typecasts to dict/json)
-            uuid.UUID: lambda v: str(v),
-            datetime: lambda v: v.isoformat() if v else None,
-        }
+    model_config = ConfigDict(from_attributes=True)

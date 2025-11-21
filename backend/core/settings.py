@@ -8,6 +8,12 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
     DEBUG: bool = False
     ALLOWED_ORIGINS: str = ""
+    PROXMOX_HOST: str
+    PROXMOX_PORT: int = 8006
+    PROXMOX_USER: str
+    PROXMOX_PASSWORD: str
+    TUNNEL_DOMAIN: str
+    ENABLE_HTTPS: bool = False
 
     @field_validator("ALLOWED_ORIGINS")
     def parse_allowed_origins(cls, v: str) -> List[str]:

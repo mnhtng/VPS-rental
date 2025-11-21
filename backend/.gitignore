@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 
+docs/
 # Virtual environments
 .venv
 .env

@@ -1,7 +1,12 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
+from pydantic import ConfigDict
+from sqlmodel import (
+    SQLModel,
+    Field,
+    Relationship,
+)
 
 if TYPE_CHECKING:
     from .users import User
@@ -19,7 +24,7 @@ class Session(SQLModel, table=True):
         created_at: Timestamp when the session was created.
         updated_at: Timestamp when the session was last updated.
 
-        user: Relationship to the User model.
+        user: Relationship to the User model (1-to-N).
     """
 
     __tablename__ = "sessions"
@@ -30,38 +35,26 @@ class Session(SQLModel, table=True):
         nullable=False,
     )
     user_id: uuid.UUID = Field(
-        foreign_key="users.id",
-        nullable=False,
         index=True,
+        foreign_key="users.id",
         ondelete="CASCADE",
-        sa_column_kwargs={
-            "onupdate": "CASCADE",
-        },
     )
     session_token: str = Field(
         unique=True,
         nullable=False,
-        sa_column_kwargs={"type_": "TEXT"},
     )
     expires: datetime = Field(
         nullable=False,
-        sa_column_kwargs={
-            "type_": "TIMESTAMP(3)",
-        },
     )
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
-        sa_column_kwargs={
-            "type_": "TIMESTAMP(3)",
-        },
     )
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
         sa_column_kwargs={
-            "type_": "TIMESTAMP(3)",
-            "onupdate": datetime.utcnow,
+            "onupdate": lambda: datetime.now(timezone.utc),
         },
     )
 
@@ -76,10 +69,6 @@ class Session(SQLModel, table=True):
             f"<Session(user_id='{self.user_id}', session_token='{self.session_token}')>"
         )
 
-    def __str__(self) -> str:
-        """String representation of the Session model"""
-        return f"Session(token={self.session_token}, user_id={self.user_id})"
-
     def to_dict(self) -> dict:
         """Convert model instance to dictionary"""
         return {
@@ -87,25 +76,14 @@ class Session(SQLModel, table=True):
             "user_id": str(self.user_id),
             "session_token": self.session_token,
             "expires_at": self.expires_at,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
-    def __eq__(self, other) -> bool:
-        """Check equality based on session ID"""
+    def __eq__(self, other: object) -> bool:
+        """Check equality between two Session instances"""
         if isinstance(other, Session):
             return self.id == other.id
         return False
 
-    def __hash__(self) -> int:
-        """Hash based on session ID"""
-        return hash(self.id)
-
-    class Config:
-        """Pydantic model configuration"""
-
-        orm_mode = True
-        json_encoders = {
-            uuid.UUID: lambda v: str(v),
-            datetime: lambda v: v.isoformat(),
-        }
+    model_config = ConfigDict(from_attributes=True)

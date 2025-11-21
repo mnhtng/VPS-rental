@@ -2,16 +2,18 @@ import uuid
 from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
+from pydantic import ConfigDict
 from sqlmodel import (
     Field,
     SQLModel,
     Relationship,
     UniqueConstraint,
-    DECIMAL,
-    TIMESTAMP,
-    ForeignKey,
 )
-from pydantic import ConfigDict
+
+if TYPE_CHECKING:
+    from .users import User
+    from .vps_plans import VPSPlan
+    from .vm_templates import VMTemplate
 
 
 class Cart(SQLModel, table=True):
@@ -22,13 +24,17 @@ class Cart(SQLModel, table=True):
         id: Unique identifier for the cart.
         user_id: Identifier for the user owning the cart.
         vps_plan_id: Identifier for the VPS plan added to the cart.
+        template_id: Identifier for the VM template to be used.
         hostname: Hostname for the VPS.
-        vm_template: VM template to be used.
         duration_months: Duration in months for the VPS rental.
         unit_price: Unit price of the VPS plan at the time of adding to cart.
         total_price: Total price calculated as unit_price * duration_months.
         created_at: Timestamp when the cart was created.
         updated_at: Timestamp when the cart was last updated.
+
+        user: Relationship to the User model (1-to-1).
+        vps_plan: Relationship to the VPSPlan model (1-to-N).
+        vm_template: Relationship to the VMTemplate model (1-to-N).
     """
 
     __tablename__ = "carts"
@@ -36,7 +42,9 @@ class Cart(SQLModel, table=True):
         UniqueConstraint(
             "user_id",
             "vps_plan_id",
-            name="carts_user_id_vps_plan_id_key",
+            "template_id",
+            "hostname",
+            name="carts_user_id_vps_plan_id_template_id_hostname_key",
         ),
     )
 
@@ -46,21 +54,21 @@ class Cart(SQLModel, table=True):
         nullable=False,
     )
     user_id: uuid.UUID = Field(
-        sa_column=ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
-        nullable=False,
         index=True,
+        foreign_key="users.id",
+        ondelete="CASCADE",
     )
     vps_plan_id: uuid.UUID = Field(
-        sa_column=ForeignKey("vps_plans.id", ondelete="CASCADE", onupdate="CASCADE"),
-        nullable=False,
+        foreign_key="vps_plans.id",
+        ondelete="CASCADE",
+    )
+    template_id: uuid.UUID = Field(
+        foreign_key="vm_templates.id",
+        ondelete="CASCADE",
     )
     hostname: str = Field(
         nullable=False,
         max_length=255,
-    )
-    vm_template: str = Field(
-        nullable=False,
-        max_length=100,
     )
     duration_months: int = Field(
         default=1,
@@ -79,31 +87,40 @@ class Cart(SQLModel, table=True):
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
-        sa_column_kwargs={
-            "type_": TIMESTAMP(timezone=True),
-        },
     )
     updated_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
         sa_column_kwargs={
-            "type_": TIMESTAMP(timezone=True),
             "onupdate": lambda: datetime.now(timezone.utc),
         },
     )
 
+    user: Optional["User"] = Relationship(
+        back_populates="cart",
+        sa_relationship_kwargs={"lazy": "select"},
+    )
+    vps_plan: Optional["VPSPlan"] = Relationship(
+        back_populates="carts",
+        sa_relationship_kwargs={"lazy": "select"},
+    )
+    vm_template: Optional["VMTemplate"] = Relationship(
+        back_populates="carts",
+        sa_relationship_kwargs={"lazy": "select"},
+    )
+
     def __repr__(self) -> str:
         """Represent the Cart model as a string"""
-        return f"<Cart id={self.id} user_id={self.user_id} vps_plan_id={self.vps_plan_id} total_price={self.total_price}>"
+        return f"<Cart id={self.id} user_id={self.user_id} vps_plan_id={self.vps_plan_id} hostname={self.hostname}>"
 
     def to_dict(self) -> dict:
-        """Convert the Cart model to a dictionary"""
+        """Convert model instance to dictionary"""
         return {
             "id": str(self.id),
             "user_id": str(self.user_id),
             "vps_plan_id": str(self.vps_plan_id),
+            "template_id": str(self.template_id),
             "hostname": self.hostname,
-            "vm_template": self.vm_template,
             "duration_months": self.duration_months,
             "unit_price": float(self.unit_price),
             "total_price": float(self.total_price),
@@ -113,14 +130,8 @@ class Cart(SQLModel, table=True):
 
     def __eq__(self, other: object) -> bool:
         """Check equality between two Cart instances"""
-        if not isinstance(other, Cart):
-            return NotImplemented
-        return self.id == other.id
+        if isinstance(other, Cart):
+            return self.id == other.id
+        return False
 
-    model_config = ConfigDict(
-        from_attributes=True,
-        json_encoders={
-            uuid.UUID: lambda v: str(v),
-            datetime: lambda v: v.isoformat() if v else None,
-        },
-    )
+    model_config = ConfigDict(from_attributes=True)

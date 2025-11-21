@@ -2,9 +2,14 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from backend.core.settings import settings
-from backend.db.database import init_db
-# from backend.routes import auth, vps_plans, orders, payment, support, admin
+
+from backend.core import settings, register_exception_handlers
+from backend.db import init_db
+from backend.routes import (
+    users_router,
+    proxmox_router,
+    proxmox_iaas_router,
+)
 
 
 @asynccontextmanager
@@ -24,6 +29,7 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
+    openapi_url="/openapi.json",
     contact={
         "name": "VPS Rental API Support",
         "url": "http://localhost:8000/docs",
@@ -42,8 +48,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register all custom exception handlers
+register_exception_handlers(app)
+
 
 api_prefix = settings.API_PREFIX
+
+app.include_router(users_router, prefix=api_prefix)
+app.include_router(proxmox_router, prefix=api_prefix)
+app.include_router(proxmox_iaas_router, prefix=api_prefix)
 
 
 @app.get(f"{api_prefix}/")
