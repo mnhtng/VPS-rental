@@ -294,18 +294,26 @@ class UserUpdate(BaseModel):
 class UserChangePassword(BaseModel):
     """Schema to change user password"""
 
-    old_password: str = Field(..., description="Current password")
+    current_password: str = Field(..., description="Current password")
     new_password: str = Field(..., description="New password")
 
-    @field_validator("old_password")
+    @field_validator("current_password")
     @classmethod
-    def validate_password(cls, v: str) -> str:
+    def validate_current_password(cls, v: str) -> str:
         if not v:
             raise ValueError("Password must not be empty")
 
         v = v.strip()
         if len(v) == 0:
             raise ValueError("Password must not be empty")
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters")
+        if not any(c.isupper() for c in v):
+            raise ValueError("Password must be at least one uppercase letter")
+        if not any(c.islower() for c in v):
+            raise ValueError("Password must be at least one lowercase letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must be at least one digit")
         return v
 
     @field_validator("new_password")

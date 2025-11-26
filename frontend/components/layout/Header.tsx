@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -40,13 +39,14 @@ import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { LanguageBadge } from '@/components/ui/language-badge';
 import { Separator } from '@radix-ui/react-separator';
 import { usePathname } from 'next/navigation';
-import { logout } from '@/utils/auth';
 import { useSession } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Header = () => {
     const { data: session } = useSession()
     const t = useTranslations('header');
     const locale = useLocale();
+    const { logout } = useAuth();
 
     const [active, setActive] = useState<string>('');
     const pathname = usePathname();
@@ -70,7 +70,6 @@ export const Header = () => {
     const handleLogout = async () => {
         setMobileMenuOpen(false);
         await logout();
-        window.location.href = `/${locale}/login`;
     };
 
     return (

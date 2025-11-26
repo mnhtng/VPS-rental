@@ -319,7 +319,7 @@ CREATE TABLE "vps_plans" (
     "monthly_price" DECIMAL(10,2) NOT NULL,
     "currency" VARCHAR(10) NOT NULL DEFAULT 'VND', -- VND, USD
     -- Limitations
-    "max_snapshots" INTEGER NOT NULL DEFAULT 3,
+    "max_snapshots" INTEGER NOT NULL DEFAULT 1,
     "max_ip_addresses" INTEGER NOT NULL DEFAULT 1,
     "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -18,27 +18,30 @@ interface EmailResetPasswordTemplateProps {
 
 const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
-    : '';
+    : 'https://mnhtng.site';
 
 const EmailResetPasswordTemplate = ({
     name = "Khách hàng",
     resetUrl,
 }: EmailResetPasswordTemplateProps) => {
+    const currentYear = new Date().getFullYear();
+
     return (
         <Html>
             <Head />
-            <Preview>Đặt lại mật khẩu của bạn - VPS Rental</Preview>
+            <Preview>Đặt lại mật khẩu của bạn - PCloud</Preview>
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
                         <Img
-                            src={`${baseUrl}/logo.png`}
-                            width="40"
-                            height="40"
-                            alt="VPS Rental"
+                            // src={`${baseUrl}/logo.png`}
+                            src={`${baseUrl}/bg.png`}
+                            width="60"
+                            height="60"
+                            alt="PCloud"
                             style={logo}
                         />
-                        <Heading style={h1}>VPS Rental</Heading>
+                        <Heading style={h1}>PCloud</Heading>
                     </Section>
 
                     <Section style={content}>
@@ -49,7 +52,7 @@ const EmailResetPasswordTemplate = ({
                         </Text>
 
                         <Text style={text}>
-                            Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản VPS Rental của bạn.
+                            Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản PCloud của bạn.
                             Nếu bạn đã thực hiện yêu cầu này, vui lòng click vào nút bên dưới để tạo mật khẩu mới.
                         </Text>
 
@@ -84,13 +87,13 @@ const EmailResetPasswordTemplate = ({
 
                         <Text style={signature}>
                             Trân trọng,<br />
-                            VPS Rental Security Team
+                            PCloud Team
                         </Text>
                     </Section>
 
                     <Section style={footer}>
                         <Text style={footerText}>
-                            © 2025 VPS Rental. Tất cả quyền được bảo lưu.<br />
+                            © {currentYear} PCloud. Tất cả quyền được bảo lưu.<br />
                             Email này được gửi từ hệ thống bảo mật tự động.
                         </Text>
                     </Section>
@@ -115,7 +118,7 @@ const container = {
 };
 
 const header = {
-    padding: "32px 20px",
+    padding: "20px",
     textAlign: "center" as const,
 };
 
@@ -126,8 +129,8 @@ const logo = {
 
 const h1 = {
     color: "#1f2937",
-    fontSize: "24px",
-    fontWeight: "600",
+    fontSize: "36px",
+    fontWeight: "700",
     margin: "0",
 };
 

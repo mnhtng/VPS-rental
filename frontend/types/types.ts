@@ -159,12 +159,13 @@ export interface Profile {
     role?: 'USER' | 'ADMIN';
 }
 
-export interface ProfileUpdateForm {
-    full_name?: string;
-    phone?: string;
+export interface ProfileUpdate {
+    name?: string;
+    phone?: string
+    address?: string;
 }
 
-export interface PasswordChangeForm {
+export interface PasswordChange {
     current_password: string;
     new_password: string;
 }

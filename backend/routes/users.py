@@ -3,25 +3,33 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, or_, select, func
 from sqlalchemy.orm import selectinload
-from typing import List
+from typing import List, Dict, Any
+import logging
 
 from backend.db import get_session
 from backend.models import User
 from backend.schemas import (
     UserCreate,
     UserUpdate,
-    UserChangePassword,
     UserResponse,
 )
-from backend.utils import hash_password, verify_password
+from backend.utils import (
+    hash_password,
+    get_current_user,
+    get_admin_user,
+)
 
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["User"])
 
 
 @router.get("/", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
 async def get_users(
-    skip: int = 0, limit: int = None, session: Session = Depends(get_session)
+    skip: int = 0,
+    limit: int = None,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_admin_user),
 ):
     """
     Get list of users.
@@ -31,6 +39,8 @@ async def get_users(
         limit (int, optional): Maximum number of users to return. Defaults to None.
 
     Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
         HTTPException: 500 if an error occurs during the retrieval.
 
     Returns:
@@ -46,14 +56,19 @@ async def get_users(
 
         return users
     except Exception as e:
+        logger.error(f">>> Error retrieving users: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving users: {str(e)}",
+            detail="Error retrieving users",
         )
 
 
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def get_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
+async def get_user(
+    user_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     """
     Get user by ID.
 
@@ -61,6 +76,8 @@ async def get_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
         user_id (uuid.UUID): User ID.
 
     Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if trying to view other user's profile without admin permission.
         HTTPException: 404 if user not found.
         HTTPException: 500 if an error occurs during the retrieval.
 
@@ -68,24 +85,38 @@ async def get_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
         UserResponse: User information.
     """
     try:
+        if current_user.role != "ADMIN" and current_user.id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to view this user",
+            )
+
         user = session.get(User, user_id)
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
             )
 
         return user
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f">>> Error retrieving user: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving user: {str(e)}",
+            detail="Error retrieving user",
         )
 
 
 @router.get(
     "/email/{email}", response_model=UserResponse, status_code=status.HTTP_200_OK
 )
-async def get_user_by_email(email: str, session: Session = Depends(get_session)):
+async def get_user_by_email(
+    email: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_admin_user),
+):
     """
     Get user by email.
 
@@ -93,6 +124,8 @@ async def get_user_by_email(email: str, session: Session = Depends(get_session))
         email (str): User email.
 
     Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
         HTTPException: 404 if user not found.
         HTTPException: 500 if an error occurs during the retrieval.
 
@@ -104,41 +137,55 @@ async def get_user_by_email(email: str, session: Session = Depends(get_session))
         user = session.exec(statement).first()
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
             )
 
         return user
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f">>> Error retrieving user by email: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving user by email: {str(e)}",
+            detail="Error retrieving user by email",
         )
 
 
-@router.get("/count/", status_code=status.HTTP_200_OK)
-async def get_user_count(session: Session = Depends(get_session)):
+@router.get("/count/", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+async def get_user_count(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_admin_user),
+):
     """
     Get total number of users.
 
     Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
         HTTPException: 500 if an error occurs during the retrieval.
 
     Returns:
-        dict: Dictionary with user count.
+        Dictionary containing the user count.
     """
     try:
         statement = select(func.count()).select_from(User)
         count = session.exec(statement).one()
         return {"user_count": count}
     except Exception as e:
+        logger.error(f">>> Error retrieving user count: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving user count: {str(e)}",
+            detail="Error retrieving user count",
         )
 
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(user_data: UserCreate, session: Session = Depends(get_session)):
+async def create_user(
+    user_data: UserCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_admin_user),
+):
     """
     Create a new user.
 
@@ -146,6 +193,8 @@ async def create_user(user_data: UserCreate, session: Session = Depends(get_sess
         user_data (UserCreate): Data for the new user.
 
     Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
         HTTPException: 400 if email already registered.
         HTTPException: 500 if an error occurs during user creation.
 
@@ -174,17 +223,23 @@ async def create_user(user_data: UserCreate, session: Session = Depends(get_sess
         session.refresh(user)
 
         return user
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f">>> Error creating user: {str(e)}")
         session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error creating user: {str(e)}",
+            detail="Error creating user",
         )
 
 
 @router.put("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
 async def update_user(
-    user_id: uuid.UUID, user_data: UserUpdate, session: Session = Depends(get_session)
+    user_id: uuid.UUID,
+    user_data: UserUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_admin_user),
 ):
     """
     Update user information.
@@ -194,6 +249,8 @@ async def update_user(
         user_data (UserUpdate): Updated user information.
 
     Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
         HTTPException: 404 if user not found.
         HTTPException: 400 if email already in use.
         HTTPException: 500 if an error occurs during the update.
@@ -227,64 +284,23 @@ async def update_user(
         session.refresh(user)
 
         return user
+    except HTTPException:
+        raise
     except Exception as e:
         session.rollback()
+        logger.error(f">>> Error updating user: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating user: {str(e)}",
-        )
-
-
-@router.post("/{user_id}/change-password", status_code=status.HTTP_200_OK)
-async def change_password(
-    user_id: uuid.UUID,
-    password_data: UserChangePassword,
-    session: Session = Depends(get_session),
-):
-    """
-    Change user password.
-
-    Args:
-        user_id (uuid.UUID): User ID.
-        password_data (UserChangePassword): Old and new password data.
-
-    Raises:
-        HTTPException: 404 if user not found.
-        HTTPException: 400 if current password is incorrect.
-        HTTPException: 500 if an error occurs during the password change.
-
-    Returns:
-        dict: Success message.
-    """
-    try:
-        user = session.get(User, user_id)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-            )
-
-        if not verify_password(password_data.old_password, user.password):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Current password is incorrect",
-            )
-
-        user.password = hash_password(password_data.new_password)
-
-        session.add(user)
-        session.commit()
-
-        return {"message": "Password changed successfully"}
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error changing password: {str(e)}",
+            detail="Error updating user",
         )
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session)):
+async def delete_user(
+    user_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_admin_user),
+):
     """
     Delete user by ID.
 
@@ -292,6 +308,8 @@ async def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session
         user_id (uuid.UUID): User ID.
 
     Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
         HTTPException: 404 if user not found.
         HTTPException: 500 if an error occurs during the deletion.
 
@@ -309,65 +327,25 @@ async def delete_user(user_id: uuid.UUID, session: Session = Depends(get_session
         session.commit()
 
         return {"message": "User deleted successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         session.rollback()
+        logger.error(f">>> Error deleting user: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting user: {str(e)}",
-        )
-
-
-@router.get(
-    "/{user_id}/verify-email",
-    response_model=UserResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def verify_email(user_id: uuid.UUID, session: Session = Depends(get_session)):
-    """
-    Verify user's email.
-
-    Args:
-        user_id (uuid.UUID): User ID.
-
-    Raises:
-        HTTPException: 404 if user not found.
-        HTTPException: 400 if email already verified.
-        HTTPException: 500 if an error occurs during the update.
-
-    Returns:
-        UserResponse: User information.
-    """
-    try:
-        user = session.get(User, user_id)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-            )
-
-        if user.email_verified:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Email already verified"
-            )
-
-        user.email_verified = datetime.now(timezone.utc)
-
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-
-        return user
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error verifying email: {str(e)}",
+            detail="Error deleting user",
         )
 
 
 @router.get(
     "/search/", response_model=List[UserResponse], status_code=status.HTTP_200_OK
 )
-async def search_users(query: str = "", session: Session = Depends(get_session)):
+async def search_users(
+    query: str = "",
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_admin_user),
+):
     """
     Search users by name, email, phone, address, or role.
 
@@ -375,6 +353,8 @@ async def search_users(query: str = "", session: Session = Depends(get_session))
         query (str, optional): Search query string. Defaults to "".
 
     Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
         HTTPException: 500 if an error occurs during the search.
 
     Returns:
@@ -395,7 +375,8 @@ async def search_users(query: str = "", session: Session = Depends(get_session))
 
         return users
     except Exception as e:
+        logger.error(f">>> Error searching users: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error searching users: {str(e)}",
+            detail="Error searching users",
         )

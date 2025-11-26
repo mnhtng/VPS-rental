@@ -24,11 +24,17 @@ const providers: Provider[] = [
             const validatedCredentials = await loginSchema.safeParse(credentials)
 
             if (!validatedCredentials.success) {
-                return null
+                return null;
             }
 
-            const { email, password } = validatedCredentials.data
-            return await getAuthUser(email, password)
+            const { email, password } = validatedCredentials.data;
+            const user = await getAuthUser(email, password)
+
+            if (!user) {
+                return null;
+            }
+
+            return user;
         },
     }),
     Google,
@@ -52,8 +58,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 token.phone = (user as User).phone;
                 token.address = (user as User).address;
 
-                const authUser = await isUserExists(user.email as string);
-                token.created_at = authUser?.createdAt;
+                try {
+                    const authUser = await isUserExists(user.email as string);
+                    token.created_at = authUser?.createdAt?.toISOString();
+                } catch (error) {
+                    console.error('>>> Error fetching user in jwt callback:', error);
+                    token.created_at = new Date().toISOString();
+                }
 
                 // Store OAuth tokens if available
                 if (account.access_token) {
@@ -64,7 +75,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 }
             }
 
-            console.log(">>> JWT: ", token);
+            if (token?.id || token?.email)
+                console.log(">>> JWT: ", token);
             return token;
         },
         async session({ session, token }): Promise<Session> {
@@ -86,16 +98,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 session.refresh_token = token.refresh_token as string;
             }
 
-            console.log(">>> Session: ", session);
+            if (session.user?.id || session.user?.email)
+                console.log(">>> Session: ", session);
             return session;
         },
     },
     session: {
         strategy: "jwt",
         maxAge: 14 * 24 * 60 * 60, // 14 days
-        updateAge: 6 * 60 * 60, // 6 hours
+        updateAge: 15 * 60, // 15 minutes
     },
     trustHost: true,
+    /**
+     * lax: Cookies are not sent on normal cross-site subrequests (for example to load images or frames into a third party site), but are sent when a user is navigating to the origin site (i.e., when following a link).
+     * strict: Cookies will only be sent in a first-party context and not be sent along with requests initiated by third party websites.
+     * none: Cookies will be sent in all contexts, i.e., in responses to both first-party and cross-origin requests. If SameSite=None is used, the cookie Secure attribute must also be set (i.e., the cookie is only sent over secure channels).
+     */
+    cookies: {
+        sessionToken: {
+            name: `pcloud-auth.session-token`,
+            options: {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: "lax",
+                path: "/",
+            }
+        }
+    },
     debug: process.env.NODE_ENV === "development",
     useSecureCookies: process.env.NODE_ENV === "production",
 })

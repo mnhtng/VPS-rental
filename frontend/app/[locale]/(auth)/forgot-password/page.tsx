@@ -23,16 +23,18 @@ import { BeamsBackground } from '@/components/ui/beam-background';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import useAuth from '@/hooks/useAuth';
+import { useLocale } from 'next-intl';
 
 const ForgotPasswordPage = () => {
     const router = useRouter();
-    const { forgotPassword } = useAuth();
+    const locale = useLocale();
+    const { forgotPassword, resendResetPasswordEmail } = useAuth();
 
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [email, setEmail] = useState('');
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
 
@@ -42,23 +44,50 @@ const ForgotPasswordPage = () => {
         };
 
         try {
-            // Validate form
-            if (!formData.email) {
-                throw new Error('Vui lòng nhập địa chỉ email');
+            if (!/\S+@\S+\.\S+/.test(formData.email)) {
+                toast.error('Please enter a valid email address');
+                return;
             }
 
-            // Call forgot password API
             const result = await forgotPassword(formData.email);
 
-            if (result.success) {
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error?.detail
+                });
+            } else {
                 setEmail(formData.email);
                 setIsSuccess(true);
-                toast.success(result.message || 'Email đặt lại mật khẩu đã được gửi!');
-            } else {
-                toast.error(result.message || 'Có lỗi xảy ra khi gửi email');
+
+                if (result.data?.reset_token)
+                    toast.success(result.message);
+                else
+                    toast.info(result.message);
             }
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+            toast.error(error instanceof Error ? error.message : 'An error occurred');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleResendEmail = async () => {
+        setIsLoading(true);
+
+        try {
+            const result = await resendResetPasswordEmail(email);
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error?.detail
+                });
+            } else {
+                toast.info(result.message);
+            }
+        } catch {
+            toast.error('Failed to resend email', {
+                description: 'Please try again later'
+            });
         } finally {
             setIsLoading(false);
         }
@@ -78,10 +107,10 @@ const ForgotPasswordPage = () => {
                             </div>
                         </div>
                         <h2 className="text-3xl font-bold">
-                            Email đã được gửi!
+                            Email sent!
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới email của bạn
+                            We&apos;ve sent password reset instructions to your email
                         </p>
                     </div>
 
@@ -91,7 +120,7 @@ const ForgotPasswordPage = () => {
                             <div className="space-y-4 text-center">
                                 <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
                                     <p className="text-sm text-green-700 dark:text-green-400">
-                                        Email đã được gửi tới:
+                                        Email has been sent to:
                                     </p>
                                     <p className="font-medium text-green-800 dark:text-green-300">
                                         {email}
@@ -99,30 +128,29 @@ const ForgotPasswordPage = () => {
                                 </div>
 
                                 <div className="space-y-2 text-sm text-muted-foreground">
-                                    <p>• Kiểm tra hộp thư của bạn và click vào link đặt lại mật khẩu</p>
-                                    <p>• Link sẽ hết hạn sau 1 giờ</p>
-                                    <p>• Kiểm tra cả thư mục spam nếu không thấy email</p>
+                                    <p>• Check your inbox and click the password reset link</p>
+                                    <p>• The link will expire in 1 hour</p>
+                                    <p>• Check your spam folder if you don&apos;t see the email</p>
                                 </div>
                             </div>
 
                             <div className="space-y-3">
                                 <Button
-                                    onClick={() => {
-                                        setIsSuccess(false);
-                                        setEmail('');
-                                    }}
+                                    onClick={handleResendEmail}
                                     variant="outline"
                                     className="w-full"
+                                    disabled={isLoading}
                                 >
-                                    Gửi lại email
+                                    {isLoading ? 'Resending...' : 'Resend email'}
                                 </Button>
 
                                 <Button
-                                    onClick={() => router.push('/login')}
+                                    onClick={() => router.push(`/${locale}/login`)}
                                     className="w-full"
+                                    disabled={isLoading}
                                 >
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Quay về đăng nhập
+                                    Back to login
                                 </Button>
                             </div>
                         </CardContent>
@@ -145,19 +173,19 @@ const ForgotPasswordPage = () => {
                         </div>
                     </div>
                     <h2 className="text-3xl font-bold">
-                        Quên mật khẩu?
+                        Forgot password?
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        Không sao cả! Nhập email của bạn và chúng tôi sẽ gửi link đặt lại mật khẩu
+                        No worries! Enter your email and we&apos;ll send you a password reset link
                     </p>
                 </div>
 
                 {/* Forgot Password Form */}
                 <Card>
                     <CardHeader className="space-y-1">
-                        <CardTitle className="text-2xl text-center">Đặt lại mật khẩu</CardTitle>
+                        <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
                         <CardDescription className="text-center">
-                            Nhập địa chỉ email đăng ký tài khoản của bạn
+                            Enter the email address associated with your account
                         </CardDescription>
                     </CardHeader>
 
@@ -176,7 +204,7 @@ const ForgotPasswordPage = () => {
                                         type="email"
                                         autoComplete="email"
                                         required
-                                        placeholder="Nhập email của bạn"
+                                        placeholder="Enter your email"
                                         className="pl-10"
                                         disabled={isLoading}
                                     />
@@ -189,21 +217,21 @@ const ForgotPasswordPage = () => {
                                 className="w-full"
                                 disabled={isLoading}
                             >
-                                {isLoading ? 'Đang gửi...' : 'Gửi link đặt lại mật khẩu'}
+                                {isLoading ? 'Sending...' : 'Send password reset link'}
                             </Button>
                         </form>
 
                         {/* Back to Login */}
                         <div className="text-center">
                             <Link
-                                href="/login"
+                                href={`/${locale}/login`}
                                 className={cn(
                                     "text-sm text-blue-600 hover:text-blue-500 inline-flex items-center",
                                     isLoading && "pointer-events-none select-none"
                                 )}
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Quay về đăng nhập
+                                Back to login
                             </Link>
                         </div>
                     </CardContent>

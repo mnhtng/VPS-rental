@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from backend.core import settings, register_exception_handlers
 from backend.db import init_db
 from backend.routes import (
+    auth_router,
     users_router,
     proxmox_router,
     proxmox_iaas_router,
@@ -54,6 +55,7 @@ register_exception_handlers(app)
 
 api_prefix = settings.API_PREFIX
 
+app.include_router(auth_router, prefix=api_prefix)
 app.include_router(users_router, prefix=api_prefix)
 app.include_router(proxmox_router, prefix=api_prefix)
 app.include_router(proxmox_iaas_router, prefix=api_prefix)

@@ -6,6 +6,16 @@ Schema definitions for data validation and serialization.
 Pydantic schemas for API request/response validation.
 """
 
+from .auth import (
+    AuthLogin,
+    AuthRegister,
+    AuthToken,
+    AuthResendVerification,
+    AuthVerifyEmail,
+    AuthForgotPassword,
+    AuthResetPassword,
+)
+
 from .users import (
     UserBase,
     UserCreate,
@@ -194,6 +204,14 @@ from .knowledge_bases import (
 )
 
 __all__ = [
+    # Auth schemas
+    "AuthLogin",
+    "AuthRegister",
+    "AuthToken",
+    "AuthResendVerification",
+    "AuthVerifyEmail",
+    "AuthForgotPassword",
+    "AuthResetPassword",
     # User schemas
     "UserBase",
     "UserCreate",

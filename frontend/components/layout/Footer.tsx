@@ -3,21 +3,26 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
-import { Server, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import Image from 'next/image';
 
 export const Footer = () => {
-    const localTheme = localStorage?.getItem('theme') === 'system'
-        ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-        : (localStorage?.getItem('theme') || 'light');
-
     const { resolvedTheme } = useTheme();
-    const [theme, setTheme] = useState(localTheme);
+    const [isMounted, setIsMounted] = useState(false);
+    const [theme, setTheme] = useState<string | undefined>(undefined);
 
     useEffect(() => {
+        setIsMounted(true);
         setTheme(resolvedTheme || 'light');
     }, [resolvedTheme]);
+
+    if (!isMounted) {
+        return (
+            <footer className="bg-gray-900 text-white relative w-full">
+                <FooterContent />
+            </footer>
+        );
+    }
 
     return theme === 'dark' ? (
         <div className="bg-gray-900 text-white relative w-full">

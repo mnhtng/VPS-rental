@@ -13,14 +13,12 @@ export default function HeroSection({
     locale: string;
     t: (key: string) => string;
 }) {
-    const localTheme = localStorage?.getItem('theme') === 'system'
-        ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-        : (localStorage?.getItem('theme') || 'light');
-
     const { resolvedTheme } = useTheme();
-    const [theme, setTheme] = useState(localTheme);
+    const [isMounted, setIsMounted] = useState(false);
+    const [theme, setTheme] = useState<string | undefined>(undefined);
 
     useEffect(() => {
+        setIsMounted(true);
         setTheme(resolvedTheme || 'light');
     }, [resolvedTheme]);
 
@@ -35,6 +33,15 @@ export default function HeroSection({
             </div>
         </div>
     );
+
+    // Prevent hydration mismatch by rendering a simple version initially
+    if (!isMounted) {
+        return (
+            <div className="relative md:min-h-[calc(100vh-4rem)] w-full flex items-center justify-center py-10">
+                <ContentLayout />
+            </div>
+        );
+    }
 
     return theme === 'dark' ? (
         <BackgroundMeteors>

@@ -1,3 +1,4 @@
+import { sendPasswordResetEmail, sendVerificationMail } from "@/lib/email/resend";
 import { useTranslations } from "next-intl";
 
 interface LoginProps {
@@ -12,6 +13,10 @@ interface RegisterProps {
     phone: string | null;
 }
 
+const baseURL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:3000';
+
 const useAuth = () => {
     const commonT = useTranslations("errors.common")
     const apiT = useTranslations("api")
@@ -21,30 +26,57 @@ const useAuth = () => {
         password,
     }: LoginProps) => {
         try {
-            const response = await fetch('/api/credential/login', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // Enable cookies
                 body: JSON.stringify({ email, password }),
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (!data.success) {
+            if (!response.ok) {
                 return {
-                    message: data.message,
-                    error: data.error
+                    message: "Login failed",
+                    error: {
+                        code: "LOGIN_ERROR",
+                        detail: result.detail
+                    }
                 }
             }
 
+            if (result.data && result.data.email_verified === false) {
+                await sendVerificationMail(
+                    result.data.email,
+                    `${baseURL}/verify-email?token=${result.data.verification_token}`,
+                    result.data.name
+                )
+
+                return {
+                    message: result.message,
+                    data: {
+                        email_verified: false,
+                        email: result.data.email,
+                        name: result.data.name,
+                        verification_token: result.data.verification_token,
+                    }
+                }
+            }
+
+            // Email is verified, return login data
             return {
-                message: data.message,
-                data: data.data || {}
+                message: result.message,
+                data: {
+                    email_verified: true,
+                    access_token: result.data.access_token,
+                    token_type: result.data.token_type,
+                }
             }
         } catch {
             return {
-                message: "Login failed!",
+                message: "Login failed",
                 error: {
                     code: "LOGIN_ERROR",
                     detail: "An unexpected error occurred during login"
@@ -60,7 +92,7 @@ const useAuth = () => {
         phone
     }: RegisterProps) => {
         try {
-            const response = await fetch('/api/credential/register', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -73,22 +105,31 @@ const useAuth = () => {
                 }),
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (!data.success) {
+            if (!response.ok) {
                 return {
-                    message: data.message,
-                    error: data.error
+                    message: "Registration failed",
+                    error: {
+                        code: 'REGISTRATION_ERROR',
+                        detail: result.detail
+                    },
                 }
             }
 
+            await sendVerificationMail(
+                email,
+                `${baseURL}/verify-email?token=${result.data.verification_token}`,
+                name
+            )
+
             return {
-                message: data.message,
-                data: data.data || {}
+                message: result.message,
+                data: result.data || {}
             }
         } catch {
             return {
-                message: "Failed to register!",
+                message: "Registration failed",
                 error: {
                     code: "REGISTRATION_ERROR",
                     detail: "An unexpected error occurred during registration"
@@ -97,43 +138,9 @@ const useAuth = () => {
         }
     }
 
-    const verifyEmail = async (token: string, email: string) => {
+    const resendVerificationMail = async (email: string, name: string) => {
         try {
-            const response = await fetch('/api/credential/verify-email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token, email }),
-            });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                return {
-                    message: data.message,
-                    error: data.error
-                }
-            }
-
-            return {
-                message: data.message,
-                data: data.data || {}
-            }
-        } catch {
-            return {
-                message: "Email verification failed!",
-                error: {
-                    code: "VERIFICATION_ERROR",
-                    detail: "An unexpected error occurred during email verification"
-                }
-            }
-        }
-    }
-
-    const forgotPassword = async (email: string) => {
-        try {
-            const response = await fetch('/api/credential/forgot-password', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-verification`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -141,23 +148,154 @@ const useAuth = () => {
                 body: JSON.stringify({ email }),
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
             if (!response.ok) {
                 return {
-                    message: data.error || 'Đã xảy ra lỗi khi gửi email đặt lại mật khẩu',
-                    error: data.error
+                    message: "Resend verification email failed",
+                    error: {
+                        code: 'RESEND_VERIFICATION_ERROR',
+                        detail: result.detail
+                    }
+                }
+            }
+
+            await sendVerificationMail(
+                email,
+                `${baseURL}/verify-email?token=${result.data.verification_token}`,
+                name
+            )
+
+            return {
+                message: result.message,
+                data: result.data || {}
+            }
+        } catch {
+            return {
+                message: "Resend verification email failed",
+                error: {
+                    code: "RESEND_VERIFICATION_ERROR",
+                    detail: "An unexpected error occurred during resending verification email"
+                }
+            }
+        }
+    }
+
+    const verifyEmail = async (token: string) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Email verification failed",
+                    error: {
+                        code: result.detail?.code || "EMAIL_VERIFICATION_ERROR",
+                        detail: result.detail?.message || "Email verification failed"
+                    }
                 }
             }
 
             return {
-                success: true,
-                message: data.message,
-                data: data.data
+                message: result.message,
+                data: result.data || {}
             }
         } catch {
             return {
-                message: "Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau.",
+                message: "Email verification failed",
+                error: {
+                    code: "SERVER_ERROR",
+                    detail: "An unexpected error occurred during email verification"
+                }
+            }
+        }
+    }
+
+    const resendResetPasswordEmail = async (email: string) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-reset-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Resend reset password email failed",
+                    error: {
+                        code: 'RESEND_RESET_PASSWORD_ERROR',
+                        detail: result.detail
+                    }
+                }
+            }
+
+            await sendPasswordResetEmail(
+                email,
+                `${baseURL}/reset-password?token=${result.data.reset_token}&email=${encodeURIComponent(email)}`,
+                result.data.name
+            )
+
+            return {
+                message: result.message,
+                data: result.data || {}
+            }
+        } catch {
+            return {
+                message: "Resend reset password email failed",
+                error: {
+                    code: "RESEND_RESET_PASSWORD_ERROR",
+                    detail: "An unexpected error occurred during resending reset password email"
+                }
+            }
+        }
+    }
+
+    const forgotPassword = async (email: string) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Sending password reset email failed",
+                    error: {
+                        code: 'FORGOT_PASSWORD_ERROR',
+                        detail: result.detail
+                    }
+                }
+            }
+
+            await sendPasswordResetEmail(
+                email,
+                `${baseURL}/reset-password?token=${result.data.reset_token}&email=${encodeURIComponent(email)}`,
+                result.data.name
+            )
+
+            return {
+                message: result.message,
+                data: result.data || {}
+            }
+        } catch {
+            return {
+                message: "Sending password reset email failed",
                 error: {
                     code: "FORGOT_PASSWORD_ERROR",
                     detail: "An unexpected error occurred while sending reset password email"
@@ -166,9 +304,9 @@ const useAuth = () => {
         }
     }
 
-    const resetPassword = async (token: string, email: string, password: string, confirmPassword: string) => {
+    const resetPassword = async (token: string, email: string, password: string) => {
         try {
-            const response = await fetch('/api/credential/reset-password', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -177,28 +315,28 @@ const useAuth = () => {
                     token,
                     email,
                     password,
-                    confirmPassword
                 }),
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
             if (!response.ok) {
                 return {
-                    message: data.error || 'Đã xảy ra lỗi khi đặt lại mật khẩu',
-                    error: data.error,
-                    details: data.details
+                    message: "Failed to reset password",
+                    error: {
+                        code: 'RESET_PASSWORD_ERROR',
+                        detail: result.detail
+                    }
                 }
             }
 
             return {
-                success: true,
-                message: data.message,
-                user: data.user
+                message: result.message,
+                data: result.data || {}
             }
         } catch {
             return {
-                message: "Không thể đặt lại mật khẩu. Vui lòng thử lại sau.",
+                message: "Failed to reset password",
                 error: {
                     code: "RESET_PASSWORD_ERROR",
                     detail: "An unexpected error occurred while resetting password"
@@ -209,26 +347,27 @@ const useAuth = () => {
 
     const validateResetToken = async (token: string, email: string) => {
         try {
-            const response = await fetch(`/api/credential/reset-password?token=${token}&email=${encodeURIComponent(email)}`);
-            const data = await response.json();
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/validate-reset-token?token=${token}&email=${encodeURIComponent(email)}`);
+            const result = await response.json();
 
             if (!response.ok) {
                 return {
-                    message: data.error || 'Token không hợp lệ',
-                    error: data.error,
-                    code: data.code
+                    message: 'Invalid token',
+                    error: {
+                        code: 'VALIDATE_TOKEN_ERROR',
+                        detail: result.detail
+                    }
                 }
             }
 
             return {
-                success: true,
-                message: data.message,
-                user: data.user,
-                tokenExpiry: data.tokenExpiry
+                message: result.message,
+                user: result.data?.user,
+                tokenExpiry: result.data?.token_expiry
             }
         } catch {
             return {
-                message: "Không thể xác thực token. Vui lòng thử lại sau.",
+                message: "Failed to validate token",
                 error: {
                     code: "VALIDATE_TOKEN_ERROR",
                     detail: "An unexpected error occurred while validating reset token"
@@ -240,7 +379,9 @@ const useAuth = () => {
     return {
         login,
         register,
+        resendVerificationMail,
         verifyEmail,
+        resendResetPasswordEmail,
         forgotPassword,
         resetPassword,
         validateResetToken

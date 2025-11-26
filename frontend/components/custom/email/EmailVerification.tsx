@@ -18,27 +18,29 @@ interface EmailVerificationTemplateProps {
 
 const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
-    : '';
+    : 'https://mnhtng.site';
 
 const EmailVerificationTemplate = ({
     name = "Khách hàng",
     verificationUrl,
 }: EmailVerificationTemplateProps) => {
+    const currentYear = new Date().getFullYear();
+
     return (
         <Html>
             <Head />
-            <Preview>Xác minh địa chỉ email của bạn - VPS Rental</Preview>
+            <Preview>Xác minh địa chỉ email của bạn - PCloud</Preview>
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
                         <Img
-                            src={`${baseUrl}/logo.png`}
-                            width="40"
-                            height="40"
-                            alt="VPS Rental"
+                            src={`${baseUrl}/bg.png`}
+                            width="60"
+                            height="60"
+                            alt="PCloud"
                             style={logo}
                         />
-                        <Heading style={h1}>VPS Rental</Heading>
+                        <Heading style={h1}>PCloud</Heading>
                     </Section>
 
                     <Section style={content}>
@@ -49,7 +51,7 @@ const EmailVerificationTemplate = ({
                         </Text>
 
                         <Text style={text}>
-                            Cảm ơn bạn đã đăng ký tài khoản tại VPS Rental! Để hoàn tất quá trình đăng ký và kích hoạt tài khoản của bạn, vui lòng xác minh địa chỉ email bằng cách click vào nút bên dưới.
+                            Cảm ơn bạn đã đăng ký tài khoản tại PCloud! Để hoàn tất quá trình đăng ký và kích hoạt tài khoản của bạn, vui lòng xác minh địa chỉ email bằng cách click vào nút bên dưới.
                         </Text>
 
                         <Section style={buttonContainer}>
@@ -73,13 +75,13 @@ const EmailVerificationTemplate = ({
 
                         <Text style={signature}>
                             Trân trọng,<br />
-                            VPS Rental Team
+                            PCloud Team
                         </Text>
                     </Section>
 
                     <Section style={footer}>
                         <Text style={footerText}>
-                            © 2025 VPS Rental. Tất cả quyền được bảo lưu.
+                            © {currentYear} PCloud. Tất cả quyền được bảo lưu.
                         </Text>
                     </Section>
                 </Container>
@@ -103,7 +105,7 @@ const container = {
 };
 
 const header = {
-    padding: "32px 20px",
+    padding: "20px",
     textAlign: "center" as const,
 };
 
@@ -114,8 +116,8 @@ const logo = {
 
 const h1 = {
     color: "#1f2937",
-    fontSize: "24px",
-    fontWeight: "600",
+    fontSize: "36px",
+    fontWeight: "700",
     margin: "0",
 };
 

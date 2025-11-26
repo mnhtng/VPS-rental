@@ -23,6 +23,7 @@
     "@dnd-kit/modifiers": "9.0.0",
     "@dnd-kit/sortable": "10.0.0",
     "@hookform/resolvers": "5.2.1",
+    "@node-rs/argon2": "2.0.2",
     "@prisma/client": "6.16.2",
     "@radix-ui/react-accordion": "1.2.12",
     "@radix-ui/react-alert-dialog": "1.1.15",
@@ -65,9 +66,7 @@
     "@tiptap/pm": "3.6.5",
     "@tiptap/react": "3.6.5",
     "@tiptap/starter-kit": "3.6.5",
-    "@types/bcrypt": "6.0.0",
     "@types/uuid": "10.0.0",
-    "bcrypt": "6.0.0",
     "buffer": "6.0.3",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -97,7 +96,7 @@
     "uuid": "13.0.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "4.1.9",
-    "zustand": "5.0.8"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3",

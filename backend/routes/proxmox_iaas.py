@@ -537,7 +537,7 @@ def start_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.post("/vms/{vm_id}/clone")
-def clone_vm(vm_id: str | int, session: Session = Depends(get_session)):
+def clone_vm(vm_id: int, session: Session = Depends(get_session)):
     """Clone a VM"""
     # vm = session.get(ProxmoxVM, vm_id)
     # if not vm:
@@ -553,7 +553,7 @@ def clone_vm(vm_id: str | int, session: Session = Depends(get_session)):
             user=settings.PROXMOX_USER,
             password=settings.PROXMOX_PASSWORD,
         )
-        result = ProxmoxVMService.create_vm(proxmox, "pve", vm_id, 100)
+        result = ProxmoxVMService.create_vm(proxmox, "pve", vm_id, 102)
 
         return result
     except Exception as e:
@@ -724,28 +724,27 @@ def resume_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.delete("/vms/{vm_id}")
-def delete_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def delete_vm(vm_id: str | int, session: Session = Depends(get_session)):
     """Delete a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
+    # vm = session.get(ProxmoxVM, vm_id)
+    # if not vm:
+    #     raise HTTPException(status_code=404, detail="VM not found")
 
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    # node = session.get(ProxmoxNode, vm.node_id)
+    # cluster = session.get(ProxmoxCluster, vm.cluster_id)
 
     try:
         proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
+            host=settings.PROXMOX_HOST,
+            port=settings.PROXMOX_PORT,
+            user=settings.PROXMOX_USER,
+            password=settings.PROXMOX_PASSWORD,
         )
-        result = CommonProxmoxService.delete_vm(proxmox, node.name, vm.vmid)
+        result = ProxmoxVMService.delete_vm(proxmox, "pve", vm_id)
 
         # Delete VM from database
-        session.delete(vm)
-        session.commit()
+        # session.delete(vm)
+        # session.commit()
 
         return {"message": "VM deleted successfully", "task": result}
     except Exception as e:

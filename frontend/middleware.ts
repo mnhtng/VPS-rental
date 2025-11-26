@@ -25,7 +25,11 @@ const ROUTE_PATTERNS = new Set([
     'my-tickets',
     'admin',
     'error',
-    'not-found'
+    'not-found',
+    'pending-verification',
+    'verify-email',
+    'forgot-password',
+    'reset-password',
 ]);
 
 // Protected routes that require authentication
@@ -105,11 +109,16 @@ const isProtectedRoute = (pathname: string): boolean => {
     return routeSegment ? PROTECTED_ROUTES.has(routeSegment) : false;
 };
 
+const isAuthRoute = (pathname: string): boolean => {
+    // Middleware bypass cho auth routes: Middleware không chặn các request đến /api/auth/* để NextAuth có thể xử lý callback
+    return pathname.startsWith('/api/auth');
+}
+
 export default async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     // Fast exit for system routes
-    if (isSystemRoute(pathname)) {
+    if (isSystemRoute(pathname) || isAuthRoute(pathname)) {
         return intlMiddleware(request);
     }
 
@@ -118,7 +127,8 @@ export default async function middleware(request: NextRequest) {
         // Get JWT token instead of using auth() wrapper to avoid bcrypt in Edge Runtime
         const token = await getToken({
             req: request,
-            secret: process.env.AUTH_SECRET
+            secret: process.env.AUTH_SECRET,
+            cookieName: 'pcloud-auth.session-token'
         });
 
         if (!token) {

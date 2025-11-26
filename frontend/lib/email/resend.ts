@@ -1,3 +1,5 @@
+'use server';
+
 import { Resend } from 'resend';
 import EmailVerificationTemplate from '@/components/custom/email/EmailVerification';
 import EmailResetPasswordTemplate from '@/components/custom/email/EmailResetPassword';
@@ -36,7 +38,7 @@ export const sendPasswordResetEmail = async (
         Trong trường hợp này, vui lòng đổi mật khẩu ngay lập tức và liên hệ với chúng tôi.
 
         Trân trọng,
-        PCloud Security Team
+        PCloud Team
       `,
         });
 

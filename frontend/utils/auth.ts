@@ -38,14 +38,13 @@ export const getAuthUser = async (
     try {
         const user = await isUserExists(email)
 
-        if (!user) {
+        if (!user)
             return null
-        }
 
-        const isValidPassword = await verifyPassword(password, user.password || "");
-        if (!isValidPassword) {
+        const isValidPassword = await verifyPassword(password, user?.password || '');
+
+        if (!isValidPassword)
             return null
-        }
 
         return {
             id: user.id,
@@ -58,7 +57,8 @@ export const getAuthUser = async (
             created_at: user.createdAt?.toISOString(),
             provider: 'credentials',
         }
-    } catch {
+    } catch (error) {
+        console.error('>>> Error in getAuthUser:', error);
         return null
     }
 }

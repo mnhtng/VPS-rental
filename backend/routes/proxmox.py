@@ -42,8 +42,8 @@ from backend.services.proxmox import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/vps", tags=["VPS Management"])
-admin_router = APIRouter(prefix="/api/admin/vps", tags=["Admin - VPS Management"])
+router = APIRouter(prefix="/vps", tags=["VPS Management"])
+admin_router = APIRouter(prefix="/admin/vps", tags=["Admin - VPS Management"])
 
 
 # ============================================================================

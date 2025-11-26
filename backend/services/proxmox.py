@@ -3626,13 +3626,12 @@ class ProxmoxVMService:
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
-        template_id: Optional[int] = None,
+        template_id: int,
         name: Optional[str] = None,
         cores: Optional[int] = None,
         memory: Optional[int] = None,
         storage: Optional[str] = None,
         ipconfig: Optional[str] = None,
-        **kwargs,
     ) -> Dict[str, Any]:
         """
         Create a new VM or clone from template
@@ -3652,19 +3651,11 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = None
-            if template_id:
-                task = proxmox.nodes(node).qemu(template_id).clone.post(newid=vmid)
-            else:
-                task = proxmox.nodes(node).qemu.post(
-                    vmid=vmid,
-                    name=name,
-                    cores=cores,
-                    memory=memory,
-                    storage=storage,
-                    ipconfig=ipconfig,
-                    **kwargs,
-                )
+            task = (
+                proxmox.nodes(node)
+                .qemu(template_id)
+                .clone.post(newid=vmid, node=node, vmid=template_id)
+            )
             return {
                 "success": True,
                 "task": task,

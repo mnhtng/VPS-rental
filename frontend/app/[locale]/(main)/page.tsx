@@ -112,7 +112,7 @@ const HomePage = () => {
       <HeroSection locale={locale} t={t} />
 
       {/* Features Section */}
-      <section className="py-20 bg-white dark:bg-muted">
+      <section className="py-20 bg-white dark:bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -144,7 +144,7 @@ const HomePage = () => {
       </section>
 
       {/* Popular Plans Section */}
-      <section className="py-20 bg-gray-50 dark:bg-background">
+      <section className="py-20 bg-gray-50 dark:bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
@@ -217,7 +217,7 @@ const HomePage = () => {
       </section>
 
       {/* Why Choose Us Section */}
-      <section className="py-20 bg-white dark:bg-muted">
+      <section className="py-20 bg-white dark:bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">

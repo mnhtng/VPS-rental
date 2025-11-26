@@ -1,15 +1,23 @@
-import bcrypt from 'bcrypt';
+import { hash, verify } from '@node-rs/argon2';
 
 export async function hashPassword(
-    password: string,
-    saltRounds: number = 12
+    password: string
 ): Promise<string> {
-    return await bcrypt.hash(password, saltRounds);
+    return await hash(password, {
+        memoryCost: 65536,  // 64 MiB
+        timeCost: 3,        // 3 iterations
+        outputLen: 32,      // 32 bytes
+        parallelism: 4,     // 4 threads
+    });
 }
 
 export async function verifyPassword(
     plainPassword: string,
     hashedPassword: string
 ): Promise<boolean> {
-    return await bcrypt.compare(plainPassword, hashedPassword);
+    try {
+        return await verify(hashedPassword, plainPassword);
+    } catch {
+        return false;
+    }
 }

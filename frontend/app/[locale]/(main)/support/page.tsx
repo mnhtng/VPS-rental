@@ -18,7 +18,8 @@ import {
     HelpCircle,
     Phone,
     Mail,
-    CheckCircle
+    CheckCircle,
+    RefreshCw
 } from 'lucide-react';
 import {
     Select,
@@ -465,7 +466,7 @@ const SupportPage = () => {
                                     >
                                         {submitStatus === 'loading' ? (
                                             <>
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                                                 Submitting...
                                             </>
                                         ) : (

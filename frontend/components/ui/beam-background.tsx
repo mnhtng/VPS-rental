@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
@@ -61,9 +61,17 @@ export function BeamsBackground({
   const beamsRef = useRef<Beam[]>([]);
   const animationFrameRef = useRef<number>(0);
   const MINIMUM_BEAMS = 20;
+  const [isMounted, setIsMounted] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    const currentTheme = resolvedTheme || 'dark';
+    setIsMounted(true);
+    setCurrentTheme(resolvedTheme || 'light');
+  }, [resolvedTheme]);
+
+  useEffect(() => {
+    if (!isMounted || !currentTheme) return;
+
     const opacityMap = {
       subtle: currentTheme === 'dark' ? 0.7 : 0.5,
       medium: currentTheme === 'dark' ? 0.85 : 0.6,
@@ -191,9 +199,23 @@ export function BeamsBackground({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [intensity, resolvedTheme]);
+  }, [intensity, currentTheme, isMounted]);
 
-  const currentTheme = resolvedTheme || 'dark';
+  // Prevent hydration mismatch by rendering simple version initially
+  if (!isMounted) {
+    return (
+      <div
+        className={cn(
+          "relative min-h-screen w-full overflow-hidden bg-background",
+          className
+        )}
+      >
+        <div className="relative z-10 w-full min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-10 md:py-15">
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -206,7 +228,7 @@ export function BeamsBackground({
       <canvas
         ref={canvasRef}
         className="fixed inset-0"
-        style={{ filter: currentTheme === 'dark' ? "blur(15px)" : "blur(12px)" }}
+        style={{ filter: "blur(15px)" }}
       />
 
       <motion.div

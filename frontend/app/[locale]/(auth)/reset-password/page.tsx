@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -25,11 +25,15 @@ import { BeamsBackground } from '@/components/ui/beam-background';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import useAuth from '@/hooks/useAuth';
+import { useLocale } from 'next-intl';
 
 const ResetPasswordPage = () => {
     const router = useRouter();
-    const searchParams = useSearchParams();
+    const locale = useLocale();
     const { resetPassword, validateResetToken } = useAuth();
+    const searchParams = useSearchParams();
+    const token = searchParams.get('token');
+    const email = searchParams.get('email');
 
     const [isLoading, setIsLoading] = useState(false);
     const [isValidating, setIsValidating] = useState(true);
@@ -37,40 +41,51 @@ const ResetPasswordPage = () => {
     const [isValidToken, setIsValidToken] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const hasValidated = useRef(false); // Prevent multiple API calls
 
-    const token = searchParams.get('token');
-    const email = searchParams.get('email');
 
     // Validate token on component mount
     useEffect(() => {
         const validateToken = async () => {
+            // Prevent multiple API calls
+            if (hasValidated.current)
+                return;
+
             if (!token || !email) {
                 setIsValidating(false);
                 setIsValidToken(false);
+                toast.error('Invalid password reset link');
                 return;
             }
+
+            // Mark as validated to prevent subsequent API calls
+            hasValidated.current = true;
 
             try {
                 const result = await validateResetToken(token, email);
 
-                if (result.success) {
-                    setIsValidToken(true);
-                } else {
+                if (result.error) {
                     setIsValidToken(false);
-                    toast.error(result.message || 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+                    toast.error(result.message, {
+                        description: result.error?.detail
+                    })
+                } else {
+                    setIsValidToken(true);
+                    toast.success(result.message);
                 }
             } catch {
                 setIsValidToken(false);
-                toast.error('Có lỗi xảy ra khi xác thực link');
+                toast.error('An error occurred while validating the link');
             } finally {
                 setIsValidating(false);
             }
         };
 
         validateToken();
-    }, [token, email, validateResetToken]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, email]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
 
@@ -81,34 +96,50 @@ const ResetPasswordPage = () => {
         };
 
         try {
-            // Validate form
-            if (!formData.password || !formData.confirmPassword) {
-                throw new Error('Vui lòng nhập đầy đủ thông tin');
+            if (formData.password.length < 6) {
+                toast.error('Password must be at least 6 characters long');
+                setIsLoading(false);
+                return;
+            } else if (!/[A-Z]/.test(formData.password)) {
+                toast.error('Password must contain at least one uppercase letter');
+                setIsLoading(false);
+                return;
+            } else if (!/[a-z]/.test(formData.password)) {
+                toast.error('Password must contain at least one lowercase letter');
+                setIsLoading(false);
+                return;
+            } else if (!/[0-9]/.test(formData.password)) {
+                toast.error('Password must contain at least one number');
+                setIsLoading(false);
+                return;
             }
 
             if (formData.password !== formData.confirmPassword) {
-                throw new Error('Mật khẩu xác nhận không khớp');
-            }
-
-            if (formData.password.length < 6) {
-                throw new Error('Mật khẩu phải có ít nhất 6 ký tự');
+                toast.error('Passwords do not match');
+                setIsLoading(false);
+                return;
             }
 
             if (!token || !email) {
-                throw new Error('Thông tin đặt lại mật khẩu không hợp lệ');
+                toast.error('Invalid password reset link');
+                setIsLoading(false);
+                return;
             }
 
-            // Call reset password API
-            const result = await resetPassword(token, email, formData.password, formData.confirmPassword);
+            const result = await resetPassword(token, email, formData.password);
 
-            if (result.success) {
-                setIsSuccess(true);
-                toast.success(result.message || 'Mật khẩu đã được đặt lại thành công!');
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error?.detail
+                });
             } else {
-                toast.error(result.message || 'Có lỗi xảy ra khi đặt lại mật khẩu');
+                setIsSuccess(true);
+                toast.success(result.message);
             }
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+        } catch {
+            toast.error("Reset password failed", {
+                description: "Please try again later"
+            });
         } finally {
             setIsLoading(false);
         }
@@ -126,7 +157,7 @@ const ResetPasswordPage = () => {
                             <div className="text-center space-y-4">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                                 <p className="text-sm text-muted-foreground">
-                                    Đang xác thực link đặt lại mật khẩu...
+                                    Validating password reset link...
                                 </p>
                             </div>
                         </CardContent>
@@ -151,10 +182,10 @@ const ResetPasswordPage = () => {
                             </div>
                         </div>
                         <h2 className="text-3xl font-bold text-red-600">
-                            Link không hợp lệ
+                            Invalid Link
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn
+                            Password reset link is invalid or has expired
                         </p>
                     </div>
 
@@ -164,32 +195,32 @@ const ResetPasswordPage = () => {
                             <div className="space-y-4 text-center">
                                 <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
                                     <p className="text-sm text-red-700 dark:text-red-400">
-                                        Link có thể đã hết hạn (1 giờ) hoặc đã được sử dụng
+                                        Link may have expired (1 hour) or has already been used
                                     </p>
                                 </div>
 
                                 <div className="space-y-2 text-sm text-muted-foreground">
-                                    <p>• Link đặt lại mật khẩu chỉ có hiệu lực trong 1 giờ</p>
-                                    <p>• Mỗi link chỉ có thể sử dụng một lần</p>
-                                    <p>• Vui lòng yêu cầu link mới nếu cần</p>
+                                    <p>• Password reset link is only valid for 1 hour</p>
+                                    <p>• Each link can only be used once</p>
+                                    <p>• Please request a new link if needed</p>
                                 </div>
                             </div>
 
                             <div className="space-y-3">
                                 <Button
-                                    onClick={() => router.push('/forgot-password')}
+                                    onClick={() => router.push(`/${locale}/forgot-password`)}
                                     className="w-full"
                                 >
-                                    Yêu cầu link mới
+                                    Request new link
                                 </Button>
 
                                 <Button
-                                    onClick={() => router.push('/login')}
+                                    onClick={() => router.push(`/${locale}/login`)}
                                     variant="outline"
                                     className="w-full"
                                 >
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Quay về đăng nhập
+                                    Back to login
                                 </Button>
                             </div>
                         </CardContent>
@@ -214,10 +245,10 @@ const ResetPasswordPage = () => {
                             </div>
                         </div>
                         <h2 className="text-3xl font-bold">
-                            Đặt lại mật khẩu thành công!
+                            Password reset successful!
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            Mật khẩu của bạn đã được cập nhật thành công
+                            Your password has been updated successfully
                         </p>
                     </div>
 
@@ -227,16 +258,16 @@ const ResetPasswordPage = () => {
                             <div className="space-y-4 text-center">
                                 <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
                                     <p className="text-sm text-green-700 dark:text-green-400">
-                                        Bạn có thể đăng nhập với mật khẩu mới ngay bây giờ
+                                        You can now log in with your new password
                                     </p>
                                 </div>
                             </div>
 
                             <Button
-                                onClick={() => router.push('/login')}
+                                onClick={() => router.push(`/${locale}/login`)}
                                 className="w-full"
                             >
-                                Đăng nhập ngay
+                                Log in now
                             </Button>
                         </CardContent>
                     </Card>
@@ -259,19 +290,19 @@ const ResetPasswordPage = () => {
                         </div>
                     </div>
                     <h2 className="text-3xl font-bold">
-                        Đặt mật khẩu mới
+                        Set New Password
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        Nhập mật khẩu mới cho tài khoản <span className="font-medium">{email}</span>
+                        Enter a new password for account <span className="font-medium">{email}</span>
                     </p>
                 </div>
 
                 {/* Reset Password Form */}
                 <Card>
                     <CardHeader className="space-y-1">
-                        <CardTitle className="text-2xl text-center">Tạo mật khẩu mới</CardTitle>
+                        <CardTitle className="text-2xl text-center">Create New Password</CardTitle>
                         <CardDescription className="text-center">
-                            Mật khẩu phải có ít nhất 6 ký tự
+                            Password must be at least 6 characters
                         </CardDescription>
                     </CardHeader>
 
@@ -279,7 +310,7 @@ const ResetPasswordPage = () => {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* New Password Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="password">Mật khẩu mới</Label>
+                                <Label htmlFor="password">New Password</Label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Lock className="h-4 w-4 text-accent-foreground" />
@@ -290,7 +321,7 @@ const ResetPasswordPage = () => {
                                         type={showPassword ? 'text' : 'password'}
                                         autoComplete="new-password"
                                         required
-                                        placeholder="Nhập mật khẩu mới"
+                                        placeholder="Enter new password"
                                         className="pl-10 pr-10"
                                         disabled={isLoading}
                                         minLength={6}
@@ -299,6 +330,7 @@ const ResetPasswordPage = () => {
                                         type="button"
                                         className="absolute inset-y-0 right-0 px-3 flex items-center"
                                         onClick={() => setShowPassword(!showPassword)}
+                                        tabIndex={-1}
                                     >
                                         {showPassword ? (
                                             <EyeOff className="h-4 w-4" />
@@ -311,7 +343,7 @@ const ResetPasswordPage = () => {
 
                             {/* Confirm Password Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+                                <Label htmlFor="confirmPassword">Confirm Password</Label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Lock className="h-4 w-4 text-accent-foreground" />
@@ -322,7 +354,7 @@ const ResetPasswordPage = () => {
                                         type={showConfirmPassword ? 'text' : 'password'}
                                         autoComplete="new-password"
                                         required
-                                        placeholder="Nhập lại mật khẩu mới"
+                                        placeholder="Re-enter new password"
                                         className="pl-10 pr-10"
                                         disabled={isLoading}
                                         minLength={6}
@@ -331,6 +363,7 @@ const ResetPasswordPage = () => {
                                         type="button"
                                         className="absolute inset-y-0 right-0 px-3 flex items-center"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        tabIndex={-1}
                                     >
                                         {showConfirmPassword ? (
                                             <EyeOff className="h-4 w-4" />
@@ -344,12 +377,12 @@ const ResetPasswordPage = () => {
                             {/* Password Requirements */}
                             <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                                 <p className="text-sm text-blue-700 dark:text-blue-400 font-medium mb-1">
-                                    Yêu cầu mật khẩu:
+                                    Password requirements:
                                 </p>
                                 <ul className="text-xs text-blue-600 dark:text-blue-300 space-y-1">
-                                    <li>• Ít nhất 6 ký tự</li>
-                                    <li>• Nên kết hợp chữ và số</li>
-                                    <li>• Không sử dụng thông tin cá nhân dễ đoán</li>
+                                    <li>• At least 6 characters</li>
+                                    <li>• Should combine letters and numbers</li>
+                                    <li>• Don&apos;t use easily guessable personal information</li>
                                 </ul>
                             </div>
 
@@ -359,21 +392,21 @@ const ResetPasswordPage = () => {
                                 className="w-full"
                                 disabled={isLoading}
                             >
-                                {isLoading ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
+                                {isLoading ? 'Updating...' : 'Update Password'}
                             </Button>
                         </form>
 
                         {/* Back to Login */}
                         <div className="text-center">
                             <Link
-                                href="/login"
+                                href={`/${locale}/login`}
                                 className={cn(
                                     "text-sm text-blue-600 hover:text-blue-500 inline-flex items-center",
                                     isLoading && "pointer-events-none select-none"
                                 )}
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Quay về đăng nhập
+                                Back to login
                             </Link>
                         </div>
                     </CardContent>

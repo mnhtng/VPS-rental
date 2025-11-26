@@ -18,7 +18,8 @@ import {
     EyeOff,
     Mail,
     Lock,
-    LogIn
+    LogIn,
+    RefreshCw
 } from 'lucide-react';
 import { BeamsBackground } from '@/components/ui/beam-background';
 import { GitHub, Google } from '@/components/custom/icon/brand';
@@ -26,16 +27,23 @@ import { signIn } from 'next-auth/react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useLocale } from 'use-intl/react';
+import useAuth from '@/hooks/useAuth';
+import { loginWithCredentials } from '@/utils/auth';
+import { useAuth as useAuthContext } from '@/contexts/AuthContext';
 
 const LoginPage = () => {
     const router = useRouter();
-    const serachParams = useSearchParams();
-    const callbackUrl = serachParams.get('callbackUrl') || '/';
+    const locale = useLocale();
+    const { login } = useAuth();
+    const { setAccessToken } = useAuthContext();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
 
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
 
@@ -46,34 +54,42 @@ const LoginPage = () => {
         };
 
         try {
-            // Validate form
             if (!formData.email || !formData.password) {
-                throw new Error('Please fill in all fields');
+                toast.error('Please fill in all fields');
+                return;
             }
 
             if (!/\S+@\S+\.\S+/.test(formData.email)) {
-                throw new Error('Please enter a valid email address');
+                toast.error('Please enter a valid email address');
+                return;
             }
 
-            // Mock login - replace with actual API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const result = await login({
+                email: formData.email,
+                password: formData.password,
+            })
 
-            // Mock successful login
-            if (formData.email === 'admin@vps.com' && formData.password === 'admin123') {
-                // Simulate setting auth token
-                localStorage.setItem('auth_token', 'mock_admin_token');
-                localStorage.setItem('user_role', 'admin');
-                router.push('/admin');
-            } else if (formData.email.includes('@') && formData.password.length >= 6) {
-                // Simulate customer login
-                localStorage.setItem('auth_token', 'mock_customer_token');
-                localStorage.setItem('user_role', 'customer');
-                router.push('/dashboard');
+            if (result.error) {
+                toast.error('Invalid email or password');
+            } else if (result.data && result.data.email_verified === false) {
+                toast.info('Please verify your email to continue', {
+                    description: 'We\'ve sent a verification email to your inbox'
+                });
+
+                router.push(`/${locale}/pending-verification?email=${encodeURIComponent(result.data.email)}&name=${encodeURIComponent(result.data.name)}`);
             } else {
-                throw new Error('Invalid email or password');
+                // Store access token in memory (AuthContext)
+                setAccessToken(result.data.access_token);
+
+                await loginWithCredentials(formData.email, formData.password);
+
+                toast.success('Login successful');
+                window.location.href = `/${locale}${callbackUrl}`;
             }
         } catch {
-            toast.error("An error occurred during login. Please try again.");
+            toast.error("Login failed", {
+                description: "Please try again later"
+            });
         } finally {
             setIsLoading(false);
         }
@@ -84,11 +100,12 @@ const LoginPage = () => {
 
         try {
             await signIn(provider, {
-                callbackUrl,
-                redirect: true
+                redirectTo: `/${locale}${callbackUrl}`,
             });
         } catch {
-            toast.error("An error occurred during login. Please try again.");
+            toast.error("Login failed", {
+                description: "Please try again later"
+            });
         } finally {
             setIsLoading(false);
         }
@@ -109,7 +126,7 @@ const LoginPage = () => {
                     </h2>
                     <p className="mt-2 text-sm text-muted-foreground">
                         Don&apos;t have an account?{' '}
-                        <Link href="/register" className="text-blue-600 dark:text-blue-400 hover:text-blue-500 font-medium">
+                        <Link href={`/${locale}/register`} className="text-blue-600 dark:text-blue-400 hover:text-blue-500 font-medium">
                             Create one here
                         </Link>
                     </p>
@@ -165,6 +182,7 @@ const LoginPage = () => {
                                     />
                                     <button
                                         type="button"
+                                        tabIndex={-1}
                                         className="absolute inset-y-0 right-0 px-3 flex items-center"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
@@ -192,7 +210,7 @@ const LoginPage = () => {
                                 </div>
 
                                 <div className="text-sm">
-                                    <Link href="/forgot-password" className={cn(
+                                    <Link href={`/${locale}/forgot-password`} className={cn(
                                         "text-blue-600 hover:text-blue-500",
                                         isLoading && "pointer-events-none select-none"
                                     )}>
@@ -210,7 +228,7 @@ const LoginPage = () => {
                             >
                                 {isLoading ? (
                                     <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                                         Signing in...
                                     </>
                                 ) : (

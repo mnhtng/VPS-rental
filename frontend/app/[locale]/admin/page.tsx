@@ -33,7 +33,6 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-stretch justify-center md:gap-10 gap-5">
         <GlowingCard
           color={theme && theme === 'dark' ? 'gold' : 'red'}
-          className="w-full md:w-1/3"
         >
           <div className="flex justify-between items-center gap-3">
             <span>Total conversations</span>

@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 import {
     User,
     Shield,
@@ -20,40 +21,163 @@ import {
     Calendar,
     Edit,
     Save,
-    X
+    X,
+    Loader2
 } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 import { Profile } from '@/types/types';
+import ProfilePlaceholder from '@/components/custom/placeholder/profile';
+import useMember from '@/hooks/useMember';
 
 const ProfilePage = () => {
-    const { data: session } = useSession();
+    const { getProfile, updateProfile, changePassword } = useMember();
 
     const [userInfo, setUserInfo] = useState<Profile | null>(null);
+    const [originalUserInfo, setOriginalUserInfo] = useState<Profile | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+    });
+
+    const fetchUserProfile = async () => {
+        try {
+            setIsLoading(true);
+
+            const result = await getProfile();
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.details
+                });
+            } else {
+                setUserInfo(result.data);
+                setOriginalUserInfo(result.data);
+            }
+        } catch {
+            toast.error('Get user profile fail', {
+                description: 'Please try again later'
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        if (session && session.user) {
-            setUserInfo({
-                name: session.user.name as string,
-                email: session.user.email as string,
-                phone: session.user?.phone as string,
-                address: session.user?.address as string,
-                joinedDate: session.user.created_at || '',
-                avatar: session.user.image || '',
-                role: session.user.role || 'USER'
-            });
-        }
-    }, [session]);
+        fetchUserProfile();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const handleSave = () => {
-        // API call to save user info
-        setIsEditing(false);
+    const handleSave = async () => {
+        if (!userInfo)
+            return;
+
+
+        if (!/\S+@\S+\.\S+/.test(userInfo.email)) {
+            toast.error('Please enter a valid email address');
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+
+            const result = await updateProfile({
+                name: userInfo?.name,
+                phone: userInfo?.phone,
+                address: userInfo?.address,
+            });
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.details
+                });
+            } else {
+                toast.success(result.message);
+                await fetchUserProfile();
+
+                setOriginalUserInfo(userInfo);
+                setIsEditing(false);
+            }
+        } catch {
+            toast.error('Failed to update profile', {
+                description: 'Please try again later'
+            });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleCancel = () => {
-        // Reset form data
+        // Reset form data to original userInfo
+        if (originalUserInfo) {
+            setUserInfo(originalUserInfo);
+        }
         setIsEditing(false);
     };
+
+    const handleChangePassword = async () => {
+        if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            toast.error('Please fill in all password fields');
+            return;
+        }
+
+        if (passwordForm.newPassword.length < 6 || passwordForm.currentPassword.length < 6) {
+            toast.error('Password must be at least 6 characters long');
+            return;
+        } else if (!/[A-Z]/.test(passwordForm.newPassword) || !/[A-Z]/.test(passwordForm.currentPassword)) {
+            toast.error('Password must contain at least one uppercase letter');
+            return;
+        } else if (!/[a-z]/.test(passwordForm.newPassword) || !/[a-z]/.test(passwordForm.currentPassword)) {
+            toast.error('Password must contain at least one lowercase letter');
+            return;
+        } else if (!/[0-9]/.test(passwordForm.newPassword) || !/[0-9]/.test(passwordForm.currentPassword)) {
+            toast.error('Password must contain at least one number');
+            return;
+        }
+
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            toast.error('Passwords do not match');
+            return;
+        }
+
+        try {
+            setIsChangingPassword(true);
+
+            const result = await changePassword({
+                current_password: passwordForm.currentPassword,
+                new_password: passwordForm.newPassword,
+            });
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.details
+                });
+            } else {
+                toast.success(result.message);
+
+                setPasswordForm({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: '',
+                });
+            }
+        } catch {
+            toast.error('Failed to change password', {
+                description: 'Please try again later'
+            });
+        } finally {
+            setIsChangingPassword(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <ProfilePlaceholder />
+        );
+    }
 
     return (
         <div className="min-h-screen max-w-4xl mx-auto py-8 px-4">
@@ -117,7 +241,15 @@ const ProfilePage = () => {
                             </div>
                             <Button
                                 variant={isEditing ? "destructive" : "default"}
-                                onClick={() => setIsEditing(!isEditing)}
+                                onClick={() => {
+                                    if (isEditing) {
+                                        handleCancel();
+                                        setIsEditing(false);
+                                    } else {
+                                        setIsEditing(true);
+                                    }
+                                }}
+                                disabled={isSaving}
                             >
                                 {isEditing ? (
                                     <>
@@ -136,18 +268,19 @@ const ProfilePage = () => {
                         <CardContent className="space-y-6 relative z-10">
                             <div className="flex items-center space-x-4">
                                 <Avatar className="w-20 h-20">
-                                    <AvatarImage src={userInfo?.avatar} />
+                                    <AvatarImage src={originalUserInfo?.avatar} />
                                     <AvatarFallback className='dark:bg-gray-700'>
-                                        {userInfo?.name.charAt(0)}
+                                        {originalUserInfo?.name ? originalUserInfo.name.charAt(0) : 'U'}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2">
-                                        <h3 className="text-lg font-medium">{userInfo?.name}</h3>
-                                        <Badge variant="secondary">{userInfo?.role}</Badge>
+                                        <h3 className="text-lg font-medium">{originalUserInfo?.name}</h3>
+                                        <Badge variant="destructive">{originalUserInfo?.role}</Badge>
                                     </div>
+
                                     <p className="text-sm text-muted-foreground">
-                                        Member since {userInfo?.joinedDate ? new Date(userInfo.joinedDate).toLocaleDateString('en-US') : 'N/A'}
+                                        Member since {originalUserInfo?.joinedDate ? new Date(originalUserInfo.joinedDate).toLocaleDateString('en-US') : 'N/A'}
                                     </p>
                                 </div>
                             </div>
@@ -164,10 +297,8 @@ const ProfilePage = () => {
                                             name="name"
                                             value={userInfo?.name}
                                             placeholder='N/A'
+                                            onChange={(e) => setUserInfo({ ...userInfo!, name: e.target.value })}
                                             disabled={!isEditing}
-                                            onChange={(e) =>
-                                                userInfo && setUserInfo({ ...userInfo, name: e.target.value })
-                                            }
                                         />
                                     </div>
                                 </div>
@@ -182,10 +313,8 @@ const ProfilePage = () => {
                                             type="email"
                                             value={userInfo?.email}
                                             placeholder='N/A'
-                                            disabled={!isEditing}
-                                            onChange={(e) =>
-                                                userInfo && setUserInfo({ ...userInfo, email: e.target.value })
-                                            }
+                                            onChange={(e) => setUserInfo({ ...userInfo!, email: e.target.value })}
+                                            disabled
                                         />
                                     </div>
                                 </div>
@@ -200,10 +329,8 @@ const ProfilePage = () => {
                                             type="tel"
                                             value={userInfo?.phone}
                                             placeholder='N/A'
+                                            onChange={(e) => setUserInfo({ ...userInfo!, phone: e.target.value })}
                                             disabled={!isEditing}
-                                            onChange={(e) =>
-                                                userInfo && setUserInfo({ ...userInfo, phone: e.target.value })
-                                            }
                                         />
                                     </div>
                                 </div>
@@ -231,11 +358,10 @@ const ProfilePage = () => {
                                             name="address"
                                             value={userInfo?.address}
                                             placeholder='N/A'
-                                            disabled={!isEditing}
-                                            onChange={(e) =>
-                                                userInfo && setUserInfo({ ...userInfo, address: e.target.value })
-                                            }
                                             rows={3}
+                                            className={isEditing ? '' : 'resize-none'}
+                                            onChange={(e) => setUserInfo({ ...userInfo!, address: e.target.value })}
+                                            disabled={!isEditing}
                                         />
                                     </div>
                                 </div>
@@ -243,12 +369,28 @@ const ProfilePage = () => {
 
                             {isEditing && (
                                 <div className="flex justify-end space-x-2">
-                                    <Button variant="ghost" onClick={handleCancel}>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handleCancel}
+                                        disabled={isSaving}
+                                    >
                                         Cancel
                                     </Button>
-                                    <Button onClick={handleSave}>
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Save Changes
+                                    <Button
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4 mr-2" />
+                                                Save Changes
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             )}
@@ -272,7 +414,10 @@ const ProfilePage = () => {
                                     id="currentPassword"
                                     name="currentPassword"
                                     type="password"
+                                    value={passwordForm.currentPassword}
+                                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                                     className='border border-dashed border-muted-foreground/50'
+                                    disabled={isChangingPassword}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -281,7 +426,10 @@ const ProfilePage = () => {
                                     id="newPassword"
                                     name="newPassword"
                                     type="password"
+                                    value={passwordForm.newPassword}
+                                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                                     className='border border-dashed border-muted-foreground/50'
+                                    disabled={isChangingPassword}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -290,12 +438,27 @@ const ProfilePage = () => {
                                     id="confirmPassword"
                                     name="confirmPassword"
                                     type="password"
+                                    value={passwordForm.confirmPassword}
+                                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                                     className='border border-dashed border-muted-foreground/50'
+                                    disabled={isChangingPassword}
                                 />
                             </div>
-                            <Button>
-                                <Key className="h-4 w-4 mr-2" />
-                                Update Password
+                            <Button
+                                onClick={handleChangePassword}
+                                disabled={isChangingPassword}
+                            >
+                                {isChangingPassword ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Key className="h-4 w-4 mr-2" />
+                                        Update Password
+                                    </>
+                                )}
                             </Button>
                         </CardContent>
                     </Card>
