@@ -42,9 +42,11 @@ class ProxmoxStorageBase(BaseModel):
     content_types: Optional[list[str]] = Field(
         None, description="Content types (images, iso, backup)"
     )
-    total_space_gb: Optional[int] = Field(None, description="Total space in GB")
-    used_space_gb: Optional[int] = Field(None, description="Used space in GB")
-    available_space_gb: Optional[int] = Field(None, description="Available space in GB")
+    total_space_gb: Optional[float] = Field(None, description="Total space in GB")
+    used_space_gb: Optional[float] = Field(None, description="Used space in GB")
+    available_space_gb: Optional[float] = Field(
+        None, description="Available space in GB"
+    )
     enabled: Optional[bool] = Field(default=True, description="Storage enabled")
     shared: Optional[bool] = Field(
         default=False, description="Shared storage across nodes"
@@ -66,8 +68,8 @@ class ProxmoxStorageBase(BaseModel):
     @field_validator("total_space_gb", "used_space_gb", "available_space_gb")
     @classmethod
     def validate_space_fields(
-        cls, v: Optional[int], info: ValidationInfo
-    ) -> Optional[int]:
+        cls, v: Optional[float], info: ValidationInfo
+    ) -> Optional[float]:
         field_name = info.field_name.replace("_", " ").capitalize()
 
         if v is None:
@@ -122,9 +124,11 @@ class ProxmoxStorageUpdate(BaseModel):
     content_types: Optional[list[str]] = Field(
         None, description="Content types (images, iso, backup)"
     )
-    total_space_gb: Optional[int] = Field(None, description="Total space in GB")
-    used_space_gb: Optional[int] = Field(None, description="Used space in GB")
-    available_space_gb: Optional[int] = Field(None, description="Available space in GB")
+    total_space_gb: Optional[float] = Field(None, description="Total space in GB")
+    used_space_gb: Optional[float] = Field(None, description="Used space in GB")
+    available_space_gb: Optional[float] = Field(
+        None, description="Available space in GB"
+    )
     enabled: Optional[bool] = Field(None, description="Storage enabled")
     shared: Optional[bool] = Field(None, description="Shared storage across nodes")
 
@@ -144,8 +148,8 @@ class ProxmoxStorageUpdate(BaseModel):
     @field_validator("total_space_gb", "used_space_gb", "available_space_gb")
     @classmethod
     def validate_space_fields(
-        cls, v: Optional[int], info: ValidationInfo
-    ) -> Optional[int]:
+        cls, v: Optional[float], info: ValidationInfo
+    ) -> Optional[float]:
         field_name = info.field_name.replace("_", " ").capitalize()
 
         if v is None:

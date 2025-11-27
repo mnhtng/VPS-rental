@@ -3,7 +3,7 @@
 import React from 'react'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { BotIcon } from 'lucide-react'
-import { useCms } from '@/contexts/cmsContext'
+import { useCms } from '@/contexts/CmsContext'
 
 const CmsMobileHeader = () => {
     const { isMobile } = useSidebar()

@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import CmsMobileHeader from "@/components/custom/admin/cms-mobile-header";
 import { AdminSidebar } from "@/components/custom/admin/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { CmsProvider } from "@/contexts/cmsContext";
+import { CmsProvider } from "@/contexts/CmsContext";
 import { headers } from "next/headers";
 
 import "@/styles/globals.css";

@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -32,7 +33,8 @@ import {
     Package,
     Home,
     KeyRound,
-    UserRoundPlus
+    UserRoundPlus,
+    Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
@@ -41,9 +43,10 @@ import { Separator } from '@radix-ui/react-separator';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useAuth } from '@/contexts/AuthContext';
+import HeaderPlaceHolder from '../custom/placeholder/header';
 
 export const Header = () => {
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
     const t = useTranslations('header');
     const locale = useLocale();
     const { logout } = useAuth();
@@ -51,6 +54,8 @@ export const Header = () => {
     const [active, setActive] = useState<string>('');
     const pathname = usePathname();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     const navigation = [
         { name: t('home'), href: `/${locale}`, icon: Home },
@@ -67,9 +72,25 @@ export const Header = () => {
         setActive(newPath);
     }, [locale, pathname]);
 
+    useEffect(() => {
+        if (status !== 'loading') {
+            setIsInitialLoad(false)
+        }
+    }, [status]);
+
     const handleLogout = async () => {
-        setMobileMenuOpen(false);
-        await logout();
+        try {
+            setIsLoggingOut(true);
+            setMobileMenuOpen(false);
+            await logout();
+            toast.success('Logged out successfully');
+        } catch {
+            toast.error('Failed to logout', {
+                description: 'Please try again later',
+            });
+        } finally {
+            setIsLoggingOut(false);
+        }
     };
 
     return (
@@ -96,7 +117,7 @@ export const Header = () => {
                                 href={item.href}
                                 onClick={() => setActive(item.href)}
                                 className={cn(
-                                    "text-muted-foreground/90 hover:text-muted-foreground px-3 py-2 text-sm font-medium transition-colors",
+                                    "text-muted-foreground/90 hover:text-muted-foreground px-3 py-2 text-sm font-medium transition-all duration-200 hover:scale-105",
                                     active === item.href || (item.href !== `/${locale}` && (active as string).startsWith(item.href))
                                         ? "text-primary font-semibold hover:text-primary/80"
                                         : ""
@@ -109,13 +130,15 @@ export const Header = () => {
 
                     {/* Right side actions */}
                     <div className="flex items-center">
-                        {session && session.user ? (
+                        {status === 'loading' || isInitialLoad ? (
+                            <HeaderPlaceHolder />
+                        ) : session && session.user ? (
                             <div className="hidden lg:flex items-center space-x-4">
                                 {/* Cart */}
                                 <Link href={`/${locale}/cart`} className="relative">
-                                    <Button variant="ghost" size="sm" className="relative">
+                                    <Button variant="ghost" size="sm" className="relative hover:scale-105 transition-transform duration-200">
                                         <ShoppingCart className="h-5 w-5" />
-                                        <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                                        <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs animate-pulse">
                                             2
                                         </Badge>
                                     </Button>
@@ -190,9 +213,18 @@ export const Header = () => {
 
                                         <DropdownMenuSeparator />
 
-                                        <DropdownMenuItem onClick={handleLogout}>
-                                            <LogOut className="mr-2 h-4 w-4" />
-                                            {t('logout')}
+                                        <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+                                            {isLoggingOut ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Logging out...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <LogOut className="mr-2 h-4 w-4" />
+                                                    {t('logout')}
+                                                </>
+                                            )}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -251,10 +283,10 @@ export const Header = () => {
                                         <Link
                                             key={item.name}
                                             href={item.href}
-                                            className="hover:ml-2 block transition-all duration-200"
+                                            className="hover:ml-2 block transition-all duration-200 hover:bg-accent/50 rounded-md"
                                             onClick={() => setMobileMenuOpen(false)}
                                         >
-                                            <Button variant="ghost" className="w-full justify-start">
+                                            <Button variant="ghost" className="w-full justify-start hover:bg-transparent">
                                                 <item.icon className="mr-2 h-4 w-4" />
                                                 {item.name}
                                             </Button>
@@ -347,9 +379,19 @@ export const Header = () => {
                                                     variant="ghost"
                                                     className="hover:ml-2 transition-all duration-200 w-full justify-start"
                                                     onClick={handleLogout}
+                                                    disabled={isLoggingOut}
                                                 >
-                                                    <LogOut className="mr-2 h-4 w-4" />
-                                                    {t('logout')}
+                                                    {isLoggingOut ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            Logging out...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <LogOut className="mr-2 h-4 w-4" />
+                                                            {t('logout')}
+                                                        </>
+                                                    )}
                                                 </Button>
                                             </div>
                                         </>

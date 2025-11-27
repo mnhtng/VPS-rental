@@ -4,11 +4,13 @@ from datetime import datetime, timezone
 from typing import List, Optional, TYPE_CHECKING
 from pydantic import ConfigDict
 from sqlmodel import (
+    Column,
     SQLModel,
     Field,
     Relationship,
     CheckConstraint,
 )
+from sqlalchemy import TEXT, ARRAY
 
 if TYPE_CHECKING:
     from .carts import Cart
@@ -25,6 +27,7 @@ class VPSPlan(SQLModel, table=True):
         name: Name of the VPS plan.
         description: Description of the VPS plan.
         category: Category of the VPS plan (e.g., basic, standard, premium).
+        use_case: Intended use case for the VPS plan.
         vcpu: Number of virtual CPUs.
         ram_gb: Amount of RAM in GB.
         storage_type: Type of storage (e.g., SSD, NVMe).
@@ -75,6 +78,10 @@ class VPSPlan(SQLModel, table=True):
         index=True,
         nullable=False,
         max_length=50,
+    )
+    use_case: Optional[List[str]] = Field(
+        default=None,
+        sa_column=Column(ARRAY(TEXT)),
     )
     vcpu: int = Field(
         nullable=False,
@@ -149,6 +156,7 @@ class VPSPlan(SQLModel, table=True):
             "name": self.name,
             "description": self.description,
             "category": self.category,
+            "use_case": self.use_case,
             "vcpu": self.vcpu,
             "ram_gb": self.ram_gb,
             "storage_type": self.storage_type,

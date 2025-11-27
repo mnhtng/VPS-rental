@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
-import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import FooterPlaceholder from '../custom/placeholder/footer';
 
 export const Footer = () => {
     const { resolvedTheme } = useTheme();
@@ -19,7 +20,7 @@ export const Footer = () => {
     if (!isMounted) {
         return (
             <footer className="bg-gray-900 text-white relative w-full">
-                <FooterContent />
+                <FooterPlaceholder />
             </footer>
         );
     }
@@ -69,16 +70,25 @@ const FooterContent = () => {
                     </div>
 
                     <div className="flex space-x-4">
-                        <Link href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                        <Link
+                            href="#"
+                            className="text-gray-400 hover:text-blue-500 transition-all duration-300 hover:scale-110 hover:-translate-y-1"
+                            aria-label="Facebook"
+                        >
                             <Facebook className="h-5 w-5" />
                         </Link>
-                        <Link href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
-                            <Twitter className="h-5 w-5" />
-                        </Link>
-                        <Link href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                        <Link
+                            href="#"
+                            className="text-gray-400 hover:text-rose-600 transition-all duration-300 hover:scale-110 hover:-translate-y-1"
+                            aria-label="Instagram"
+                        >
                             <Instagram className="h-5 w-5" />
                         </Link>
-                        <Link href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                        <Link
+                            href="#"
+                            className="text-gray-400 hover:text-blue-400 transition-all duration-300 hover:scale-110 hover:-translate-y-1"
+                            aria-label="LinkedIn"
+                        >
                             <Linkedin className="h-5 w-5" />
                         </Link>
                     </div>
@@ -92,17 +102,26 @@ const FooterContent = () => {
                         </h3>
                         <ul className="space-y-2">
                             <li>
-                                <Link href={`/${locale}/plans`} className="text-gray-400 hover:text-white transition-colors">
+                                <Link
+                                    href={`/${locale}/plans`}
+                                    className="text-gray-400 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
+                                >
                                     {t('plans')}
                                 </Link>
                             </li>
                             <li>
-                                <Link href={`/${locale}/support`} className="text-gray-400 hover:text-white transition-colors">
+                                <Link
+                                    href={`/${locale}/support`}
+                                    className="text-gray-400 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
+                                >
                                     {t('support')}
                                 </Link>
                             </li>
                             <li>
-                                <Link href={`/${locale}/support`} className="text-gray-400 hover:text-white transition-colors">
+                                <Link
+                                    href={`/${locale}/support`}
+                                    className="text-gray-400 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
+                                >
                                     {t('faq')}
                                 </Link>
                             </li>
@@ -116,17 +135,17 @@ const FooterContent = () => {
                         </h3>
 
                         <ul className="space-y-3">
-                            <li className="flex items-center space-x-3">
-                                <Mail className="h-4 w-4 text-blue-400" />
-                                <span className="text-gray-400">support@vpsrental.com</span>
+                            <li className="flex items-center space-x-3 group">
+                                <Mail className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
+                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">support@vpsrental.com</span>
                             </li>
-                            <li className="flex items-center space-x-3">
-                                <Phone className="h-4 w-4 text-blue-400" />
-                                <span className="text-gray-400">+1 (555) 123-4567</span>
+                            <li className="flex items-center space-x-3 group">
+                                <Phone className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
+                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">+1 (555) 123-4567</span>
                             </li>
-                            <li className="flex items-center space-x-3">
-                                <MapPin className="h-4 w-4 text-blue-400" />
-                                <span className="text-gray-400">123 Cloud Street, Tech City</span>
+                            <li className="flex items-center space-x-3 group">
+                                <MapPin className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
+                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">123 Cloud Street, Tech City</span>
                             </li>
                         </ul>
 
@@ -150,13 +169,22 @@ const FooterContent = () => {
                         {t('all_rights_reserved')}
                     </div>
                     <div className="flex space-x-6 mt-4 md:mt-0">
-                        <Link href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+                        <Link
+                            href="#"
+                            className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:scale-105"
+                        >
                             {t('privacy')}
                         </Link>
-                        <Link href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+                        <Link
+                            href="#"
+                            className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:scale-105"
+                        >
                             {t('terms')}
                         </Link>
-                        <Link href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+                        <Link
+                            href="#"
+                            className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:scale-105"
+                        >
                             {t('cookies')}
                         </Link>
                     </div>

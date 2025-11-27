@@ -166,8 +166,8 @@ CREATE TABLE "proxmox_nodes" (
     "ip_address" INET NOT NULL,
     "status" VARCHAR(20) DEFAULT 'online', -- online, offline, maintenance
     "cpu_cores" INTEGER,
-    "total_memory_mb" BIGINT,
-    "total_storage_gb" BIGINT,
+    "total_memory_gb" DECIMAL(10,2),
+    "total_storage_gb" DECIMAL(10,2),
     "max_vms" INTEGER DEFAULT 100,
     -- Resource limits for allocation
     "cpu_overcommit_ratio" DECIMAL(3,2) DEFAULT 2.0, -- Allow 2x CPU overcommit
@@ -200,9 +200,9 @@ CREATE TABLE "proxmox_storages" (
     "name" VARCHAR(100) NOT NULL, -- local-lvm, ceph, nfs
     "type" VARCHAR(20), -- btrfs | cephfs | cifs | dir | esxi | iscsi | iscsidirect | lvm | lvmthin | nfs | pbs | rbd | zfs | zfspool
     "content_types" TEXT[], -- ['images', 'rootdir', 'iso', 'backup']
-    "total_space_gb" BIGINT,
-    "used_space_gb" BIGINT,
-    "available_space_gb" BIGINT,
+    "total_space_gb" DECIMAL(10,2),
+    "used_space_gb" DECIMAL(10,2),
+    "available_space_gb" DECIMAL(10,2),
     "enabled" BOOLEAN DEFAULT TRUE,
     "shared" BOOLEAN DEFAULT FALSE, -- Shared storage across nodes
     "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -311,6 +311,7 @@ CREATE TABLE "vps_plans" (
     "name" VARCHAR(100) NOT NULL,
     "description" TEXT,
     "category" VARCHAR(50) NOT NULL, -- basic, standard, premium
+	"use_case" TEXT[],
     "vcpu" INTEGER NOT NULL,
     "ram_gb" INTEGER NOT NULL,
     "storage_type" VARCHAR(20) NOT NULL, -- SSD, NVMe

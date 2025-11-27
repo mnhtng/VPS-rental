@@ -1,3 +1,4 @@
+from decimal import Decimal
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional, TYPE_CHECKING
@@ -73,17 +74,20 @@ class ProxmoxStorage(SQLModel, table=True):
         default=None,
         sa_column=Column(ARRAY(TEXT)),
     )
-    total_space_gb: Optional[int] = Field(
+    total_space_gb: Optional[Decimal] = Field(
         default=None,
-        sa_column=Column(BIGINT),
+        max_digits=10,
+        decimal_places=2,
     )
-    used_space_gb: Optional[int] = Field(
+    used_space_gb: Optional[Decimal] = Field(
         default=None,
-        sa_column=Column(BIGINT),
+        max_digits=10,
+        decimal_places=2,
     )
-    available_space_gb: Optional[int] = Field(
+    available_space_gb: Optional[Decimal] = Field(
         default=None,
-        sa_column=Column(BIGINT),
+        max_digits=10,
+        decimal_places=2,
     )
     enabled: Optional[bool] = Field(
         default=True,

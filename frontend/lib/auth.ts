@@ -50,6 +50,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         error: '/en/error',
     },
     callbacks: {
+        async signIn({ user }) {
+            console.log(">>> signIn user:", user);
+            // OAuth sync will be handled client-side via useOAuthSync hook
+            return true;
+        },
         async jwt({ token, account, user }): Promise<JWT> {
             if (account && user) {
                 token.id = user.id;

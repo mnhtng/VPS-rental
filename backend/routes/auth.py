@@ -13,7 +13,7 @@ from backend.models import User, Account, VerificationToken
 from backend.schemas import (
     AuthLogin,
     AuthRegister,
-    AuthToken,
+    AuthLoginOAuth,
     AuthResendVerification,
     AuthVerifyEmail,
     AuthForgotPassword,
@@ -121,7 +121,7 @@ async def login(
             expires_delta=access_token_expires,
         )
 
-        # Create long-lived refresh token (14 days) - JWT only, no database
+        # Create long-lived refresh token (14 days)
         refresh_token_expires = timedelta(days=14)
         refresh_token = create_refresh_token(
             data={
@@ -162,6 +162,84 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error during login",
+        )
+
+
+@router.post(
+    "/oauth-login",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+)
+async def oauth_login(
+    response: Response,
+    oauth_data: AuthLoginOAuth,
+    session: Session = Depends(get_session),
+):
+    """
+    Login user via OAuth token and return JWT access token.
+    Sets refresh token in HttpOnly Secure cookie.
+
+    Args:
+        response (Response): FastAPI Response object to set cookies.
+        oauth_data (AuthLoginOAuth): OAuth login data containing oauth user info.
+        session (Session): Database session.
+    Raises:
+        HTTPException: 401 if token is invalid.
+        HTTPException: 500 if there is an error during login.
+    Returns:
+        Dict containing access_token (short-lived, 15 min) in JSON.
+        Refresh token (7 days) is set in HttpOnly Secure cookie.
+    """
+    try:
+        # Create short-lived access token (15 minutes)
+        access_token_expires = timedelta(minutes=15)
+        access_token = create_access_token(
+            data={
+                "sub": oauth_data.email,
+                "role": oauth_data.role,
+            },
+            expires_delta=access_token_expires,
+        )
+
+        # Create long-lived refresh token (14 days)
+        refresh_token_expires = timedelta(days=14)
+        refresh_token = create_refresh_token(
+            data={
+                "sub": oauth_data.email,
+                "role": oauth_data.role,
+            },
+            expires_delta=refresh_token_expires,
+        )
+
+        # Set refresh token in HttpOnly Secure cookie
+        cookie_name = settings.REFRESH_TOKEN_NAME
+        max_age = 14 * 24 * 60 * 60  # 14 days in seconds
+
+        response.set_cookie(
+            key=cookie_name,
+            value=refresh_token,
+            max_age=max_age,
+            httponly=True,
+            secure=settings.DEBUG == False,
+            samesite="lax",
+            path="/",
+        )
+
+        return {
+            "message": "OAuth login successful",
+            "data": {
+                "access_token": access_token,
+                "token_type": "bearer",
+                "expires_in": 15 * 60,  # 15 minutes in seconds
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Error during OAuth login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error during OAuth login",
         )
 
 

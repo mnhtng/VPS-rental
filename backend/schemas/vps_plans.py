@@ -39,6 +39,9 @@ class VPSPlanBase(BaseModel):
     name: str = Field(..., description="Plan name")
     description: Optional[str] = Field(None, description="Plan description")
     category: PlanCategory = Field(..., description="Plan category")
+    use_case: Optional[list[str]] = Field(
+        None, description="Intended use case for the VPS plan"
+    )
     vcpu: int = Field(..., description="Number of virtual CPUs")
     ram_gb: int = Field(..., description="RAM in GB")
     storage_type: StorageType = Field(..., description="Storage type")
@@ -90,6 +93,20 @@ class VPSPlanBase(BaseModel):
             raise ValueError(f"{field_name} must not be empty")
         if v < 0:
             raise ValueError(f"{field_name} must be non-negative")
+        return v
+
+    @field_validator("use_case", mode="before")
+    @classmethod
+    def validate_use_case(cls, v: Optional[list[str]]) -> Optional[list[str]]:
+        if v is None:
+            return v
+
+        if not isinstance(v, list):
+            raise ValueError("Use case must be a list of strings")
+
+        for item in v:
+            if not isinstance(item, str):
+                raise ValueError("Each use case must be a non-empty string")
         return v
 
     @field_validator("category", mode="before")
@@ -156,6 +173,9 @@ class VPSPlanUpdate(BaseModel):
     name: Optional[str] = Field(None, description="Plan name")
     description: Optional[str] = Field(None, description="Plan description")
     category: Optional[PlanCategory] = Field(None, description="Plan category")
+    use_case: Optional[list[str]] = Field(
+        None, description="Intended use case for the VPS plan"
+    )
     vcpu: Optional[int] = Field(None, description="Number of virtual CPUs")
     ram_gb: Optional[int] = Field(None, description="RAM in GB")
     storage_type: Optional[StorageType] = Field(None, description="Storage type")
@@ -202,6 +222,20 @@ class VPSPlanUpdate(BaseModel):
             return v
         if v < 0:
             raise ValueError(f"{field_name} must be non-negative")
+        return v
+
+    @field_validator("use_case", mode="before")
+    @classmethod
+    def validate_use_case(cls, v: Optional[list[str]]) -> Optional[list[str]]:
+        if v is None:
+            return v
+
+        if not isinstance(v, list):
+            raise ValueError("Use case must be a list of strings")
+
+        for item in v:
+            if not isinstance(item, str) or len(item.strip()) == 0:
+                raise ValueError("Each use case must be a non-empty string")
         return v
 
     @field_validator("category", mode="before")

@@ -8,6 +8,7 @@ Pydantic schemas for API request/response validation.
 
 from .auth import (
     AuthLogin,
+    AuthLoginOAuth,
     AuthRegister,
     AuthToken,
     AuthResendVerification,
@@ -206,6 +207,7 @@ from .knowledge_bases import (
 __all__ = [
     # Auth schemas
     "AuthLogin",
+    "AuthLoginOAuth",
     "AuthRegister",
     "AuthToken",
     "AuthResendVerification",

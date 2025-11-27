@@ -11,7 +11,6 @@ from sqlmodel import (
     CheckConstraint,
     Column,
 )
-from sqlalchemy import BIGINT
 from sqlalchemy.dialects.postgresql import JSONB, INET
 
 if TYPE_CHECKING:
@@ -32,7 +31,7 @@ class ProxmoxNode(SQLModel, table=True):
         ip_address: IP address of the node.
         status: Current status of the node.
         cpu_cores: Number of CPU cores.
-        total_memory_mb: Total memory in MB.
+        total_memory_gb: Total memory in GB.
         total_storage_gb: Total storage in GB.
         max_vms: Maximum number of VMs allowed.
         cpu_overcommit_ratio: CPU overcommit ratio.
@@ -87,13 +86,15 @@ class ProxmoxNode(SQLModel, table=True):
         default=None,
         nullable=True,
     )
-    total_memory_mb: Optional[int] = Field(
+    total_memory_gb: Optional[Decimal] = Field(
         default=None,
-        sa_column=Column(BIGINT),
+        max_digits=10,
+        decimal_places=2,
     )
-    total_storage_gb: Optional[int] = Field(
+    total_storage_gb: Optional[Decimal] = Field(
         default=None,
-        sa_column=Column(BIGINT),
+        max_digits=10,
+        decimal_places=2,
     )
     max_vms: Optional[int] = Field(
         default=100,
@@ -174,7 +175,7 @@ class ProxmoxNode(SQLModel, table=True):
             "ip_address": self.ip_address,
             "status": self.status,
             "cpu_cores": self.cpu_cores,
-            "total_memory_mb": self.total_memory_mb,
+            "total_memory_gb": self.total_memory_gb,
             "total_storage_gb": self.total_storage_gb,
             "max_vms": self.max_vms,
             "cpu_overcommit_ratio": (

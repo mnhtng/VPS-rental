@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
-import BProgressProviders from "@/contexts/progressbar";
+import BProgressProviders from "@/contexts/ProgressbarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { OAuthSyncProvider } from "@/contexts/OAuthContext";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale, getTranslations } from "next-intl/server";
@@ -99,31 +100,33 @@ export default async function RootLayout({
                     enableColorScheme
                 >
                     <SessionProvider>
-                        <AuthProvider>
-                            <BProgressProviders>
-                                <NextIntlClientProvider>
-                                    <>
-                                        <ClickSpark
-                                            sparkColor="#69fc74"
-                                            sparkSize={10}
-                                            sparkRadius={15}
-                                            sparkCount={8}
-                                            duration={400}
-                                        >
-                                            {children}
-                                        </ClickSpark>
-                                    </>
+                        <OAuthSyncProvider>
+                            <AuthProvider>
+                                <BProgressProviders>
+                                    <NextIntlClientProvider>
+                                        <>
+                                            <ClickSpark
+                                                sparkColor="#69fc74"
+                                                sparkSize={10}
+                                                sparkRadius={15}
+                                                sparkCount={8}
+                                                duration={400}
+                                            >
+                                                {children}
+                                            </ClickSpark>
+                                        </>
 
-                                    <Toaster
-                                        richColors
-                                        closeButton
-                                        position="top-right"
-                                        expand={false}
-                                        duration={5000}
-                                    />
-                                </NextIntlClientProvider>
-                            </BProgressProviders>
-                        </AuthProvider>
+                                        <Toaster
+                                            richColors
+                                            closeButton
+                                            position="top-right"
+                                            expand={false}
+                                            duration={5000}
+                                        />
+                                    </NextIntlClientProvider>
+                                </BProgressProviders>
+                            </AuthProvider>
+                        </OAuthSyncProvider>
                     </SessionProvider>
                 </ThemeProvider>
             </body>

@@ -32,8 +32,8 @@ class ProxmoxNodeBase(BaseModel):
         default=NodeStatus.ONLINE, description="Node status"
     )
     cpu_cores: Optional[int] = Field(None, description="CPU cores")
-    total_memory_mb: Optional[int] = Field(None, description="Total memory in MB")
-    total_storage_gb: Optional[int] = Field(None, description="Total storage in GB")
+    total_memory_gb: Optional[float] = Field(None, description="Total memory in GB")
+    total_storage_gb: Optional[float] = Field(None, description="Total storage in GB")
     max_vms: Optional[int] = Field(default=100, description="Maximum VMs allowed")
     cpu_overcommit_ratio: Optional[float] = Field(
         default=2.0, description="CPU overcommit ratio"
@@ -91,7 +91,7 @@ class ProxmoxNodeBase(BaseModel):
 
     @field_validator(
         "cpu_cores",
-        "total_memory_mb",
+        "total_memory_gb",
         "total_storage_gb",
         "max_vms",
         "cpu_overcommit_ratio",
@@ -140,8 +140,8 @@ class ProxmoxNodeUpdate(BaseModel):
     ip_address: Optional[str] = Field(None, description="IP address")
     status: Optional[NodeStatus] = Field(None, description="Node status")
     cpu_cores: Optional[int] = Field(None, description="CPU cores")
-    total_memory_mb: Optional[int] = Field(None, description="Total memory in MB")
-    total_storage_gb: Optional[int] = Field(None, description="Total storage in GB")
+    total_memory_gb: Optional[float] = Field(None, description="Total memory in GB")
+    total_storage_gb: Optional[float] = Field(None, description="Total storage in GB")
     max_vms: Optional[int] = Field(None, description="Maximum VMs allowed")
     cpu_overcommit_ratio: Optional[float] = Field(
         None, description="CPU overcommit ratio"
@@ -185,7 +185,7 @@ class ProxmoxNodeUpdate(BaseModel):
 
     @field_validator(
         "cpu_cores",
-        "total_memory_mb",
+        "total_memory_gb",
         "total_storage_gb",
         "max_vms",
         "cpu_overcommit_ratio",

@@ -276,15 +276,15 @@ def sync_cluster_resources(
                 )
             ).first()
 
-            node_status = CommonProxmoxService.get_node_status(proxmox, node_name)
+            node_status = ProxmoxNodeService.get_node_status(proxmox, node_name)
 
             if existing_node:
                 # Update existing node
                 existing_node.status = node_data.get("status", "online")
                 existing_node.cpu_cores = node_status.get("cpuinfo", {}).get("cpus")
-                existing_node.total_memory_mb = node_status.get("memory", {}).get(
+                existing_node.total_memory_gb = node_status.get("memory", {}).get(
                     "total", 0
-                ) // (1024 * 1024)
+                ) // (1024 * 1024 * 1024)
                 existing_node.updated_at = datetime.now(timezone.utc)
                 session.add(existing_node)
                 synced_nodes.append(existing_node.name)
@@ -296,8 +296,8 @@ def sync_cluster_resources(
                     ip_address=node_data.get("ip", "127.0.0.1"),
                     status=node_data.get("status", "online"),
                     cpu_cores=node_status.get("cpuinfo", {}).get("cpus"),
-                    total_memory_mb=node_status.get("memory", {}).get("total", 0)
-                    // (1024 * 1024),
+                    total_memory_gb=node_status.get("memory", {}).get("total", 0)
+                    // (1024 * 1024 * 1024),
                 )
                 session.add(new_node)
                 synced_nodes.append(new_node.name)

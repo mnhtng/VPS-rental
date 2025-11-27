@@ -10,6 +10,14 @@ from pydantic import (
     ConfigDict,
     field_validator,
 )
+from enum import Enum
+
+
+class UserRole(str, Enum):
+    """User role choices"""
+
+    USER = "USER"
+    ADMIN = "ADMIN"
 
 
 class AuthLogin(BaseModel):
@@ -86,6 +94,81 @@ class AuthLogin(BaseModel):
             raise ValueError("Password must be at least one lowercase letter")
         if not any(c.isdigit() for c in v):
             raise ValueError("Password must be at least one digit")
+        return v
+
+
+class AuthLoginOAuth(BaseModel):
+    """Schema for user OAuth login"""
+
+    email: str = Field(..., description="Email address")
+    role: UserRole = Field(..., description="User role")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Email must not be empty")
+
+        v = v.strip()
+        if len(v) == 0:
+            raise ValueError("Email must not be empty")
+
+        local_part = v.split("@")[0] if "@" in v else ""
+        domain_part = v.split("@")[-1] if "@" in v else ""
+        domain_part = domain_part.lower()
+        v = local_part + "@" + domain_part
+
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        if not re.match(email_pattern, v) or v.count("@") != 1:
+            raise ValueError("Email is not in valid format")
+
+        if len(local_part) < 1:
+            raise ValueError("The part before @ must not be empty")
+        if len(local_part) > 64:
+            raise ValueError("The part before @ must not exceed 64 characters")
+        if local_part.startswith(".") or local_part.endswith("."):
+            raise ValueError("Email cannot start or end with a dot")
+        if ".." in local_part:
+            raise ValueError("Email cannot contain consecutive dots")
+
+        if len(domain_part) < 3:
+            raise ValueError("Email domain must be at least 3 characters")
+        if len(domain_part) > 255:
+            raise ValueError("Email domain must not exceed 255 characters")
+        if "." not in domain_part:
+            raise ValueError("Email domain must contain a dot")
+
+        # Block temporary/disposable email providers
+        blocked_domains = [
+            "tempmail.com",
+            "throwaway.email",
+            "guerrillamail.com",
+            "10minutemail.com",
+            "mailinator.com",
+            "yopmail.com",
+            "temp-mail.org",
+            "fakeinbox.com",
+        ]
+
+        if domain_part in blocked_domains:
+            raise ValueError("Email domain is not allowed")
+        return v
+
+    @field_validator("role", mode="before")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Role must not be empty")
+
+        v = str(v).strip().upper()
+        if len(v) == 0:
+            raise ValueError("Role must not be empty")
+        if len(v) > 20:
+            raise ValueError("Role must not exceed 20 characters")
+
+        valid_roles = [role.value for role in UserRole]
+        if v not in valid_roles:
+            raise ValueError("Invalid user role")
         return v
 
 
