@@ -17,7 +17,7 @@ export async function generatePageMetadata({
     page: string;
     path?: string;
 }): Promise<Metadata> {
-    const pageT = await getTranslations({ locale, namespace: `pages.${page}` });
+    const pageT = await getTranslations({ locale, namespace: `metadata.${page}` });
 
     const title = pageT('title');
     const description = pageT('description');

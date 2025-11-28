@@ -112,6 +112,7 @@ from .carts import (
     CartBase,
     CartCreate,
     CartUpdate,
+    CartAdd,
     CartPublic,
     CartResponse,
 )
@@ -287,6 +288,7 @@ __all__ = [
     "CartBase",
     "CartCreate",
     "CartUpdate",
+    "CartAdd",
     "CartPublic",
     "CartResponse",
     # Order schemas

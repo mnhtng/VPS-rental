@@ -15,16 +15,17 @@ export interface VPSPlan {
     id: string;
     name: string;
     description?: string;
+    category: string;
+    use_case: string[];
     vcpu: number;
     ram_gb: number;
     storage_type: 'SSD' | 'NVMe';
     storage_gb: number;
-    bandwidth_gb: number;
-    operating_system: string[];
-    vm_template: string;
-    monthly_billing?: number;
+    bandwidth_mbps: number;
     monthly_price: number;
-    setup_fee?: number;
+    currency: 'USD' | 'VND';
+    max_snapshots?: number;
+    max_ip_addresses?: number;
     created_at: string;
     updated_at?: string;
 }

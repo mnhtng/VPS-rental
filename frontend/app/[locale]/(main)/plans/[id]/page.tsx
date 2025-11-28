@@ -17,88 +17,21 @@ import {
     ArrowLeft,
     DollarSign,
     Calendar,
-    MonitorCog
+    MonitorCog,
+    Gauge,
+    Loader2
 } from 'lucide-react';
 import { VPSPlan } from '@/types/types';
 import { toast } from 'sonner';
 import { formatPrice } from '@/utils/currency';
 import { Label } from '@radix-ui/react-label';
-
-// Mock data - Static data for VPS plans
-const mockPlans: VPSPlan[] = [
-    {
-        id: 1,
-        name: "Starter",
-        description: "Perfect for small websites and development projects",
-        cpu_cores: 1,
-        ram_gb: 2,
-        storage_type: 'SSD',
-        storage_gb: 25,
-        bandwidth_gb: 1000,
-        monthly_price: 150000,
-        is_active: true,
-        created_at: '2024-01-01'
-    },
-    {
-        id: 2,
-        name: "Business",
-        description: "Great for growing businesses and applications",
-        cpu_cores: 2,
-        ram_gb: 4,
-        storage_type: 'NVMe',
-        storage_gb: 50,
-        bandwidth_gb: 2000,
-        monthly_price: 350000,
-        is_active: true,
-        created_at: '2024-01-01'
-    },
-    {
-        id: 3,
-        name: "Professional",
-        description: "High-performance hosting for demanding applications",
-        cpu_cores: 4,
-        ram_gb: 8,
-        storage_type: 'NVMe',
-        storage_gb: 100,
-        bandwidth_gb: 4000,
-        monthly_price: 750000,
-        is_active: true,
-        created_at: '2024-01-01'
-    },
-    {
-        id: 4,
-        name: "Enterprise",
-        description: "For large-scale applications and enterprise solutions",
-        cpu_cores: 8,
-        ram_gb: 16,
-        storage_type: 'NVMe',
-        storage_gb: 200,
-        bandwidth_gb: 8000,
-        monthly_price: 1500000,
-        is_active: true,
-        created_at: '2024-01-01'
-    },
-    {
-        id: 5,
-        name: "Developer",
-        description: "Affordable VPS for developers and testing",
-        cpu_cores: 2,
-        ram_gb: 2,
-        storage_type: 'SSD',
-        storage_gb: 40,
-        bandwidth_gb: 1500,
-        monthly_price: 250000,
-        is_active: true,
-        created_at: '2024-01-01'
-    }
-];
+import useProduct from '@/hooks/useProduct';
+import { useLocale } from 'next-intl';
+import { PlanItemPlaceholder } from '@/components/custom/placeholder/vps_plan';
 
 const operatingSystemOptions = [
-    { value: 'ubuntu-22.04', label: 'Ubuntu 22.04 LTS' },
-    { value: 'centos-8', label: 'CentOS 8' },
-    { value: 'debian-11', label: 'Debian 11' },
-    { value: 'windows-2019', label: 'Windows Server 2019' },
-    { value: 'windows-2022', label: 'Windows Server 2022' }
+    { value: 'linux:6.x-2.6', label: 'Ubuntu 22.04.5 LTS' },
+    { value: 'windows:10', label: 'Windows 10 Pro 64-bit' },
 ];
 
 const durationOptions = [
@@ -109,36 +42,73 @@ const durationOptions = [
     { value: 24, label: '24 Months', discount: 20 },
 ];
 
+const getPlanFeatures = () => [
+    'Full Root Access',
+    'Free DDoS Protection',
+    '24/7 Support',
+    '99.9% Uptime',
+    'Easy Scalability',
+    'Unlimited Bandwidth',
+];
+
 const PlanDetailPage = () => {
     const params = useParams();
     const router = useRouter();
+    const locale = useLocale();
+    const { getPlanItem, addToCart } = useProduct();
 
-    const [plan, setPlan] = useState<VPSPlan | null>(null);
-    const [selectedOS, setSelectedOS] = useState('ubuntu-22.04');
-    const [selectedDuration, setSelectedDuration] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [plan, setPlan] = useState<VPSPlan | null>(null);
+    const [hostname, setHostname] = useState('');
+    const [selectedOS, setSelectedOS] = useState<string>(operatingSystemOptions[0].value);
+    const [selectedDuration, setSelectedDuration] = useState(1);
+    const [addingToCart, setAddingToCart] = useState(false);
+
+    const fetchPlanItem = async () => {
+        setLoading(true);
+
+        try {
+            const planId = params.id as string;
+            const result = await getPlanItem(planId);
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.details,
+                });
+                setPlan(null);
+            } else {
+                setPlan(result.data);
+            }
+        } catch {
+            toast.error("Failed to load plan", {
+                description: "Please try again later",
+            });
+            setPlan(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getBadgeVariant = (category: string) => {
+        return category === 'basic' ? 'secondary' : category === 'standard' ? 'default' : 'destructive';
+    };
+
+    const getNetworkSpeed = (mbps: number) => {
+        if (mbps >= 1000) {
+            const gbps = (mbps / 1000).toFixed(1);
+            return `${gbps} Gbps`;
+        }
+        return `${mbps} Mbps`;
+    };
 
     useEffect(() => {
-        // Use static data only
-        const fetchPlan = () => {
-            setLoading(true);
-            const planId = parseInt(params.id as string);
-            const foundPlan = mockPlans.find(p => p.id === planId);
-            setPlan(foundPlan || null);
-            setLoading(false);
-        };
-
-        fetchPlan();
-    }, [params.id]);
+        fetchPlanItem();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="flex items-center space-x-4">
-                    <Server className="h-8 w-8 animate-pulse text-blue-600" />
-                    <div className="text-lg">Loading plan details...</div>
-                </div>
-            </div>
+            <PlanItemPlaceholder />
         );
     }
 
@@ -150,7 +120,7 @@ const PlanDetailPage = () => {
                         <Server className="h-16 w-16 mx-auto mb-4 text-gray-400" />
                         <h2 className="text-2xl font-bold mb-2">VPS Plan Not Found</h2>
                         <p className="text-muted-foreground mb-4">The requested VPS plan does not exist.</p>
-                        <Button onClick={() => router.push('/plans')}>
+                        <Button onClick={() => router.push(`/${locale}/plans`)}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Plans
                         </Button>
@@ -159,29 +129,6 @@ const PlanDetailPage = () => {
             </div>
         );
     }
-
-    const getPlanFeatures = () => [
-        'Full Root Access',
-        'Free DDoS Protection',
-        '24/7 Support',
-        'Free SSL Certificate',
-        'Daily Backups',
-        '1-Click App Installation',
-        'Easy Control Panel',
-        '99.9% Uptime'
-    ];
-
-    const getBadgeVariant = (price: number) => {
-        if (price <= 300000) return 'secondary';
-        if (price <= 800000) return 'default';
-        return 'destructive';
-    };
-
-    const getBadgeText = (price: number) => {
-        if (price <= 300000) return 'Basic';
-        if (price <= 800000) return 'Popular';
-        return 'Premium';
-    };
 
     const calculatePrice = () => {
         const duration = durationOptions.find(d => d.value === selectedDuration);
@@ -194,17 +141,41 @@ const PlanDetailPage = () => {
             monthlyPrice: (basePrice - discount) / selectedDuration
         };
     };
-
     const pricing = calculatePrice();
 
-    const addToCart = () => {
-        console.log('Add to cart:', {
-            planId: plan.id,
-            os: selectedOS,
-            duration: selectedDuration,
-            totalPrice: pricing.finalPrice
-        });
-        toast.success(`Added ${plan.name} plan to cart!`);
+    const addItemToCart = async () => {
+        setAddingToCart(true);
+
+        try {
+            const os = {
+                type: selectedOS.split(':')[0],
+                version: selectedOS.split(':')[1],
+            }
+
+            const result = await addToCart({
+                planID: plan.id,
+                hostname: hostname.trim(),
+                osType: os.type,
+                osVersion: os.version,
+                durationMonths: selectedDuration,
+                totalPrice: pricing.finalPrice,
+            });
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.details,
+                });
+            } else {
+                toast.success("Added to cart successfully");
+                router.push(`/${locale}/cart`);
+            }
+        } catch {
+            toast.error("Failed to add to cart", {
+                description: "Please try again later",
+            });
+        } finally {
+            setAddingToCart(false);
+        }
     };
 
     return (
@@ -214,15 +185,15 @@ const PlanDetailPage = () => {
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Plan Header */}
-                        <Card className="border-2">
+                        <Card className="border-2 hover:shadow-lg transition-shadow animate-in fade-in slide-in-from-top duration-500">
                             <CardHeader className="text-center pb-6">
                                 <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
-                                    <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                                    <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white">
                                         <Server className="h-12 w-12" />
                                     </div>
                                     <div className="text-center sm:text-left">
-                                        <Badge variant={getBadgeVariant(plan.monthly_price)} className="mb-2">
-                                            {getBadgeText(plan.monthly_price)}
+                                        <Badge variant={getBadgeVariant(plan.category)} className="mb-2">
+                                            {plan.category.charAt(0).toUpperCase() + plan.category.slice(1)}
                                         </Badge>
                                         <CardTitle className="text-2xl sm:text-3xl font-bold">{plan.name}</CardTitle>
                                     </div>
@@ -234,51 +205,49 @@ const PlanDetailPage = () => {
                         </Card>
 
                         {/* Specifications */}
-                        <Card className='border-2'>
+                        <Card className="border-2 hover:shadow-lg transition-shadow animate-in fade-in slide-in-from-left duration-700">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <Cpu className="h-5 w-5 text-blue-600" />
                                     Server Specifications
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30">
-                                        <Cpu className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                                        <div className="text-2xl font-bold">{plan.cpu_cores}</div>
-                                        <div className="text-sm text-muted-foreground">CPU Cores</div>
+                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 dark:border dark:border-blue-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
+                                        <Cpu className="h-8 w-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                                        <div className="text-2xl font-bold">{plan.vcpu}</div>
+                                        <div className="text-sm text-muted-foreground">Cores</div>
                                     </div>
-                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30">
-                                        <Zap className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 dark:border dark:border-green-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
+                                        <Zap className="h-8 w-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                         <div className="text-2xl font-bold">{plan.ram_gb} GB</div>
                                         <div className="text-sm text-muted-foreground">RAM</div>
                                     </div>
-                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30">
-                                        <HardDrive className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 dark:border dark:border-purple-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
+                                        <HardDrive className="h-8 w-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                         <div className="text-2xl font-bold">{plan.storage_gb} GB</div>
                                         <div className="text-sm text-muted-foreground">{plan.storage_type}</div>
                                     </div>
-                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30">
-                                        <Server className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                                        <div className="text-2xl font-bold">{plan.bandwidth_gb ? Math.floor(plan.bandwidth_gb / 1000) : '∞'} TB</div>
-                                        <div className="text-sm text-muted-foreground">Bandwidth</div>
+                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 dark:border dark:border-orange-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
+                                        <Gauge className="h-8 w-8 text-orange-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                                        <div className="text-2xl font-bold">{getNetworkSpeed(plan.bandwidth_mbps)}</div>
+                                        <div className="text-sm text-muted-foreground">Network</div>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* Included Features */}
-                        <Card className='border-2'>
+                        <Card className="border-2 hover:shadow-lg transition-shadow animate-in fade-in slide-in-from-left duration-700 delay-150">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <CheckCircle className="h-5 w-5 text-green-600" />
                                     What&apos;s Included
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid md:grid-cols-2 gap-3">
                                     {getPlanFeatures().map((feature, index) => (
-                                        <div key={index} className="flex items-center gap-3">
+                                        <div key={index} className="flex items-center gap-3 group">
                                             <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                                             <span>{feature}</span>
                                         </div>
@@ -290,7 +259,7 @@ const PlanDetailPage = () => {
 
                     {/* Order Sidebar */}
                     <div className="space-y-6">
-                        <Card className="sticky top-16.5 bg-secondary/50 border border-accent">
+                        <Card className="sticky top-16.5 bg-secondary/50 border border-accent hover:shadow-xl transition-shadow animate-in fade-in slide-in-from-right duration-700">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <DollarSign className="h-5 w-5 text-green-600" />
@@ -298,6 +267,23 @@ const PlanDetailPage = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
+                                {/* Hostname */}
+                                <div className='space-y-2'>
+                                    <Label htmlFor='hostname' className="text-sm font-medium inline-flex items-center gap-2">
+                                        <Server className="h-4 w-4 text-purple-500" />
+                                        Hostname
+                                    </Label>
+                                    <input
+                                        id="hostname"
+                                        name="hostname"
+                                        type="text"
+                                        value={hostname}
+                                        onChange={(e) => setHostname(e.target.value)}
+                                        className="w-full px-3 py-2 border border-muted-foreground/70 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-muted-foreground transition-colors duration-200"
+                                        placeholder="e.g., my-vps-server"
+                                    />
+                                </div>
+
                                 {/* Operating System Selection */}
                                 <div className='space-y-2'>
                                     <Label className="text-sm font-medium inline-flex items-center gap-2">
@@ -305,9 +291,10 @@ const PlanDetailPage = () => {
                                         Operating System
                                     </Label>
                                     <Select value={selectedOS} onValueChange={setSelectedOS}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className='border-muted-foreground/70'>
                                             <SelectValue />
                                         </SelectTrigger>
+
                                         <SelectContent>
                                             {operatingSystemOptions.map((os) => (
                                                 <SelectItem key={os.value} value={os.value}>
@@ -325,7 +312,7 @@ const PlanDetailPage = () => {
                                         Billing Period
                                     </Label>
                                     <Select value={selectedDuration.toString()} onValueChange={(value) => setSelectedDuration(parseInt(value))}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className='border-muted-foreground/70'>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -383,23 +370,33 @@ const PlanDetailPage = () => {
 
                                 {/* Action Buttons */}
                                 <Button
-                                    className="w-full"
+                                    className="w-full group hover:scale-105 transition-all duration-300"
                                     size="lg"
-                                    onClick={addToCart}
+                                    onClick={addItemToCart}
+                                    disabled={!hostname.trim() || loading || addingToCart}
                                 >
-                                    <ShoppingCart className="mr-2 h-4 w-4" />
-                                    Add to Cart
+                                    {addingToCart ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Adding to Cart...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShoppingCart className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+                                            Add to Cart
+                                        </>
+                                    )}
                                 </Button>
 
                                 <div className="text-xs text-muted-foreground text-center">
-                                    * Setup is usually completed within 5-10 minutes
+                                    * Setup is usually completed in a few minutes after payment
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

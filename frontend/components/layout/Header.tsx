@@ -43,7 +43,7 @@ import { Separator } from '@radix-ui/react-separator';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useAuth } from '@/contexts/AuthContext';
-import HeaderPlaceHolder from '../custom/placeholder/header';
+import HeaderPlaceHolder from '@/components/custom/placeholder/header';
 
 export const Header = () => {
     const { data: session, status } = useSession()

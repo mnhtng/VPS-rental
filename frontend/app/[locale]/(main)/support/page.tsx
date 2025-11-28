@@ -183,10 +183,10 @@ const SupportPage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Header */}
                 <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold text-primary mb-4">
+                    <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
                         Support Center
                     </h1>
-                    <p className="text-xl text-muted-foreground">
+                    <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                         Get help with your VPS hosting needs
                     </p>
                 </div>

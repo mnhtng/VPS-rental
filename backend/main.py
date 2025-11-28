@@ -10,6 +10,8 @@ from backend.routes import (
     users_router,
     proxmox_router,
     proxmox_iaas_router,
+    vps_plans_router,
+    cart_router,
 )
 
 
@@ -59,6 +61,8 @@ app.include_router(auth_router, prefix=api_prefix)
 app.include_router(users_router, prefix=api_prefix)
 app.include_router(proxmox_router, prefix=api_prefix)
 app.include_router(proxmox_iaas_router, prefix=api_prefix)
+app.include_router(vps_plans_router, prefix=api_prefix)
+app.include_router(cart_router, prefix=api_prefix)
 
 
 @app.get(f"{api_prefix}/")

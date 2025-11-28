@@ -42,7 +42,7 @@ const useMember = () => {
                     const refreshed = await refreshAccessToken();
                     if (refreshed) {
                         // Retry
-                        return getProfile();
+                        return await getProfile();
                     }
                 }
 
@@ -114,7 +114,7 @@ const useMember = () => {
                 if (response.status === 401) {
                     const refreshed = await refreshAccessToken();
                     if (refreshed) {
-                        return updateProfile(data);
+                        return await updateProfile(data);
                     }
                 }
 
@@ -178,7 +178,7 @@ const useMember = () => {
                 if (response.status === 401) {
                     const refreshed = await refreshAccessToken();
                     if (refreshed) {
-                        return changePassword(data);
+                        return await changePassword(data);
                     }
                 }
 

@@ -9,6 +9,7 @@ from pydantic import (
     ValidationInfo,
     field_validator,
 )
+from backend.models import VPSPlan
 
 if TYPE_CHECKING:
     from .users import UserPublic
@@ -87,6 +88,50 @@ class CartUpdate(BaseModel):
 
         if v is None:
             return v
+        if v <= 0:
+            raise ValueError(f"{field_name} must be a positive value")
+        return v
+
+
+class CartAdd(BaseModel):
+    """Schema to add item to cart"""
+
+    plan_id: uuid.UUID = Field(..., description="VPS plan ID to add")
+    hostname: str = Field(..., description="Hostname")
+    os_type: str = Field(..., description="Operating system type")
+    os_version: str = Field(..., description="Operating system version")
+    duration_months: int = Field(default=1, description="Duration in months")
+    total_price: float = Field(..., description="Total price")
+
+    @field_validator("hostname", "os_type", "os_version")
+    @classmethod
+    def validate_required_str(cls, v: str, info: ValidationInfo) -> str:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
+        if not v:
+            raise ValueError(f"{field_name} must not be empty")
+
+        v = v.strip()
+        if len(v) == 0:
+            raise ValueError(f"{field_name} must not be empty")
+
+        max_lengths = {
+            "hostname": 255,
+            "os_type": 50,
+            "os_version": 10,
+        }
+        max_length = max_lengths.get(info.field_name)
+        if max_length and len(v) > max_length:
+            raise ValueError(f"{field_name} must not exceed {max_length} characters")
+        return v
+
+    @field_validator("duration_months", "total_price")
+    @classmethod
+    def validate_positive(cls, v: int | float, info: ValidationInfo) -> int | float:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
+        if not v:
+            raise ValueError(f"{field_name} must not be empty")
         if v <= 0:
             raise ValueError(f"{field_name} must be a positive value")
         return v

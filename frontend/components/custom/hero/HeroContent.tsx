@@ -40,38 +40,55 @@ export default function HeroContent({
     };
 
     return (
-        <div className="text-left">
-            <div className="mb-6">
-                <Badge className={`mb-4 ${styles.badge}`}>
-                    <Star className="w-4 h-4 mr-2" />
+        <div className="text-left space-y-6">
+            <div className="mb-6 animate-in fade-in slide-in-from-left duration-700">
+                <Badge className={`mb-4 ${styles.badge} hover:scale-105 transition-transform duration-200`}>
+                    <Star className="w-4 h-4 mr-2 animate-pulse" />
                     {t('hero.badge')}
                 </Badge>
             </div>
 
-            <h1 className={`text-4xl md:text-6xl lg:text-7xl font-bold ${styles.title} mb-6 leading-tight`}>
+            <h1 className={`text-4xl md:text-6xl lg:text-7xl font-bold ${styles.title} mb-6 leading-tight animate-in fade-in slide-in-from-left duration-1000`}>
                 {t('hero.title')}
             </h1>
 
-            <p className={`text-xl md:text-2xl ${styles.subtitle} mb-8 leading-relaxed`}>
+            <p className={`text-xl md:text-2xl ${styles.subtitle} mb-8 leading-relaxed animate-in fade-in slide-in-from-left duration-1000 delay-150`}>
                 {t('hero.subtitle')}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 {features.map((feature: string, index: number) => (
-                    <div key={index} className="flex items-center">
-                        <CheckCircle className={`h-5 w-5 ${styles.checkIcon} mr-3 flex-shrink-0`} />
+                    <div
+                        key={index}
+                        className="flex items-center group hover:translate-x-2 transition-all duration-300 animate-in fade-in slide-in-from-left"
+                        style={{
+                            animationDelay: `${300 + index * 100}ms`,
+                            animationDuration: '700ms'
+                        }}
+                    >
+                        <CheckCircle className={`h-5 w-5 ${styles.checkIcon} mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200`} />
                         <span className={styles.feature}>{feature}</span>
                     </div>
                 ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className={`text-lg px-8 py-4 ${styles.primaryBtn}`} asChild>
-                    <Link href={`/${locale}/plans`}>
-                        {t('hero.cta')} <ArrowRight className="ml-2 h-5 w-5" />
+            <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-left duration-1000 delay-300">
+                <Button
+                    size="lg"
+                    className={`text-lg px-8 py-4 ${styles.primaryBtn} group hover:scale-105 transition-all duration-300`}
+                    asChild
+                >
+                    <Link href={`/${locale}/plans`} className="flex items-center">
+                        {t('hero.cta')}
+                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
                 </Button>
-                <Button variant="outline" size="lg" className={`text-lg px-8 py-4 ${styles.outlineBtn}`} asChild>
+                <Button
+                    variant="outline"
+                    size="lg"
+                    className={`text-lg px-8 py-4 ${styles.outlineBtn} hover:scale-105 transition-all duration-300`}
+                    asChild
+                >
                     <Link href={`/${locale}/support`}>
                         {t('hero.learn_more')}
                     </Link>

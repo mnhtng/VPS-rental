@@ -1,10 +1,10 @@
 {
     "metadata": {
-        "title": "PCloud - Giải pháp VPS Hosting chuyên nghiệp",
-        "description": "Khám phá dịch vụ VPS hosting đáng tin cậy và giá cả phải chăng với PCloud. Tận hưởng tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ chuyên gia 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
-        "keywords": "VPS hosting, máy chủ đám mây, SSD VPS, NVMe VPS, VPS giá rẻ, VPS ổn định, web hosting, máy chủ ảo riêng"
-    },
-    "pages": {
+        "home": {
+            "title": "PCloud - Giải pháp VPS Hosting chuyên nghiệp",
+            "description": "Khám phá dịch vụ VPS hosting đáng tin cậy và giá cả phải chăng với PCloud. Tận hưởng tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ chuyên gia 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
+            "keywords": "VPS hosting, máy chủ đám mây, SSD VPS, NVMe VPS, VPS giá rẻ, VPS ổn định, web hosting, máy chủ ảo riêng"
+        },
         "plans": {
             "title": "Gói VPS - PCloud",
             "description": "Lựa chọn các gói VPS hosting linh hoạt với lưu trữ SSD/NVMe, tài nguyên riêng và hỗ trợ 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
@@ -70,7 +70,7 @@
             "services": {
                 "web_server": "Web Server",
                 "database": "Cơ sở dữ liệu",
-                "backup": "Sao lưu",
+                "scalability": "Mở rộng linh hoạt",
                 "monitoring": "Giám sát"
             },
             "performance": {
@@ -94,9 +94,9 @@
             "support": "Hỗ trợ 24/7",
             "support_desc": "Đội ngũ kỹ thuật chuyên gia luôn sẵn sàng",
             "security": "Bảo mật nâng cao",
-            "security_desc": "Giải pháp bảo mật tiên tiến để bảo vệ dữ liệu",
-            "backup": "Sao lưu hàng ngày",
-            "backup_desc": "Tự động sao lưu hàng ngày để yên tâm tuyệt đối"
+            "security_desc": "Các biện pháp bảo mật tiên tiến để bảo vệ dữ liệu của bạn",
+            "scalability": "Mở rộng dễ dàng",
+            "scalability_desc": "Tăng giảm tài nguyên ngay lập tức theo nhu cầu phát triển"
         },
         "popular_plans": {
             "title": "Các gói VPS phổ biến",
@@ -104,7 +104,7 @@
             "storage": "Dung lượng",
             "memory": "RAM",
             "cpu_cores": "Số lõi CPU",
-            "bandwidth": "Băng thông",
+            "network_speed": "Tốc độ mạng",
             "per_month": "/tháng",
             "select_plan": "Chọn gói",
             "most_popular": "Phổ biến nhất"

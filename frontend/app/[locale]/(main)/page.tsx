@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -9,20 +9,79 @@ import { Badge } from '@/components/ui/badge';
 import {
   Server,
   Shield,
-  Clock,
   HeadphonesIcon,
   CheckCircle,
   Rocket,
   Award,
   DollarSign,
-  Settings
+  Settings,
+  ArrowRight,
+  Scale
 } from 'lucide-react';
 import HeroSection from '@/components/custom/hero/HeroSection';
-import { convertUSDToVND, formatPrice } from '@/utils/currency';
+import { formatPrice } from '@/utils/currency';
+import { FeaturesSectionPlaceholder, PopularSectionPlaceholder, WhyChooseUsPlaceholder } from '@/components/custom/placeholder/home';
+import { useSession } from 'next-auth/react';
+import { VPSPlan } from '@/types/types';
+import { toast } from 'sonner';
+import useProduct from '@/hooks/useProduct';
 
 const HomePage = () => {
-  const t = useTranslations('home');
   const locale = useLocale();
+  const t = useTranslations('home');
+  const { status } = useSession();
+  const { getPlans } = useProduct();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [popularPlans, setPopularPlans] = useState<VPSPlan[]>([]);
+
+  const getNetworkSpeed = (mbps: number) => {
+    if (mbps >= 1000) {
+      const gbps = (mbps / 1000).toFixed(1);
+      return `${gbps} Gbps`;
+    }
+    return `${mbps} Mbps`;
+  };
+
+  useEffect(() => {
+    if (status === 'loading') {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  }, [status]);
+
+  const fetchPopularPlans = async () => {
+    try {
+      const result = await getPlans();
+
+      if (result.error) {
+        toast.error(result.message, {
+          description: result.error.details,
+        });
+
+        setPopularPlans([]);
+      } else {
+        const plansData = Array.isArray(result.data) ? [
+          result.data[0],
+          result.data[2],
+          result.data[5],
+        ] : [];
+        setPopularPlans(plansData);
+      }
+    } catch {
+      toast.error("Failed to load popular plans", {
+        description: "Please try again later",
+      });
+
+      setPopularPlans([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchPopularPlans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const features = [
     {
@@ -36,50 +95,14 @@ const HomePage = () => {
       description: t('features.security_desc')
     },
     {
-      icon: <Clock className="h-8 w-8 text-purple-600" />,
-      title: t('features.backup'),
-      description: t('features.backup_desc')
+      icon: <Scale className="h-8 w-8 text-purple-600" />,
+      title: t('features.scalability'),
+      description: t('features.scalability_desc')
     },
     {
       icon: <HeadphonesIcon className="h-8 w-8 text-orange-600" />,
       title: t('features.support'),
       description: t('features.support_desc')
-    }
-  ];
-
-  const popularPlans = [
-    {
-      id: 1,
-      name: "Starter",
-      price: convertUSDToVND(10),
-      cpu: 1,
-      ram: 2,
-      storage: 25,
-      storageType: "SSD",
-      bandwidth: "1TB",
-      popular: false
-    },
-    {
-      id: 2,
-      name: "Business",
-      price: convertUSDToVND(30),
-      cpu: 2,
-      ram: 4,
-      storage: 50,
-      storageType: "NVMe",
-      bandwidth: "2TB",
-      popular: true
-    },
-    {
-      id: 3,
-      name: "Professional",
-      price: convertUSDToVND(65),
-      cpu: 4,
-      ram: 8,
-      storage: 100,
-      storageType: "NVMe",
-      bandwidth: "4TB",
-      popular: false
     }
   ];
 
@@ -124,21 +147,29 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center border border-accent hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-center mb-4">
-                    {feature.icon}
-                  </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-muted-foreground">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+            {isLoading ? (
+              <FeaturesSectionPlaceholder />
+            ) : (
+              features.map((feature, index) => (
+                <Card
+                  key={index}
+                  className="text-center border border-accent hover:shadow-xl hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <CardHeader>
+                    <div className="flex justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                      {feature.icon}
+                    </div>
+                    <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-muted-foreground">
+                      {feature.description}
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -156,62 +187,76 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {popularPlans.map((plan, index) => (
-              <Card key={index} className={`relative ${plan.popular ? 'border-blue-500 border-2' : ''}`}>
-                {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
-                    {t('popular_plans.most_popular')}
-                  </Badge>
-                )}
+            {isLoading ? (
+              <PopularSectionPlaceholder />
+            ) : (
+              popularPlans.map((plan, index) => (
+                <Card
+                  key={index}
+                  className={`relative hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 ${index === 1 ? 'border-blue-500 border-2 scale-105' : 'hover:border-primary/50'
+                    }`}
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  {index === 1 && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-background text-primary border border-primary px-3 py-1 rounded-full shadow-md">
+                      {t('popular_plans.most_popular')}
+                    </Badge>
+                  )}
 
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl">
-                    {plan.name}
-                  </CardTitle>
-                  <div className="text-3xl md:text-xl lg:text-3xl font-bold text-accent-foreground">
-                    {formatPrice(plan.price)}
-                    <span className="text-lg font-normal text-muted-foreground">
-                      {t('popular_plans.per_month')}
-                    </span>
-                  </div>
-                </CardHeader>
+                  <CardHeader className="text-center">
+                    <CardTitle className="text-2xl hover:text-primary transition-colors duration-300">
+                      {plan.name}
+                    </CardTitle>
+                    <div className="text-3xl md:text-xl lg:text-3xl font-bold text-accent-foreground">
+                      {formatPrice(plan.monthly_price)}{' '}
+                      <span className="text-lg font-normal text-muted-foreground">
+                        {t('popular_plans.per_month')}
+                      </span>
+                    </div>
+                  </CardHeader>
 
-                <CardContent className="space-y-4 h-full flex flex-col">
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                      <span>{plan.cpu} {t('popular_plans.cpu_cores')}</span>
+                  <CardContent className="space-y-4 h-full flex flex-col">
+                    <div className="space-y-3">
+                      <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
+                        <span>{plan.vcpu} {t('popular_plans.cpu_cores')}</span>
+                      </div>
+                      <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
+                        <span>{plan.ram_gb} GB {t('popular_plans.memory')}</span>
+                      </div>
+                      <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
+                        <span>{plan.storage_gb} GB {plan.storage_type} {t('popular_plans.storage')}</span>
+                      </div>
+                      <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
+                        <span>{getNetworkSpeed(plan.bandwidth_mbps)} {t('popular_plans.network_speed')}</span>
+                      </div>
+                      <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
+                        <span>{t('features.support')}</span>
+                      </div>
+                      <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
+                        <span>{t('features.uptime')}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                      <span>{plan.ram} GB {t('popular_plans.memory')}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                      <span>{plan.storage} GB {plan.storageType} {t('popular_plans.storage')}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                      <span>{plan.bandwidth} {t('popular_plans.bandwidth')}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                      <span>{t('features.support')}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                      <span>{t('features.uptime')}</span>
-                    </div>
-                  </div>
 
-                  <Button className="w-full mt-auto" variant={plan.popular ? "default" : "outline"} asChild>
-                    <Link href={`/${locale}/plans/${plan.id}`}>
-                      {t('popular_plans.select_plan')}
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    <Button
+                      className="w-full mt-auto group/btn hover:scale-105 transition-all duration-200"
+                      variant={index === 1 ? "default" : "outline"}
+                      asChild
+                    >
+                      <Link href={`/${locale}/plans/${plan.id}`} className="flex items-center justify-center">
+                        {t('popular_plans.select_plan')}
+                        <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -229,27 +274,36 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-            {advantages.map((advantage, index) => (
-              <div key={index} className="flex items-start space-x-4">
-                <div className="flex-shrink-0 bg-white rounded-lg p-3 shadow-md">
-                  {advantage.icon}
+            {isLoading ? (
+              <WhyChooseUsPlaceholder />
+            ) : (
+              advantages.map((advantage, index) => (
+                <div
+                  key={index}
+                  className="flex items-start space-x-4 group hover:translate-x-2 transition-all duration-300"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="flex-shrink-0 bg-white dark:bg-card rounded-lg p-3 shadow-md group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                    {advantage.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-accent-foreground mb-2 group-hover:text-primary transition-colors duration-300">
+                      {advantage.title}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {advantage.description}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-accent-foreground mb-2">
-                    {advantage.title}
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {advantage.description}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           <div className="mt-16 text-center">
-            <Button size="lg" asChild>
-              <Link href={`/${locale}/plans`}>
+            <Button size="lg" className="group hover:scale-105 transition-all duration-300" asChild>
+              <Link href={`/${locale}/plans`} className="flex items-center">
                 {t('advantages.get_started')}
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
             </Button>
           </div>

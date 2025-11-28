@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { Mail, Phone, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import FooterPlaceholder from '../custom/placeholder/footer';
+import FooterPlaceholder from '@/components/custom/placeholder/footer';
 
 export const Footer = () => {
     const { resolvedTheme } = useTheme();

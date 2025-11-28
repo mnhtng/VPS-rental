@@ -1,10 +1,10 @@
 {
     "metadata": {
-        "title": "PCloud - Professional VPS Hosting Solutions",
-        "description": "Discover reliable and affordable VPS hosting with PCloud. Enjoy dedicated resources, SSD/NVMe storage, and 24/7 expert support. Perfect for websites, applications, and development.",
-        "keywords": "VPS hosting, cloud servers, SSD VPS, NVMe VPS, affordable VPS, reliable VPS, web hosting, virtual private server"
-    },
-    "pages": {
+        "home": {
+            "title": "PCloud - Professional VPS Hosting Solutions",
+            "description": "Discover reliable and affordable VPS hosting with PCloud. Enjoy dedicated resources, SSD/NVMe storage, and 24/7 expert support. Perfect for websites, applications, and development.",
+            "keywords": "VPS hosting, cloud servers, SSD VPS, NVMe VPS, affordable VPS, reliable VPS, web hosting, virtual private server"
+        },
         "login": {
             "title": "Login - PCloud",
             "description": "Access your PCloud account to manage your VPS servers, billing, and hosting services.",
@@ -52,8 +52,10 @@
         },
         "admin": {
             "title": "Admin Dashboard - PCloud",
-            "description": "Access the admin dashboard to manage users, VPS plans, and site settings for your PCloud hosting services.",
-            "keywords": "VPS admin, hosting management, user management, server administration"
+            "home": {
+                "description": "Access the admin dashboard to manage users, VPS plans, and site settings for your PCloud hosting services.",
+                "keywords": "VPS admin, hosting management, user management, server administration"
+            }
         }
     },
     "header": {
@@ -95,7 +97,7 @@
             "services": {
                 "web_server": "Web Server",
                 "database": "Database",
-                "backup": "Backup",
+                "scalability": "Scalability",
                 "monitoring": "Monitoring"
             },
             "performance": {
@@ -120,8 +122,8 @@
             "support_desc": "Expert technical support available around the clock",
             "security": "Enhanced Security",
             "security_desc": "Advanced security measures to protect your data",
-            "backup": "Daily Backups",
-            "backup_desc": "Automated daily backups for peace of mind"
+            "scalability": "Easy Scalability",
+            "scalability_desc": "Scale resources up or down instantly as your needs grow"
         },
         "popular_plans": {
             "title": "Popular VPS Plans",
@@ -129,7 +131,7 @@
             "storage": "Storage",
             "memory": "RAM",
             "cpu_cores": "CPU Core",
-            "bandwidth": "Bandwidth",
+            "network_speed": "Network Speed",
             "per_month": "/month",
             "select_plan": "Choose Plan",
             "most_popular": "Most Popular"

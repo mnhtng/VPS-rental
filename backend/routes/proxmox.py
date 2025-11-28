@@ -6,13 +6,18 @@ import logging
 
 from backend.db import get_session
 from backend.core import settings
-from backend.utils.auth_utils import get_current_user, get_admin_user
-from backend.models.users import User
-from backend.models.vps_instances import VPSInstance
-from backend.models.proxmox_vms import ProxmoxVM
-from backend.models.proxmox_nodes import ProxmoxNode
-from backend.models.proxmox_clusters import ProxmoxCluster
-from backend.models.vm_templates import VMTemplate
+from backend.utils import get_current_user, get_admin_user
+from backend.models import (
+    User,
+    VPSInstance,
+    ProxmoxVM,
+    ProxmoxNode,
+    VMTemplate,
+    ProxmoxCluster,
+)
+from backend.schemas import (
+    VMTemplateResponse,
+)
 from backend.schemas.proxmox import (
     VMPowerActionRequest,
     VMStatusResponse,
@@ -33,7 +38,7 @@ from backend.schemas.proxmox import (
     ErrorResponse,
     NodeInfo,
 )
-from backend.services.proxmox import (
+from backend.services import (
     CommonProxmoxService,
     ProxmoxVMService,
     ProxmoxClusterService,
@@ -138,6 +143,27 @@ async def get_proxmox_connection(cluster_id: uuid.UUID, session: Session):
 # ============================================================================
 # User Endpoints - VPS Power Management
 # ============================================================================
+
+
+@router.get(
+    "/templates",
+    response_model=List[VMTemplateResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def list_vm_templates(
+    session: Session = Depends(get_session),
+):
+    try:
+        statement = select(VMTemplate)
+        templates = session.exec(statement).all()
+
+        return templates
+    except Exception as e:
+        logger.error(f">>> Failed to list VM templates: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve VM templates",
+        )
 
 
 @router.get("/my-vps", response_model=List[Dict[str, Any]])
