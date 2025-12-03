@@ -22,14 +22,16 @@ import {
     Edit,
     Save,
     X,
-    Loader2
+    RefreshCw
 } from 'lucide-react';
 import { Profile } from '@/types/types';
 import ProfilePlaceholder from '@/components/custom/placeholder/profile';
 import useMember from '@/hooks/useMember';
+import { useSession } from 'next-auth/react';
 
 const ProfilePage = () => {
     const { getProfile, updateProfile, changePassword } = useMember();
+    const { data: session } = useSession();
 
     const [userInfo, setUserInfo] = useState<Profile | null>(null);
     const [originalUserInfo, setOriginalUserInfo] = useState<Profile | null>(null);
@@ -189,16 +191,19 @@ const ProfilePage = () => {
             </div>
 
             <Tabs defaultValue="profile" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="profile" className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Profile
-                    </TabsTrigger>
-                    <TabsTrigger value="security" className="flex items-center gap-2">
-                        <Shield className="h-4 w-4" />
-                        Security
-                    </TabsTrigger>
-                </TabsList>
+                {/* Show if user is not login by OAuth */}
+                {session?.user?.provider === "credentials" && (
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="profile" className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            Profile
+                        </TabsTrigger>
+                        <TabsTrigger value="security" className="flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            Security
+                        </TabsTrigger>
+                    </TabsList>
+                )}
 
                 <TabsContent value="profile" className="mt-6">
                     <Card className='relative group'>
@@ -382,7 +387,7 @@ const ProfilePage = () => {
                                     >
                                         {isSaving ? (
                                             <>
-                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                                                 Saving...
                                             </>
                                         ) : (
@@ -398,71 +403,73 @@ const ProfilePage = () => {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="security" className="mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Change Password</CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                                Update your password to secure your account
-                            </p>
-                        </CardHeader>
+                {session?.user?.provider === "credentials" && (
+                    <TabsContent value="security" className="mt-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Change Password</CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Update your password to secure your account
+                                </p>
+                            </CardHeader>
 
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="currentPassword">Current Password</Label>
-                                <Input
-                                    id="currentPassword"
-                                    name="currentPassword"
-                                    type="password"
-                                    value={passwordForm.currentPassword}
-                                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                                    className='border border-dashed border-muted-foreground/50'
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="currentPassword">Current Password</Label>
+                                    <Input
+                                        id="currentPassword"
+                                        name="currentPassword"
+                                        type="password"
+                                        value={passwordForm.currentPassword}
+                                        onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                                        className='border border-dashed border-muted-foreground/50'
+                                        disabled={isChangingPassword}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="newPassword">New Password</Label>
+                                    <Input
+                                        id="newPassword"
+                                        name="newPassword"
+                                        type="password"
+                                        value={passwordForm.newPassword}
+                                        onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                                        className='border border-dashed border-muted-foreground/50'
+                                        disabled={isChangingPassword}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                                    <Input
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        type="password"
+                                        value={passwordForm.confirmPassword}
+                                        onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                                        className='border border-dashed border-muted-foreground/50'
+                                        disabled={isChangingPassword}
+                                    />
+                                </div>
+                                <Button
+                                    onClick={handleChangePassword}
                                     disabled={isChangingPassword}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="newPassword">New Password</Label>
-                                <Input
-                                    id="newPassword"
-                                    name="newPassword"
-                                    type="password"
-                                    value={passwordForm.newPassword}
-                                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                                    className='border border-dashed border-muted-foreground/50'
-                                    disabled={isChangingPassword}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    name="confirmPassword"
-                                    type="password"
-                                    value={passwordForm.confirmPassword}
-                                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                                    className='border border-dashed border-muted-foreground/50'
-                                    disabled={isChangingPassword}
-                                />
-                            </div>
-                            <Button
-                                onClick={handleChangePassword}
-                                disabled={isChangingPassword}
-                            >
-                                {isChangingPassword ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Updating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Key className="h-4 w-4 mr-2" />
-                                        Update Password
-                                    </>
-                                )}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                                >
+                                    {isChangingPassword ? (
+                                        <>
+                                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                            Updating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Key className="h-4 w-4 mr-2" />
+                                            Update Password
+                                        </>
+                                    )}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                )}
             </Tabs>
         </div>
     );

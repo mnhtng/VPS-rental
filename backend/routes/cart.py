@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select
 import logging
@@ -5,8 +6,8 @@ import logging
 from backend.db import get_session
 from backend.models import Cart, VMTemplate, VPSPlan
 from backend.schemas import (
-    CartResponse,
     CartAdd,
+    CartResponse,
 )
 from backend.utils import get_current_user, get_admin_user
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cart", tags=["Cart"])
 
 
-@router.get("/", response_model=CartResponse, status_code=status.HTTP_200_OK)
+@router.get("/", response_model=List[CartResponse], status_code=status.HTTP_200_OK)
 async def get_cart(
     session: Session = Depends(get_session),
     current_user=Depends(get_current_user),
@@ -36,13 +37,10 @@ async def get_cart(
     """
     try:
         statement = select(Cart).where(Cart.user_id == current_user.id)
-        cart = session.exec(statement).first()
+        cart = session.exec(statement).all()
 
         if not cart:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Shopping cart not found for the current user",
-            )
+            return []
 
         return cart
     except HTTPException:
@@ -93,7 +91,6 @@ async def add_to_cart(
             VMTemplate.storage_gb == plan.storage_gb,
         )
         template = session.exec(statement).first()
-        print(f">>> Found template: {template}")
 
         if not template:
             raise HTTPException(
@@ -109,6 +106,7 @@ async def add_to_cart(
             vps_plan_id=plan.id,
             template_id=template.id,
             hostname=cart_data.hostname,
+            os=cart_data.os,
             duration_months=cart_data.duration_months,
             unit_price=plan.monthly_price,
             total_price=cart_data.total_price,

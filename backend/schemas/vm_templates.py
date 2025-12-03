@@ -100,7 +100,7 @@ class VMTemplateBase(BaseModel):
 
         if v is None:
             return v
-        if v <= 0:
+        if v < 0:
             raise ValueError(f"{field_name} must be a positive number")
         return v
 
@@ -188,7 +188,7 @@ class VMTemplateUpdate(BaseModel):
 
         if v is None:
             return v
-        if v <= 0:
+        if v < 0:
             raise ValueError(f"{field_name} must be a positive number")
         return v
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -30,13 +30,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useLocale } from 'use-intl/react';
 import useAuth from '@/hooks/useAuth';
 import { loginWithCredentials } from '@/utils/auth';
-import { useAuth as useAuthContext } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/store/authStore';
 
 const LoginPage = () => {
     const router = useRouter();
     const locale = useLocale();
     const { login } = useAuth();
-    const { setAccessToken } = useAuthContext();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/';
 
@@ -78,8 +77,8 @@ const LoginPage = () => {
 
                 router.push(`/${locale}/pending-verification?email=${encodeURIComponent(result.data.email)}&name=${encodeURIComponent(result.data.name)}`);
             } else {
-                // Store access token in memory (AuthContext)
-                setAccessToken(result.data.access_token);
+                // Store access token in memory
+                useAuthStore.getState().setAccessToken(result.data?.access_token || '');
 
                 await loginWithCredentials(formData.email, formData.password);
 

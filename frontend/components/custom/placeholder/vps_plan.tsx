@@ -36,7 +36,7 @@ export const PlansFilterPlaceholder = () => {
                     </div>
                     <div className="flex-1 space-y-3">
                         <Skeleton className="h-4 w-48" />
-                        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                        <div className="rounded-lg p-3 space-y-2">
                             <Skeleton className="h-2 w-full" />
                             <div className="flex justify-between">
                                 <Skeleton className="h-3 w-16" />
@@ -145,7 +145,7 @@ export const PlanItemPlaceholder = () => {
                             <CardContent>
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                                     {[...Array(4)].map((_, i) => (
-                                        <div key={i} className="text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-900">
+                                        <div key={i} className="text-center p-4 rounded-lg">
                                             <Skeleton className="h-8 w-8 mx-auto mb-2" />
                                             <Skeleton className="h-8 w-12 mx-auto mb-1" />
                                             <Skeleton className="h-4 w-16 mx-auto" />

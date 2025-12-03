@@ -21,21 +21,24 @@ class CartBase(BaseModel):
     """Base schema for cart items"""
 
     hostname: str = Field(..., description="Hostname")
+    os: str = Field(..., description="Operating system")
     duration_months: int = Field(default=1, description="Duration in months")
     unit_price: float = Field(..., description="Unit price per month")
     total_price: float = Field(..., description="Total price")
 
-    @field_validator("hostname")
+    @field_validator("hostname", "os")
     @classmethod
-    def validate_hostname(cls, v: str) -> str:
+    def validate_hostname(cls, v: str, info: ValidationInfo) -> str:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
         if not v:
-            raise ValueError("Hostname must not be empty")
+            raise ValueError(f"{field_name} must not be empty")
 
         v = v.strip()
         if len(v) == 0:
-            raise ValueError("Hostname must not be empty")
-        if len(v) > 255:
-            raise ValueError("Hostname must not exceed 255 characters")
+            raise ValueError(f"{field_name} must not be empty")
+        if info.field_name == "hostname" and len(v) > 255:
+            raise ValueError(f"{field_name} must not exceed 255 characters")
         return v
 
     @field_validator("duration_months", "unit_price", "total_price")
@@ -62,21 +65,24 @@ class CartUpdate(BaseModel):
     """Schema để update cart item"""
 
     hostname: Optional[str] = Field(None, description="Hostname")
+    os: Optional[str] = Field(None, description="Operating system")
     duration_months: Optional[int] = Field(None, description="Duration in months")
     unit_price: Optional[float] = Field(None, description="Unit price per month")
     total_price: Optional[float] = Field(None, description="Total price")
 
-    @field_validator("hostname")
+    @field_validator("hostname", "os")
     @classmethod
-    def validate_hostname(cls, v: Optional[str]) -> Optional[str]:
+    def validate_hostname(cls, v: Optional[str], info: ValidationInfo) -> Optional[str]:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
         if v is None:
             return v
 
         v = v.strip()
         if len(v) == 0:
             return None
-        if len(v) > 255:
-            raise ValueError("Hostname must not exceed 255 characters")
+        if info.field_name == "hostname" and len(v) > 255:
+            raise ValueError(f"{field_name} must not exceed 255 characters")
         return v
 
     @field_validator("duration_months", "unit_price", "total_price")
@@ -98,12 +104,13 @@ class CartAdd(BaseModel):
 
     plan_id: uuid.UUID = Field(..., description="VPS plan ID to add")
     hostname: str = Field(..., description="Hostname")
-    os_type: str = Field(..., description="Operating system type")
-    os_version: str = Field(..., description="Operating system version")
+    os: str = Field(..., description="Operating system")
+    os_type: str = Field(..., description="Template operating system type")
+    os_version: str = Field(..., description="Template operating system version")
     duration_months: int = Field(default=1, description="Duration in months")
     total_price: float = Field(..., description="Total price")
 
-    @field_validator("hostname", "os_type", "os_version")
+    @field_validator("hostname", "os", "os_type", "os_version")
     @classmethod
     def validate_required_str(cls, v: str, info: ValidationInfo) -> str:
         field_name = info.field_name.replace("_", " ").capitalize()

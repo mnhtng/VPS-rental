@@ -17,7 +17,8 @@ import {
     Mail,
     ArrowLeft,
     CheckCircle,
-    AlertCircle
+    AlertCircle,
+    RefreshCw
 } from 'lucide-react';
 import { BeamsBackground } from '@/components/ui/beam-background';
 import { toast } from 'sonner';
@@ -217,7 +218,16 @@ const ForgotPasswordPage = () => {
                                 className="w-full"
                                 disabled={isLoading}
                             >
-                                {isLoading ? 'Sending...' : 'Send password reset link'}
+                                {isLoading ? (
+                                    <>
+                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    <>
+                                        Send reset link
+                                    </>
+                                )}
                             </Button>
                         </form>
 

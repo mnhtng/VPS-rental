@@ -1,10 +1,6 @@
-import { useAuth } from '@/contexts/AuthContext';
-import { VPSPlan } from '@/types/types';
+import { apiPattern } from "@/utils/pattern"
 
 const useProduct = () => {
-    const ACCESS_TOKEN_KEY = process.env.NEXT_PUBLIC_ACCESS_TOKEN_NAME || 'pcloud_access_token';
-    const { refreshAccessToken } = useAuth();
-
     const getPlans = async () => {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`, {
@@ -77,49 +73,29 @@ const useProduct = () => {
     const addToCart = async ({
         planID,
         hostname,
-        osType,
-        osVersion,
+        os,
+        templateOS,
+        templateVersion,
         durationMonths,
         totalPrice,
     }: {
         planID: string,
         hostname: string,
-        osType: string,
-        osVersion: string,
+        os: string,
+        templateOS: string,
+        templateVersion: string,
         durationMonths: number,
         totalPrice: number,
     }) => {
         try {
-            let currentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-
-            if (!currentToken) {
-                const refreshed = await refreshAccessToken();
-
-                if (!refreshed) {
-                    return {
-                        message: "Add to cart failed",
-                        error: {
-                            code: "NO_ACCESS_TOKEN",
-                            details: "No access token available",
-                        }
-                    }
-                }
-
-                currentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-            }
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${currentToken}`,
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
                 body: JSON.stringify({
                     plan_id: planID,
                     hostname,
-                    os_type: osType,
-                    os_version: osVersion,
+                    os,
+                    os_type: templateOS,
+                    os_version: templateVersion,
                     duration_months: durationMonths,
                     total_price: totalPrice,
                 }),
@@ -128,21 +104,6 @@ const useProduct = () => {
             const result = await response.json();
 
             if (!response.ok) {
-                if (response.status === 401) {
-                    const refreshed = await refreshAccessToken();
-
-                    if (refreshed) {
-                        return await addToCart({
-                            planID,
-                            hostname,
-                            osType,
-                            osVersion,
-                            durationMonths,
-                            totalPrice,
-                        });
-                    }
-                }
-
                 return {
                     message: "Add to cart failed",
                     error: {
@@ -155,12 +116,48 @@ const useProduct = () => {
             return {
                 data: result,
             }
-        } catch {
+        } catch (error) {
             return {
                 message: "Add to cart failed",
                 error: {
-                    code: "ADD_TO_CART_FAILED",
-                    details: "An unexpected error occurred while adding to cart",
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'ADD_TO_CART_FAILED',
+                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An unexpected error occurred while adding to cart",
+                }
+            }
+        }
+    }
+
+    const getCartItems = async () => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
+                method: 'GET',
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Get cart items failed",
+                    error: {
+                        code: "GET_CART_ITEMS_FAILED",
+                        details: result.detail,
+                    }
+                }
+            }
+
+            return {
+                data: result,
+            }
+        } catch (error) {
+            return {
+                message: "Get cart items failed",
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_CART_ITEMS_FAILED',
+                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An unexpected error occurred while getting cart items",
                 }
             }
         }
@@ -170,6 +167,7 @@ const useProduct = () => {
         getPlans,
         getPlanItem,
         addToCart,
+        getCartItems,
     }
 }
 

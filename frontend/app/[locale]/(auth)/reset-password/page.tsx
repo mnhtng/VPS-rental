@@ -19,7 +19,8 @@ import {
     Lock,
     CheckCircle,
     AlertCircle,
-    ArrowLeft
+    ArrowLeft,
+    RefreshCw
 } from 'lucide-react';
 import { BeamsBackground } from '@/components/ui/beam-background';
 import { toast } from 'sonner';
@@ -392,7 +393,16 @@ const ResetPasswordPage = () => {
                                 className="w-full"
                                 disabled={isLoading}
                             >
-                                {isLoading ? 'Updating...' : 'Update Password'}
+                                {isLoading ? (
+                                    <>
+                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    <>
+                                        Update Password
+                                    </>
+                                )}
                             </Button>
                         </form>
 

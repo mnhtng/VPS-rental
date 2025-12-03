@@ -34,7 +34,7 @@ class Cart(SQLModel, table=True):
 
         user: Relationship to the User model (1-to-1).
         vps_plan: Relationship to the VPSPlan model (1-to-N).
-        vm_template: Relationship to the VMTemplate model (1-to-N).
+        template: Relationship to the VMTemplate model (1-to-N).
     """
 
     __tablename__ = "carts"
@@ -70,6 +70,9 @@ class Cart(SQLModel, table=True):
         nullable=False,
         max_length=255,
     )
+    os: str = Field(
+        nullable=False,
+    )
     duration_months: int = Field(
         default=1,
         nullable=False,
@@ -104,7 +107,7 @@ class Cart(SQLModel, table=True):
         back_populates="carts",
         sa_relationship_kwargs={"lazy": "select"},
     )
-    vm_template: Optional["VMTemplate"] = Relationship(
+    template: Optional["VMTemplate"] = Relationship(
         back_populates="carts",
         sa_relationship_kwargs={"lazy": "select"},
     )
@@ -121,6 +124,7 @@ class Cart(SQLModel, table=True):
             "vps_plan_id": str(self.vps_plan_id),
             "template_id": str(self.template_id),
             "hostname": self.hostname,
+            "os": self.os,
             "duration_months": self.duration_months,
             "unit_price": float(self.unit_price),
             "total_price": float(self.total_price),

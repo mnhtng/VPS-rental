@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
-
 const HeaderPlaceHolder = () => {
     return (
         <div className="hidden lg:flex items-center space-x-4">

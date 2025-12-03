@@ -19,7 +19,7 @@ import {
     Calendar,
     MonitorCog,
     Gauge,
-    Loader2
+    RefreshCw
 } from 'lucide-react';
 import { VPSPlan } from '@/types/types';
 import { toast } from 'sonner';
@@ -30,8 +30,8 @@ import { useLocale } from 'next-intl';
 import { PlanItemPlaceholder } from '@/components/custom/placeholder/vps_plan';
 
 const operatingSystemOptions = [
-    { value: 'linux:6.x-2.6', label: 'Ubuntu 22.04.5 LTS' },
-    { value: 'windows:10', label: 'Windows 10 Pro 64-bit' },
+    { value: 'Ubuntu 22.04.5 LTS', label: 'Ubuntu 22.04.5 LTS', template_os: 'linux', template_version: '6.x-2.6' },
+    { value: 'Windows 10 Pro 64-bit', label: 'Windows 10 Pro 64-bit', template_os: 'windows', template_version: '10' },
 ];
 
 const durationOptions = [
@@ -147,16 +147,16 @@ const PlanDetailPage = () => {
         setAddingToCart(true);
 
         try {
-            const os = {
-                type: selectedOS.split(':')[0],
-                version: selectedOS.split(':')[1],
-            }
+            const osSelected = operatingSystemOptions.find(os => os.value === selectedOS);
+            const templateOS = osSelected?.template_os;
+            const templateVersion = osSelected?.template_version;
 
             const result = await addToCart({
                 planID: plan.id,
                 hostname: hostname.trim(),
-                osType: os.type,
-                osVersion: os.version,
+                os: selectedOS,
+                templateOS: templateOS || '',
+                templateVersion: templateVersion || '',
                 durationMonths: selectedDuration,
                 totalPrice: pricing.finalPrice,
             });
@@ -377,7 +377,7 @@ const PlanDetailPage = () => {
                                 >
                                     {addingToCart ? (
                                         <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                                             Adding to Cart...
                                         </>
                                     ) : (

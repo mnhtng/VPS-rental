@@ -1,51 +1,16 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { apiPattern } from '@/utils/pattern';
 import { PasswordChange, ProfileUpdate } from '@/types/types';
 
 const useMember = () => {
-    const ACCESS_TOKEN_KEY = process.env.NEXT_PUBLIC_ACCESS_TOKEN_NAME || 'pcloud_access_token';
-    const { refreshAccessToken } = useAuth();
-
     const getProfile = async () => {
         try {
-            let currentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-
-            if (!currentToken) {
-                const refreshed = await refreshAccessToken();
-
-                if (!refreshed) {
-                    return {
-                        message: "Get profile failed",
-                        error: {
-                            code: "NO_ACCESS_TOKEN",
-                            details: "No access token available",
-                        }
-                    }
-                }
-
-                currentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-            }
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${currentToken}`,
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include', // Send refresh token cookie
-            })
+            });
 
-            const result = await response.json()
+            const result = await response.json();
 
             if (!response.ok) {
-                // If 401 Unauthorized, try to refresh token
-                if (response.status === 401) {
-                    const refreshed = await refreshAccessToken();
-                    if (refreshed) {
-                        // Retry
-                        return await getProfile();
-                    }
-                }
-
                 return {
                     message: "Get profile failed",
                     error: {
@@ -67,12 +32,14 @@ const useMember = () => {
                     "role": result?.role,
                 },
             }
-        } catch {
+        } catch (error) {
             return {
                 message: "Get profile failed",
                 error: {
-                    code: "GET_PROFILE_FAILED",
-                    details: "An error occurred while fetching the profile.",
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_PROFILE_FAILED',
+                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An error occurred while fetching the profile",
                 }
             }
         }
@@ -80,44 +47,14 @@ const useMember = () => {
 
     const updateProfile = async (data: ProfileUpdate) => {
         try {
-            let currentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-
-            if (!currentToken) {
-                const refreshed = await refreshAccessToken();
-
-                if (!refreshed) {
-                    return {
-                        message: "Update profile failed",
-                        error: {
-                            code: "NO_ACCESS_TOKEN",
-                            details: "No access token available",
-                        }
-                    }
-                }
-
-                currentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-            }
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${currentToken}`,
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
                 body: JSON.stringify(data),
             });
 
             const result = await response.json();
 
             if (!response.ok) {
-                if (response.status === 401) {
-                    const refreshed = await refreshAccessToken();
-                    if (refreshed) {
-                        return await updateProfile(data);
-                    }
-                }
-
                 return {
                     message: "Update profile failed",
                     error: {
@@ -131,12 +68,14 @@ const useMember = () => {
                 message: "Profile updated successfully",
                 data: result,
             }
-        } catch {
+        } catch (error) {
             return {
                 message: "Update profile failed",
                 error: {
-                    code: "UPDATE_PROFILE_FAILED",
-                    details: "An error occurred while updating the profile",
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'UPDATE_PROFILE_FAILED',
+                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An error occurred while updating the profile",
                 }
             }
         }
@@ -144,44 +83,14 @@ const useMember = () => {
 
     const changePassword = async (data: PasswordChange) => {
         try {
-            let currentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-
-            if (!currentToken) {
-                const refreshed = await refreshAccessToken();
-
-                if (!refreshed) {
-                    return {
-                        message: "Change password failed",
-                        error: {
-                            code: "NO_ACCESS_TOKEN",
-                            details: "No access token available",
-                        }
-                    }
-                }
-
-                currentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-            }
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/change-password`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/auth/change-password`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${currentToken}`,
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
                 body: JSON.stringify(data),
             });
 
             const result = await response.json();
 
             if (!response.ok) {
-                if (response.status === 401) {
-                    const refreshed = await refreshAccessToken();
-                    if (refreshed) {
-                        return await changePassword(data);
-                    }
-                }
-
                 return {
                     message: "Change password failed",
                     error: {
@@ -195,12 +104,14 @@ const useMember = () => {
                 message: result.message,
                 data: result.data,
             }
-        } catch {
+        } catch (error) {
             return {
                 message: "Change password failed",
                 error: {
-                    code: "CHANGE_PASSWORD_FAILED",
-                    details: "An error occurred while changing password.",
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'CHANGE_PASSWORD_FAILED',
+                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An error occurred while changing password",
                 }
             }
         }

@@ -75,6 +75,9 @@ class OrderItem(SQLModel, table=True):
         nullable=False,
         max_length=255,
     )
+    os: str = Field(
+        nullable=False,
+    )
     duration_months: int = Field(
         default=1,
         nullable=False,
@@ -112,7 +115,7 @@ class OrderItem(SQLModel, table=True):
         back_populates="order_items",
         sa_relationship_kwargs={"lazy": "select"},
     )
-    vm_template: Optional["VMTemplate"] = Relationship(
+    template: Optional["VMTemplate"] = Relationship(
         back_populates="order_items",
         sa_relationship_kwargs={"lazy": "select"},
     )
@@ -137,6 +140,7 @@ class OrderItem(SQLModel, table=True):
             "vps_plan_id": str(self.vps_plan_id) if self.vps_plan_id else None,
             "template_id": str(self.template_id) if self.template_id else None,
             "hostname": self.hostname,
+            "os": self.os,
             "duration_months": self.duration_months,
             "unit_price": float(self.unit_price),
             "total_price": float(self.total_price),

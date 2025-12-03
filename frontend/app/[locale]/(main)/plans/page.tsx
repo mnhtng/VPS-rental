@@ -22,7 +22,8 @@ import {
     DollarSign,
     Eye,
     Gauge,
-    ArrowRight
+    ArrowRight,
+    RefreshCw
 } from 'lucide-react';
 import { VPSPlan } from '@/types/types';
 import { useTranslations } from 'next-intl';
@@ -47,6 +48,7 @@ const PlansPage = () => {
     const [memoryFilter, setMemoryFilter] = useState<string>('all');
     const [priceRange, setPriceRange] = useState<number[]>([0, convertUSDToVND(100)]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
     const minPrice = plans.length > 0 ? Math.min(...plans.map(plan => plan.monthly_price)) : 0;
     const maxPrice = plans.length > 0 ? Math.max(...plans.map(plan => plan.monthly_price)) : convertUSDToVND(100);
@@ -143,6 +145,14 @@ const PlansPage = () => {
         return category === 'basic' ? 'secondary' : category === 'standard' ? 'default' : 'destructive';
     };
 
+    const getNetworkSpeed = (mbps: number) => {
+        if (mbps >= 1000) {
+            const gbps = (mbps / 1000).toFixed(1);
+            return `${gbps} Gbps`;
+        }
+        return `${mbps} Mbps`;
+    };
+
     const getMemoryFilterLabel = (filter: string) => {
         switch (filter) {
             case 'low': return 'Low Memory (≤4GB)';
@@ -150,6 +160,11 @@ const PlansPage = () => {
             case 'high': return 'High Memory (9GB+)';
             default: return filter;
         }
+    };
+
+    const handleShowDetails = (planId: string) => {
+        setSelectedPlanId(planId);
+        router.push(`/plans/${planId}`);
     };
 
     return (
@@ -294,9 +309,9 @@ const PlansPage = () => {
                                                     <Slider
                                                         value={priceRange}
                                                         onValueChange={setPriceRange}
-                                                        max={maxPrice + 10}
+                                                        max={maxPrice}
                                                         min={minPrice}
-                                                        step={5}
+                                                        step={1000}
                                                         className="w-full"
                                                     />
                                                 </div>
@@ -420,7 +435,7 @@ const PlansPage = () => {
                                             </div>
                                             <div className="flex items-center group/spec hover:translate-x-1 transition-transform duration-200">
                                                 <Gauge className="h-4 w-4 text-orange-600 dark:text-orange-400 mr-2 group-hover/spec:scale-110 transition-transform" />
-                                                <span className="text-sm">{plan.bandwidth_mbps} Mbps</span>
+                                                <span className="text-sm">{getNetworkSpeed(plan.bandwidth_mbps)}</span>
                                             </div>
                                         </div>
 
@@ -439,11 +454,21 @@ const PlansPage = () => {
                                     <Button
                                         className="w-full group/btn hover:scale-105 transition-all duration-200"
                                         size="lg"
-                                        onClick={() => router.push(`/plans/${plan.id}`)}
+                                        onClick={() => handleShowDetails(plan.id)}
+                                        disabled={selectedPlanId !== null}
                                     >
-                                        <Eye className="mr-2 h-4 w-4 group-hover/btn:scale-110 transition-transform" />
-                                        View Details
-                                        <ArrowRight className="ml-2 h-4 w-4 opacity-0 group-hover/btn:opacity-100 group-hover/btn:translate-x-1 transition-all duration-200" />
+                                        {selectedPlanId === plan.id ? (
+                                            <>
+                                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                                Loading Details...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Eye className="mr-2 h-4 w-4 group-hover/btn:scale-110 transition-transform" />
+                                                View Details
+                                                <ArrowRight className="ml-2 h-4 w-4 opacity-0 group-hover/btn:opacity-100 group-hover/btn:translate-x-1 transition-all duration-200" />
+                                            </>
+                                        )}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -514,7 +539,7 @@ const PlansPage = () => {
                     </Card>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

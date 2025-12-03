@@ -16,7 +16,8 @@ import {
   DollarSign,
   Settings,
   ArrowRight,
-  Scale
+  Scale,
+  RefreshCw
 } from 'lucide-react';
 import HeroSection from '@/components/custom/hero/HeroSection';
 import { formatPrice } from '@/utils/currency';
@@ -34,6 +35,7 @@ const HomePage = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [popularPlans, setPopularPlans] = useState<VPSPlan[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   const getNetworkSpeed = (mbps: number) => {
     if (mbps >= 1000) {
@@ -247,10 +249,21 @@ const HomePage = () => {
                       className="w-full mt-auto group/btn hover:scale-105 transition-all duration-200"
                       variant={index === 1 ? "default" : "outline"}
                       asChild
+                      onClick={() => setSelectedPlanId(plan.id)}
+                      disabled={selectedPlanId !== null}
                     >
                       <Link href={`/${locale}/plans/${plan.id}`} className="flex items-center justify-center">
-                        {t('popular_plans.select_plan')}
-                        <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                        {selectedPlanId === plan.id ? (
+                          <>
+                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                            {t('popular_plans.select_plan')}
+                          </>
+                        ) : (
+                          <>
+                            {t('popular_plans.select_plan')}
+                            <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                          </>
+                        )}
                       </Link>
                     </Button>
                   </CardContent>

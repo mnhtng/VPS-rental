@@ -34,7 +34,7 @@ import {
     Home,
     KeyRound,
     UserRoundPlus,
-    Loader2
+    RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
@@ -216,7 +216,7 @@ export const Header = () => {
                                         <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
                                             {isLoggingOut ? (
                                                 <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                                                     Logging out...
                                                 </>
                                             ) : (
@@ -383,7 +383,7 @@ export const Header = () => {
                                                 >
                                                     {isLoggingOut ? (
                                                         <>
-                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                                                             Logging out...
                                                         </>
                                                     ) : (

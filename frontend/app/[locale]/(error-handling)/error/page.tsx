@@ -157,7 +157,7 @@ export default function Error({
                         <Button
                             variant="outline"
                             size="lg"
-                            onClick={() => window.location.reload()}
+                            onClick={() => window.history.back()}
                             className="w-full sm:w-auto dark:border-gray-600 dark:hover:bg-gray-700"
                         >
                             <RefreshCw className="w-4 h-4 mr-2" />

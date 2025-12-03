@@ -96,7 +96,7 @@
     "uuid": "13.0.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "4.1.9",
-    "zustand": "^5.0.8"
+    "zustand": "5.0.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3",

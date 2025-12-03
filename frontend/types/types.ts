@@ -3,6 +3,7 @@ export interface User {
     id: string;
     name?: string;
     email: string;
+    email_verified?: string;
     phone?: string;
     address?: string;
     image?: string;
@@ -30,14 +31,35 @@ export interface VPSPlan {
     updated_at?: string;
 }
 
-export interface CartItem {
-    vps_plan_id: string;
-    quantity: number;
+export interface VMTemplate {
+    id: string;
+    template_vmid: number;
+    name: string;
+    description?: string;
+    os_type: string;
+    os_version: string;
+    default_user: string;
+    cloud_init_enabled: boolean;
+    cpu_cores: number;
+    ram_gb: number;
+    storage_gb: number;
+    setup_fee: number;
+    created_at: string;
+    updated_at?: string;
 }
 
-export interface CartSummary {
-    items: CartItem[];
-    total_amount: number;
+export interface CartItem {
+    id: string;
+    hostname: string;
+    os: string;
+    duration_months: number;
+    unit_price: number;
+    total_price: number;
+    created_at: string;
+    updated_at: string;
+    user: User;
+    vps_plan: VPSPlan;
+    template: VMTemplate;
 }
 
 export interface OrderItem {

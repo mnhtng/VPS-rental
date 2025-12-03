@@ -154,12 +154,12 @@ class VMTemplate(SQLModel, table=True):
         sa_relationship_kwargs={"lazy": "select"},
     )
     carts: List["Cart"] = Relationship(
-        back_populates="vm_template",
+        back_populates="template",
         passive_deletes="all",
         sa_relationship_kwargs={"lazy": "select"},
     )
     order_items: List["OrderItem"] = Relationship(
-        back_populates="vm_template",
+        back_populates="template",
         passive_deletes="all",
         sa_relationship_kwargs={"lazy": "select"},
     )
