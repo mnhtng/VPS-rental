@@ -95,12 +95,16 @@ async def get_vps_plan(plan_id: uuid.UUID, session: Session = Depends(get_sessio
         )
 
 
-@router.put("/{plan_id}", response_model=VPSPlanResponse)
+@router.put(
+    "/{plan_id}",
+    response_model=VPSPlanResponse,
+    status_code=status.HTTP_200_OK,
+)
 async def update_vps_plan(
     plan_id: int,
     plan_update: VPSPlanUpdate,
-    admin_user: User = Depends(get_admin_user),
     session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user),
 ):
     """Update a VPS plan (Admin only)"""
     plan = session.get(VPSPlan, plan_id)
@@ -120,11 +124,11 @@ async def update_vps_plan(
     return plan
 
 
-@router.delete("/{plan_id}")
+@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_vps_plan(
     plan_id: int,
-    admin_user: User = Depends(get_admin_user),
     session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user),
 ):
     """Delete a VPS plan (Admin only)"""
     plan = session.get(VPSPlan, plan_id)
@@ -138,7 +142,11 @@ async def delete_vps_plan(
     return {"message": "VPS plan deleted successfully"}
 
 
-@router.get("/search/", response_model=List[VPSPlanResponse])
+@router.get(
+    "/search/",
+    response_model=List[VPSPlanResponse],
+    status_code=status.HTTP_200_OK,
+)
 async def search_vps_plans(
     min_cpu: Optional[int] = Query(None, ge=1),
     max_cpu: Optional[int] = Query(None, le=16),
@@ -171,7 +179,7 @@ async def search_vps_plans(
     return plans
 
 
-@router.get("/categories/stats")
+@router.get("/stats/", response_model=dict, status_code=status.HTTP_200_OK)
 async def get_plan_stats(session: Session = Depends(get_session)):
     """Get statistics about VPS plans"""
     statement = select(VPSPlan).where(VPSPlan.is_active == True)

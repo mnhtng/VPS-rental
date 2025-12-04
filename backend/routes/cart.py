@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from typing import Dict, List, Any
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 import logging
 
@@ -125,4 +125,73 @@ async def add_to_cart(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error adding to cart",
+        )
+
+
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+async def clear_cart(
+    session: Session = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
+    """
+    Clear the shopping cart for the current user.
+
+    Args:
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 500 if there is a server error.
+    Returns:
+        Dict[str, Any]: A message indicating the cart was cleared successfully.
+    """
+    try:
+        statement = select(Cart).where(Cart.user_id == current_user.id)
+        carts = session.exec(statement).all()
+
+        for cart in carts:
+            session.delete(cart)
+        session.commit()
+
+        return {"message": "Cart cleared successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error clearing cart for user {current_user.id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error clearing cart",
+        )
+
+
+@router.delete("/{cart_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_cart_item(
+    cart_id: int,
+    session: Session = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
+    try:
+        cart = session.get(Cart, cart_id)
+        if not cart or cart.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Cart item not found",
+            )
+
+        session.delete(cart)
+        session.commit()
+
+        return {"message": "Cart item removed successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(
+            f">>> Error removing cart item {cart_id} for user {current_user.id}: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error removing cart item",
         )

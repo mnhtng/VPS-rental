@@ -31,29 +31,25 @@ import {
     Monitor,
     BrushCleaning
 } from 'lucide-react';
-import { CartItem } from '@/types/types';
+import { CartItem, Promotion, ValidatePromotionResponse } from '@/types/types';
 import { Label } from '@radix-ui/react-label';
 import { formatPrice } from '@/utils/currency';
 import useProduct from '@/hooks/useProduct';
+import usePromotion from '@/hooks/usePromotion';
 import { toast } from 'sonner';
 import { useLocale } from 'next-intl';
 import CartPlaceholder from '@/components/custom/placeholder/cart';
 
-// Available discount codes
-const availableDiscounts = [
-    { code: 'SAVE20', discount: 20, description: '20% off all plans' },
-    { code: 'FIRSTTIME', discount: 15, description: '15% off for new customers' },
-    { code: 'STUDENT', discount: 25, description: '25% off for students' },
-    { code: 'WELCOME10', discount: 10, description: '10% welcome discount' }
-];
-
 const CartPage = () => {
     const { getCartItems } = useProduct();
+    const { getAvailablePromotions, validatePromotion } = usePromotion();
     const locale = useLocale();
 
     const [cartItem, setCartItem] = useState<CartItem[] | null>(null);
-    const [appliedPromo, setAppliedPromo] = useState<{ code: string, discount: number } | null>(null);
+    const [availablePromotions, setAvailablePromotions] = useState<Promotion[]>([]);
+    const [appliedPromo, setAppliedPromo] = useState<ValidatePromotionResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingPromotions, setIsLoadingPromotions] = useState(false);
 
     const fetchCart = async () => {
         try {
@@ -75,8 +71,32 @@ const CartPage = () => {
         }
     };
 
+    const fetchAvailablePromotions = async () => {
+        setIsLoadingPromotions(true);
+        try {
+            const result = await getAvailablePromotions();
+
+            if (result.error) {
+                if (result.error.code !== 'NO_ACCESS_TOKEN') {
+                    toast.error(result.message, {
+                        description: result.error.details,
+                    });
+                }
+            } else {
+                setAvailablePromotions(result.data || []);
+            }
+        } catch {
+            toast.error("Failed to fetch promotions", {
+                description: "Please try again later",
+            });
+        } finally {
+            setIsLoadingPromotions(false);
+        }
+    };
+
     useEffect(() => {
         fetchCart();
+        fetchAvailablePromotions();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -86,19 +106,35 @@ const CartPage = () => {
         setAppliedPromo(null);
     };
 
-    const handleDiscountSelection = (discountCode: string) => {
-        // Apply discount directly when selected
-        const foundDiscount = availableDiscounts.find(
-            discount => discount.code.toUpperCase() === discountCode.toUpperCase()
-        );
+    const handleDiscountSelection = async (promotionCode: string) => {
+        const cartTotal = calculateSubtotal();
 
-        if (foundDiscount) {
-            setAppliedPromo({ code: foundDiscount.code, discount: foundDiscount.discount });
+        try {
+            const result = await validatePromotion({
+                code: promotionCode,
+                cartTotal,
+            });
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.details,
+                });
+            } else {
+                setAppliedPromo(result.data || null);
+                toast.success("Promotion applied successfully!", {
+                    description: `You saved ${formatPrice(result.data?.discount_amount || 0)}`,
+                });
+            }
+        } catch {
+            toast.error("Failed to apply promotion", {
+                description: "Please try again later",
+            });
         }
     };
 
     const removePromoCode = () => {
         setAppliedPromo(null);
+        toast.info("Promotion removed");
     };
 
     const calculateSubtotal = () => {
@@ -108,7 +144,7 @@ const CartPage = () => {
 
     const calculateDiscount = () => {
         if (!appliedPromo) return 0;
-        return (calculateSubtotal() * appliedPromo.discount) / 100;
+        return appliedPromo.discount_amount;
     };
 
     const calculateTotal = () => {
@@ -348,10 +384,15 @@ const CartPage = () => {
                                                 </div>
                                                 <div>
                                                     <span className="text-base font-bold text-green-800">
-                                                        {appliedPromo.code}
+                                                        {appliedPromo.promotion.code}
                                                     </span>
                                                     <p className="text-sm text-green-600">
-                                                        {appliedPromo.discount}% discount applied!
+                                                        {appliedPromo.promotion.description ||
+                                                            `${appliedPromo.promotion.discount_type === 'percentage'
+                                                                ? `${appliedPromo.promotion.discount_value}% off`
+                                                                : `${formatPrice(appliedPromo.promotion.discount_value)} off`
+                                                            }`
+                                                        }
                                                     </p>
                                                 </div>
                                             </div>
@@ -367,34 +408,43 @@ const CartPage = () => {
                                     ) : (
                                         <div className="space-y-3">
                                             <Label className="text-sm font-medium text-muted-foreground mb-3 block">
-                                                Select discount ticket:
+                                                {isLoadingPromotions ? "Loading available promotions..." : "Select discount ticket:"}
                                             </Label>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {availableDiscounts.map((discount, index) => (
-                                                    <div
-                                                        key={discount.code}
-                                                        onClick={() => handleDiscountSelection(discount.code)}
-                                                        className="relative bg-gradient-to-br from-amber-300 via-amber-400/90 to-amber-500/90 hover:from-yellow-600 hover:to-amber-700 text-white p-2.5 rounded-md cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-2 border-yellow-400 hover:border-yellow-300 transform hover:-translate-y-1 animate-in fade-in zoom-in"
-                                                        style={{ animationDelay: `${index * 100}ms`, animationDuration: '400ms' }}
-                                                    >
-                                                        {/* Ticket perforated edge effect */}
-                                                        <div className="absolute bg-secondary left-0 top-1/2 transform -translate-y-1/2 -translate-x-3 w-6 h-6 rounded-full"></div>
-                                                        <div className="absolute bg-secondary right-0 top-1/2 transform -translate-y-1/2 translate-x-3 w-6 h-6 rounded-full"></div>
+                                            {availablePromotions.length === 0 && !isLoadingPromotions ? (
+                                                <p className="text-sm text-muted-foreground text-center py-4">
+                                                    No promotions available at the moment
+                                                </p>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {availablePromotions.map((promotion, index) => (
+                                                        <div
+                                                            key={promotion.id}
+                                                            onClick={() => handleDiscountSelection(promotion.code)}
+                                                            className="relative bg-gradient-to-br from-amber-300 via-amber-400/90 to-amber-500/90 hover:from-yellow-600 hover:to-amber-700 text-white p-2.5 rounded-md cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-2 border-yellow-400 hover:border-yellow-300 transform hover:-translate-y-1 animate-in fade-in zoom-in"
+                                                            style={{ animationDelay: `${index * 100}ms`, animationDuration: '400ms' }}
+                                                        >
+                                                            {/* Ticket perforated edge effect */}
+                                                            <div className="absolute bg-secondary left-0 top-1/2 transform -translate-y-1/2 -translate-x-3 w-6 h-6 rounded-full"></div>
+                                                            <div className="absolute bg-secondary right-0 top-1/2 transform -translate-y-1/2 translate-x-3 w-6 h-6 rounded-full"></div>
 
-                                                        <div className="text-center space-y-1">
-                                                            <div className="font-bold text-sm tracking-wider">
-                                                                {discount.code}
+                                                            <div className="text-center space-y-1">
+                                                                <div className="font-bold text-sm tracking-wider">
+                                                                    {promotion.code}
+                                                                </div>
+                                                                <div className="text-xs font-semibold opacity-90">
+                                                                    {promotion.discount_type === 'percentage'
+                                                                        ? `${promotion.discount_value}% OFF`
+                                                                        : `₫${promotion.discount_value.toLocaleString()} OFF`
+                                                                    }
+                                                                </div>
                                                             </div>
-                                                            <div className="text-xs font-semibold opacity-90">
-                                                                {discount.discount}% OFF
-                                                            </div>
+
+                                                            {/* Shine effect */}
+                                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                                                         </div>
-
-                                                        {/* Shine effect */}
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -410,7 +460,7 @@ const CartPage = () => {
 
                                     {appliedPromo && (
                                         <div className="flex justify-between items-center text-lg">
-                                            <span className="font-medium text-green-600 dark:text-green-400">Discount ({appliedPromo.discount}%)</span>
+                                            <span className="font-medium text-green-600 dark:text-green-400">Discount ({appliedPromo.promotion.discount_value}%)</span>
                                             <span className="font-bold text-green-600 dark:text-green-400">-{formatPrice(calculateDiscount())}</span>
                                         </div>
                                     )}

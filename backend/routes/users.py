@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, or_, select, func
@@ -110,7 +109,9 @@ async def get_user(
 
 
 @router.get(
-    "/email/{email}", response_model=UserResponse, status_code=status.HTTP_200_OK
+    "/email/{email}",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
 )
 async def get_user_by_email(
     email: str,
@@ -339,7 +340,9 @@ async def delete_user(
 
 
 @router.get(
-    "/search/", response_model=List[UserResponse], status_code=status.HTTP_200_OK
+    "/search/",
+    response_model=List[UserResponse],
+    status_code=status.HTTP_200_OK,
 )
 async def search_users(
     query: str = "",

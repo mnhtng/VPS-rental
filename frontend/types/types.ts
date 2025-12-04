@@ -143,6 +143,37 @@ export interface FAQ {
     category: string;
 }
 
+export interface Promotion {
+    id: string;
+    code: string;
+    description?: string;
+    discount_type: 'percentage' | 'fixed_amount';
+    discount_value: number;
+    start_date?: string;
+    end_date?: string;
+    usage_limit?: number;
+    per_user_limit?: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UserPromotion {
+    id: string;
+    user_id: string;
+    promotion_id: string;
+    order_id: string;
+    used_at: string;
+}
+
+export interface ValidatePromotionResponse {
+    valid: boolean;
+    promotion: Promotion;
+    discount_amount: number;
+    discount_type: 'percentage' | 'fixed_amount';
+    discount_value: number;
+    final_amount: number;
+}
+
 export interface DashboardStats {
     total_users: number;
     active_orders: number;

@@ -28,6 +28,8 @@ from .proxmox import (
     ProxmoxVMService,
 )
 
+from .promotion import PromotionService
+
 __all__ = [
     # Payment Service
     "MoMoService",
@@ -41,4 +43,6 @@ __all__ = [
     "ProxmoxPoolService",
     "ProxmoxTemplateService",
     "ProxmoxVMService",
+    # Promotion Service
+    "PromotionService",
 ]

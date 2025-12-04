@@ -34,6 +34,16 @@ from backend.services import (
     ProxmoxTemplateService,
     ProxmoxVMService,
 )
+from backend.dependencies import (
+    get_default_proxmox,
+    get_proxmox_from_cluster,
+    get_proxmox_from_node,
+    get_proxmox_from_vm,
+    ProxmoxConnection,
+    ProxmoxWithCluster,
+    ProxmoxWithNode,
+    ProxmoxWithVM,
+)
 
 
 router = APIRouter(prefix="/proxmox", tags=["Proxmox"])
@@ -224,20 +234,13 @@ def delete_cluster(cluster_id: uuid.UUID, session: Session = Depends(get_session
 
 
 @router.get("/clusters/{cluster_id}/version")
-def get_cluster_version(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_cluster_version(
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
+):
     """Get Proxmox version information"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.get_version(proxmox)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -245,21 +248,13 @@ def get_cluster_version(cluster_id: uuid.UUID, session: Session = Depends(get_se
 
 @router.post("/clusters/{cluster_id}/sync")
 def sync_cluster_resources(
-    cluster_id: uuid.UUID, session: Session = Depends(get_session)
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
+    session: Session = Depends(get_session),
 ):
     """Sync nodes and storages from Proxmox to database"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
 
         # Sync nodes
         nodes_data = CommonProxmoxService.get_nodes(proxmox)
@@ -336,24 +331,13 @@ def get_node(node_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.get("/nodes/{node_id}/status")
-def get_node_live_status(node_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_node_live_status(
+    proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node),
+):
     """Get live status of a node from Proxmox"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.get_node_status(proxmox, node.name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -374,24 +358,11 @@ def list_storages(node_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.get("/nodes/{node_id}/storages/live")
-def list_live_storages(node_id: uuid.UUID, session: Session = Depends(get_session)):
+def list_live_storages(proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)):
     """Get live storage information from Proxmox"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.get_storages(proxmox, node.name)
     except Exception as e:
         raise HTTPException(
@@ -421,24 +392,11 @@ def list_node_vms(node_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.get("/nodes/{node_id}/vms/live")
-def list_live_vms(node_id: uuid.UUID, session: Session = Depends(get_session)):
+def list_live_vms(proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)):
     """Get live VM list from Proxmox"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.get_vms(proxmox, node.name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -454,75 +412,36 @@ def get_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.get("/vms/{vm_id}/status")
-def get_vm_live_status(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_vm_live_status(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """Get live VM status from Proxmox"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
-
-    if not node or not cluster:
-        raise HTTPException(status_code=404, detail="Node or cluster not found")
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.get_vm_status(proxmox, node.name, vm.vmid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/vms/{vm_id}/config")
-def get_vm_config(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_vm_config(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """Get VM configuration from Proxmox"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
-
-    if not node or not cluster:
-        raise HTTPException(status_code=404, detail="Node or cluster not found")
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.get_vm_config(proxmox, node.name, vm.vmid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/vms/{vm_id}/start")
-def start_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def start_vm(
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
+    session: Session = Depends(get_session),
+):
     """Start a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = CommonProxmoxService.start_vm(proxmox, node.name, vm.vmid)
 
         # Update VM power status
@@ -537,24 +456,10 @@ def start_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.post("/vms/{vm_id}/clone")
-def clone_vm(vm_id: int, session: Session = Depends(get_session)):
+def clone_vm(vm_id: int, proxmox: ProxmoxConnection = Depends(get_default_proxmox)):
     """Clone a VM"""
-    # vm = session.get(ProxmoxVM, vm_id)
-    # if not vm:
-    #     raise HTTPException(status_code=404, detail="VM not found")
-
-    # node = session.get(ProxmoxNode, vm.node_id)
-    # cluster = session.get(ProxmoxCluster, vm.cluster_id)
-
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=settings.PROXMOX_HOST,
-            port=settings.PROXMOX_PORT,
-            user=settings.PROXMOX_USER,
-            password=settings.PROXMOX_PASSWORD,
-        )
         result = ProxmoxVMService.create_vm(proxmox, "pve", vm_id, 102)
-
         return result
     except Exception as e:
         raise HTTPException(
@@ -563,23 +468,14 @@ def clone_vm(vm_id: int, session: Session = Depends(get_session)):
 
 
 @router.post("/vms/{vm_id}/stop")
-def stop_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def stop_vm(
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
+    session: Session = Depends(get_session),
+):
     """Stop a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = CommonProxmoxService.stop_vm(proxmox, node.name, vm.vmid)
 
         # Update VM power status
@@ -594,91 +490,47 @@ def stop_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.post("/vms/{vm_id}/shutdown")
-def shutdown_vm(vm_id: str | int, session: Session = Depends(get_session)):
+def shutdown_vm(
+    vm_id: str | int, proxmox: ProxmoxConnection = Depends(get_default_proxmox)
+):
     """Gracefully shutdown a VM"""
-    # vm = session.get(ProxmoxVM, vm_id)
-    # if not vm:
-    #     raise HTTPException(status_code=404, detail="VM not found")
-
-    # node = session.get(ProxmoxNode, vm.node_id)
-    # cluster = session.get(ProxmoxCluster, vm.cluster_id)
-
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=settings.PROXMOX_HOST,
-            port=settings.PROXMOX_PORT,
-            user=settings.PROXMOX_USER,
-            password=settings.PROXMOX_PASSWORD,
-        )
         return ProxmoxVMService.shutdown_vm(proxmox, "pve", vm_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/vms/{vm_id}/reboot")
-def reboot_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def reboot_vm(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """Reboot a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.reboot_vm(proxmox, node.name, vm.vmid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/vms/{vm_id}/reset")
-def reset_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def reset_vm(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """Reset (hard reboot) a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.reset_vm(proxmox, node.name, vm.vmid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/vms/{vm_id}/suspend")
-def suspend_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def suspend_vm(
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
+    session: Session = Depends(get_session),
+):
     """Suspend a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = CommonProxmoxService.suspend_vm(proxmox, node.name, vm.vmid)
 
         # Update VM power status
@@ -693,23 +545,14 @@ def suspend_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.post("/vms/{vm_id}/resume")
-def resume_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def resume_vm(
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
+    session: Session = Depends(get_session),
+):
     """Resume a suspended VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = CommonProxmoxService.resume_vm(proxmox, node.name, vm.vmid)
 
         # Update VM power status
@@ -724,28 +567,12 @@ def resume_vm(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.delete("/vms/{vm_id}")
-def delete_vm(vm_id: str | int, session: Session = Depends(get_session)):
+def delete_vm(
+    vm_id: str | int, proxmox: ProxmoxConnection = Depends(get_default_proxmox)
+):
     """Delete a VM"""
-    # vm = session.get(ProxmoxVM, vm_id)
-    # if not vm:
-    #     raise HTTPException(status_code=404, detail="VM not found")
-
-    # node = session.get(ProxmoxNode, vm.node_id)
-    # cluster = session.get(ProxmoxCluster, vm.cluster_id)
-
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=settings.PROXMOX_HOST,
-            port=settings.PROXMOX_PORT,
-            user=settings.PROXMOX_USER,
-            password=settings.PROXMOX_PASSWORD,
-        )
         result = ProxmoxVMService.delete_vm(proxmox, "pve", vm_id)
-
-        # Delete VM from database
-        # session.delete(vm)
-        # session.commit()
-
         return {"message": "VM deleted successfully", "task": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -753,26 +580,14 @@ def delete_vm(vm_id: str | int, session: Session = Depends(get_session)):
 
 @router.put("/vms/{vm_id}/config")
 def update_vm_configuration(
-    vm_id: uuid.UUID,
     config: VMConfigUpdateRequest,
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
     session: Session = Depends(get_session),
 ):
     """Update VM configuration"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
 
         # Build config update
         update_config = {}
@@ -803,26 +618,13 @@ def update_vm_configuration(
 
 @router.post("/vms/{vm_id}/resize-disk")
 def resize_vm_disk(
-    vm_id: uuid.UUID,
     resize_data: DiskResizeRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
 ):
     """Resize VM disk"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.resize_vm_disk(
             proxmox, node.name, vm.vmid, resize_data.disk, resize_data.size
         )
@@ -831,23 +633,11 @@ def resize_vm_disk(
 
 
 @router.get("/vms/{vm_id}/vnc")
-def get_vm_vnc(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_vm_vnc(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """Get VNC connection info for a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         vnc_info = CommonProxmoxService.get_vnc_info(proxmox, node.name, vm.vmid)
         vnc_info["host"] = cluster.api_host
         return vnc_info
@@ -861,23 +651,11 @@ def get_vm_vnc(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.get("/vms/{vm_id}/snapshots")
-def list_snapshots(vm_id: uuid.UUID, session: Session = Depends(get_session)):
+def list_snapshots(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """List all snapshots for a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.list_snapshots(proxmox, node.name, vm.vmid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -885,26 +663,13 @@ def list_snapshots(vm_id: uuid.UUID, session: Session = Depends(get_session)):
 
 @router.post("/vms/{vm_id}/snapshots")
 def create_snapshot(
-    vm_id: uuid.UUID,
     snapshot_data: SnapshotCreateRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
 ):
     """Create a snapshot for a VM"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.create_snapshot(
             proxmox,
             node.name,
@@ -918,26 +683,13 @@ def create_snapshot(
 
 @router.post("/vms/{vm_id}/snapshots/rollback")
 def rollback_snapshot(
-    vm_id: uuid.UUID,
     snapshot_data: SnapshotActionRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
 ):
     """Rollback to a snapshot"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    node = session.get(ProxmoxNode, vm.node_id)
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.rollback_snapshot(
             proxmox, node.name, vm.vmid, snapshot_data.snapname
         )
@@ -947,26 +699,14 @@ def rollback_snapshot(
 
 @router.delete("/vms/{vm_id}/snapshots/{snapname}")
 def delete_snapshot(
-    vm_id: uuid.UUID,
     snapname: str,
     node_name: str = Query(..., description="Node name"),
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
 ):
     """Delete a snapshot"""
-    vm = session.get(ProxmoxVM, vm_id)
-    if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
-
-    cluster = session.get(ProxmoxCluster, vm.cluster_id)
+    proxmox, vm, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.delete_snapshot(
             proxmox, node_name, vm.vmid, snapname
         )
@@ -1003,20 +743,11 @@ def get_template(template_id: uuid.UUID, session: Session = Depends(get_session)
 
 
 @router.get("/clusters/{cluster_id}/next-vmid")
-def get_next_vmid(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_next_vmid(proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster)):
     """Get next available VM ID"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return {"vmid": CommonProxmoxService.get_next_vmid(proxmox)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1024,25 +755,15 @@ def get_next_vmid(cluster_id: uuid.UUID, session: Session = Depends(get_session)
 
 @router.get("/clusters/{cluster_id}/resources")
 def get_cluster_resources(
-    cluster_id: uuid.UUID,
     resource_type: Optional[str] = Query(
         None, description="Filter by type (vm, storage, node)"
     ),
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Get all cluster resources"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
 
         result = ProxmoxClusterService.get_cluster_resources(proxmox, resource_type)
         if not result.get("success"):
@@ -1058,20 +779,13 @@ def get_cluster_resources(
 
 
 @router.get("/clusters/{cluster_id}/status")
-def get_cluster_status(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_cluster_status(
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
+):
     """Get cluster status information"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxClusterService.get_cluster_status(proxmox)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1081,20 +795,13 @@ def get_cluster_status(cluster_id: uuid.UUID, session: Session = Depends(get_ses
 
 
 @router.get("/clusters/{cluster_id}/options")
-def get_cluster_options(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_cluster_options(
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
+):
     """Get cluster configuration options"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxClusterService.get_cluster_options(proxmox)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1105,23 +812,13 @@ def get_cluster_options(cluster_id: uuid.UUID, session: Session = Depends(get_se
 
 @router.put("/clusters/{cluster_id}/options")
 def update_cluster_options(
-    cluster_id: uuid.UUID,
     options: dict,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Update cluster configuration options"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxClusterService.update_cluster_options(proxmox, **options)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1131,20 +828,13 @@ def update_cluster_options(
 
 
 @router.get("/clusters/{cluster_id}/tasks")
-def get_cluster_tasks(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_cluster_tasks(
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
+):
     """Get all cluster tasks"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxClusterService.get_cluster_tasks(proxmox)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1156,22 +846,12 @@ def get_cluster_tasks(cluster_id: uuid.UUID, session: Session = Depends(get_sess
 @router.get("/tasks/{upid}/status")
 def get_task_status(
     upid: str,
-    cluster_id: uuid.UUID = Query(..., description="Cluster ID"),
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Get status of a specific task by UPID"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         return CommonProxmoxService.get_task_status(proxmox, upid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1213,20 +893,13 @@ class BackupJobUpdateRequest(BaseModel):
 
 
 @router.get("/clusters/{cluster_id}/backup-jobs")
-def list_backup_jobs(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
+def list_backup_jobs(
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
+):
     """List all backup jobs in cluster"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxClusterService.get_backup_jobs(proxmox)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1237,23 +910,13 @@ def list_backup_jobs(cluster_id: uuid.UUID, session: Session = Depends(get_sessi
 
 @router.post("/clusters/{cluster_id}/backup-jobs")
 def create_backup_job(
-    cluster_id: uuid.UUID,
     backup_job: BackupJobCreateRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Create a new backup job"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
 
         # Build retention policy
         retention = {}
@@ -1288,24 +951,14 @@ def create_backup_job(
 
 @router.put("/clusters/{cluster_id}/backup-jobs/{job_id}")
 def update_backup_job(
-    cluster_id: uuid.UUID,
     job_id: str,
     backup_job: BackupJobUpdateRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Update a backup job"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
 
         update_data = backup_job.model_dump(exclude_unset=True)
         result = ProxmoxClusterService.update_backup_job(proxmox, job_id, **update_data)
@@ -1319,21 +972,12 @@ def update_backup_job(
 
 @router.delete("/clusters/{cluster_id}/backup-jobs/{job_id}")
 def delete_backup_job(
-    cluster_id: uuid.UUID, job_id: str, session: Session = Depends(get_session)
+    job_id: str, proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster)
 ):
     """Delete a backup job"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxClusterService.delete_backup_job(proxmox, job_id)
 
         if not result.get("success"):
@@ -1367,21 +1011,12 @@ class VolumeCopyRequest(BaseModel):
 
 @router.get("/clusters/{cluster_id}/storages")
 def list_cluster_storages(
-    cluster_id: uuid.UUID, session: Session = Depends(get_session)
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """List all storages in cluster"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxStorageService.get_storages(proxmox)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1392,21 +1027,13 @@ def list_cluster_storages(
 
 @router.get("/clusters/{cluster_id}/storages/{storage_name}")
 def get_storage_config(
-    cluster_id: uuid.UUID, storage_name: str, session: Session = Depends(get_session)
+    storage_name: str,
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Get storage configuration"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxStorageService.get_storage_config(proxmox, storage_name)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1417,28 +1044,14 @@ def get_storage_config(
 
 @router.get("/nodes/{node_id}/storage-status")
 def get_node_storage_status(
-    node_id: uuid.UUID,
     storage: Optional[str] = Query(None, description="Filter by storage name"),
     content: Optional[str] = Query(None, description="Filter by content type"),
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node),
 ):
     """Get storage status on a specific node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxStorageService.get_node_storage_status(
             proxmox, node.name, storage, content
         )
@@ -1451,29 +1064,15 @@ def get_node_storage_status(
 
 @router.get("/nodes/{node_id}/storages/{storage_name}/content")
 def get_storage_content(
-    node_id: uuid.UUID,
     storage_name: str,
     content_type: Optional[str] = Query(None, description="Filter by content type"),
     vmid: Optional[int] = Query(None, description="Filter by VM ID"),
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node),
 ):
     """Get storage content (volumes, ISOs, templates)"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxStorageService.get_storage_content(
             proxmox, node.name, storage_name, content_type, vmid
         )
@@ -1486,28 +1085,14 @@ def get_storage_content(
 
 @router.post("/nodes/{node_id}/storages/{storage_name}/allocate")
 def allocate_disk_image(
-    node_id: uuid.UUID,
     storage_name: str,
     volume_data: VolumeAllocateRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node),
 ):
     """Allocate a new disk image"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxStorageService.allocate_disk_image(
             proxmox,
             node.name,
@@ -1526,29 +1111,15 @@ def allocate_disk_image(
 
 @router.post("/nodes/{node_id}/storages/{storage_name}/volumes/{volume_id}/copy")
 def copy_volume(
-    node_id: uuid.UUID,
     storage_name: str,
     volume_id: str,
     copy_data: VolumeCopyRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node),
 ):
     """Copy a volume to another storage/node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxStorageService.copy_volume(
             proxmox,
             node.name,
@@ -1567,28 +1138,14 @@ def copy_volume(
 
 @router.delete("/nodes/{node_id}/storages/{storage_name}/volumes/{volume_id}")
 def delete_volume(
-    node_id: uuid.UUID,
     storage_name: str,
     volume_id: str,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node),
 ):
     """Delete a volume"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxStorageService.delete_volume(
             proxmox, node.name, storage_name, volume_id
         )
@@ -1624,20 +1181,11 @@ class PoolAddVMsRequest(BaseModel):
 
 
 @router.get("/clusters/{cluster_id}/pools")
-def list_pools(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
+def list_pools(proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster)):
     """List all pools in cluster"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.get_pools(proxmox)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1648,21 +1196,12 @@ def list_pools(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
 
 @router.get("/clusters/{cluster_id}/pools/{pool_id}")
 def get_pool_details(
-    cluster_id: uuid.UUID, pool_id: str, session: Session = Depends(get_session)
+    pool_id: str, proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster)
 ):
     """Get pool details including members"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.get_pool(proxmox, pool_id)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1673,23 +1212,13 @@ def get_pool_details(
 
 @router.post("/clusters/{cluster_id}/pools")
 def create_pool(
-    cluster_id: uuid.UUID,
     pool_data: PoolCreateRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Create a new pool"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.create_pool(
             proxmox, pool_data.poolid, pool_data.comment
         )
@@ -1702,24 +1231,14 @@ def create_pool(
 
 @router.put("/clusters/{cluster_id}/pools/{pool_id}")
 def update_pool(
-    cluster_id: uuid.UUID,
     pool_id: str,
     pool_data: PoolUpdateRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Update pool configuration"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.update_pool(proxmox, pool_id, pool_data.comment)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1730,21 +1249,12 @@ def update_pool(
 
 @router.delete("/clusters/{cluster_id}/pools/{pool_id}")
 def delete_pool(
-    cluster_id: uuid.UUID, pool_id: str, session: Session = Depends(get_session)
+    pool_id: str, proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster)
 ):
     """Delete a pool"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.delete_pool(proxmox, pool_id)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1755,24 +1265,14 @@ def delete_pool(
 
 @router.post("/clusters/{cluster_id}/pools/{pool_id}/vms/{vmid}")
 def add_vm_to_pool(
-    cluster_id: uuid.UUID,
     pool_id: str,
     vmid: int,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Add a VM to pool"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.add_vm_to_pool(proxmox, pool_id, vmid)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1783,24 +1283,14 @@ def add_vm_to_pool(
 
 @router.delete("/clusters/{cluster_id}/pools/{pool_id}/vms/{vmid}")
 def remove_vm_from_pool(
-    cluster_id: uuid.UUID,
     pool_id: str,
     vmid: int,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Remove a VM from pool"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.remove_vm_from_pool(proxmox, pool_id, vmid)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1811,24 +1301,14 @@ def remove_vm_from_pool(
 
 @router.post("/clusters/{cluster_id}/pools/{pool_id}/vms/batch")
 def add_multiple_vms_to_pool(
-    cluster_id: uuid.UUID,
     pool_id: str,
     vms_data: PoolAddVMsRequest,
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
 ):
     """Add multiple VMs to pool"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.add_multiple_vms_to_pool(
             proxmox, pool_id, vms_data.vms
         )
@@ -1841,21 +1321,12 @@ def add_multiple_vms_to_pool(
 
 @router.get("/clusters/{cluster_id}/pools/{pool_id}/vms")
 def get_pool_vms(
-    cluster_id: uuid.UUID, pool_id: str, session: Session = Depends(get_session)
+    pool_id: str, proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster)
 ):
     """Get all VMs in a pool"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxPoolService.get_pool_vms(proxmox, pool_id)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1884,25 +1355,12 @@ class NetworkInterfaceRequest(BaseModel):
 
 @router.get("/nodes/{node_id}/network")
 def get_node_network_interfaces(
-    node_id: uuid.UUID, session: Session = Depends(get_session)
+    proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node),
 ):
     """Get network interfaces on a node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxNodeService.get_network_interfaces(proxmox, node.name)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1912,24 +1370,11 @@ def get_node_network_interfaces(
 
 
 @router.get("/nodes/{node_id}/disks")
-def get_node_disks(node_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_node_disks(proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)):
     """Get disk information on a node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxNodeService.get_disks(proxmox, node.name)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1939,24 +1384,11 @@ def get_node_disks(node_id: uuid.UUID, session: Session = Depends(get_session)):
 
 
 @router.get("/nodes/{node_id}/services")
-def get_node_services(node_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_node_services(proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)):
     """Get system services on a node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxNodeService.get_services(proxmox, node.name)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1967,25 +1399,12 @@ def get_node_services(node_id: uuid.UUID, session: Session = Depends(get_session
 
 @router.post("/nodes/{node_id}/services/{service}/start")
 def start_node_service(
-    node_id: uuid.UUID, service: str, session: Session = Depends(get_session)
+    service: str, proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)
 ):
     """Start a system service on a node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxNodeService.start_service(proxmox, node.name, service)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -1996,25 +1415,12 @@ def start_node_service(
 
 @router.post("/nodes/{node_id}/services/{service}/stop")
 def stop_node_service(
-    node_id: uuid.UUID, service: str, session: Session = Depends(get_session)
+    service: str, proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)
 ):
     """Stop a system service on a node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxNodeService.stop_service(proxmox, node.name, service)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -2025,25 +1431,12 @@ def stop_node_service(
 
 @router.post("/nodes/{node_id}/services/{service}/restart")
 def restart_node_service(
-    node_id: uuid.UUID, service: str, session: Session = Depends(get_session)
+    service: str, proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)
 ):
     """Restart a system service on a node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxNodeService.restart_service(proxmox, node.name, service)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -2053,24 +1446,11 @@ def restart_node_service(
 
 
 @router.get("/nodes/{node_id}/time")
-def get_node_time(node_id: uuid.UUID, session: Session = Depends(get_session)):
+def get_node_time(proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)):
     """Get node time information"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxNodeService.get_node_time(proxmox, node.name)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
@@ -2081,27 +1461,13 @@ def get_node_time(node_id: uuid.UUID, session: Session = Depends(get_session)):
 
 @router.get("/nodes/{node_id}/tasks")
 def get_node_tasks(
-    node_id: uuid.UUID,
     limit: Optional[int] = Query(100, description="Limit number of tasks"),
-    session: Session = Depends(get_session),
+    proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node),
 ):
     """Get tasks running on a node"""
-    node = session.get(ProxmoxNode, node_id)
-    if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
-
-    cluster = session.get(ProxmoxCluster, node.cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+    proxmox, node, cluster = proxmox_data
 
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=cluster.api_host,
-            port=cluster.api_port,
-            user=cluster.api_user,
-            password=cluster.api_password,
-            verify_ssl=cluster.verify_ssl,
-        )
         result = ProxmoxNodeService.get_node_tasks(proxmox, node.name, limit)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("message"))
