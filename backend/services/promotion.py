@@ -1,10 +1,3 @@
-"""
-Promotion Service
-=================
-
-Business logic for managing promotions and validating promotion usage.
-"""
-
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
@@ -12,7 +5,8 @@ from decimal import Decimal
 from sqlmodel import Session, select, func
 from fastapi import HTTPException, status
 
-from backend.models import Promotion, UserPromotion, User
+from backend.models import Promotion, UserPromotion
+from backend.schemas import PromotionResponse
 
 
 class PromotionService:
@@ -21,7 +15,7 @@ class PromotionService:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_available_promotions(self, user_id: uuid.UUID) -> List[Promotion]:
+    def get_available_promotions(self, user_id: uuid.UUID) -> List[PromotionResponse]:
         """
         Get all available promotions for a specific user.
 
@@ -35,42 +29,36 @@ class PromotionService:
             user_id: The UUID of the user
 
         Returns:
-            List of available Promotion objects
+            List of PromotionResponse objects
         """
         current_time = datetime.now(timezone.utc)
 
-        # Get all promotions
-        promotions_query = select(Promotion)
-        all_promotions = self.session.exec(promotions_query).all()
+        promotions = self.session.exec(select(Promotion)).all()
 
         available_promotions = []
 
-        for promotion in all_promotions:
-            # Check if promotion has started
+        for promotion in promotions:
             if promotion.start_date and promotion.start_date > current_time:
                 continue
 
-            # Check if promotion has expired
             if promotion.end_date and promotion.end_date < current_time:
                 continue
 
-            # Check total usage limit
             if promotion.usage_limit is not None:
-                total_usage_query = select(func.count(UserPromotion.id)).where(
+                statement = select(func.count(UserPromotion.id)).where(
                     UserPromotion.promotion_id == promotion.id
                 )
-                total_usage = self.session.exec(total_usage_query).one()
+                total_usage = self.session.exec(statement).one()
 
                 if total_usage >= promotion.usage_limit:
                     continue
 
-            # Check per-user usage limit
             if promotion.per_user_limit is not None:
-                user_usage_query = select(func.count(UserPromotion.id)).where(
+                statement = select(func.count(UserPromotion.id)).where(
                     UserPromotion.promotion_id == promotion.id,
                     UserPromotion.user_id == user_id,
                 )
-                user_usage = self.session.exec(user_usage_query).one()
+                user_usage = self.session.exec(statement).one()
 
                 if user_usage >= promotion.per_user_limit:
                     continue

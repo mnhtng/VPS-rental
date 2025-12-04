@@ -2,9 +2,6 @@ import { apiPattern } from "@/utils/pattern"
 import { Promotion, ValidatePromotionResponse } from "@/types/types"
 
 const usePromotion = () => {
-    /**
-     * Get all available promotions for the current user
-     */
     const getAvailablePromotions = async () => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/promotions/available`, {
@@ -24,7 +21,7 @@ const usePromotion = () => {
             }
 
             return {
-                data: result as Promotion[],
+                data: result as Promotion[] || [],
             }
         } catch (error) {
             return {

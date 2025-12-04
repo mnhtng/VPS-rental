@@ -41,40 +41,34 @@ class ValidatePromotionResponse(BaseModel):
 @router.get(
     "/available",
     response_model=List[PromotionResponse],
-    summary="Get available promotions for current user",
-    description="Returns all promotions that are currently available for the authenticated user based on usage limits and time restrictions",
+    summary="Get available promotions",
+    description="Returns all promotions that are currently available for the authenticated user based on usage limits",
 )
 async def get_available_promotions(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-) -> List[PromotionResponse]:
+):
     """
-    Get all available promotions for the current user.
+    Get all promotions available to the current user.
 
-    Filters out expired, not started, or fully used promotions.
+    Args:
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: 401 if user is not authenticated.
+        HTTPException: 500 if there is a server error.
+
+    Returns:
+        List[PromotionResponse]: List of available promotions for the user.
     """
     try:
         promotion_service = PromotionService(session)
         promotions = promotion_service.get_available_promotions(current_user.id)
 
-        return [
-            PromotionResponse(
-                id=promo.id,
-                code=promo.code,
-                description=promo.description,
-                discount_type=promo.discount_type,
-                discount_value=float(promo.discount_value),
-                start_date=promo.start_date,
-                end_date=promo.end_date,
-                usage_limit=promo.usage_limit,
-                per_user_limit=promo.per_user_limit,
-                created_at=promo.created_at,
-                updated_at=promo.updated_at,
-            )
-            for promo in promotions
-        ]
+        return promotions
     except Exception as e:
-        logger.error(f"Error fetching available promotions: {str(e)}")
+        logger.error(f">>> Error fetching available promotions: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch available promotions",
@@ -91,7 +85,7 @@ async def validate_promotion(
     request: ValidatePromotionRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-) -> ValidatePromotionResponse:
+):
     """
     Validate if a promotion code can be used by the current user.
 
@@ -152,7 +146,7 @@ async def validate_promotion(
 async def get_promotion_history(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-) -> List[UserPromotionResponse]:
+):
     """
     Get all promotions used by the current user.
     """

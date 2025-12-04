@@ -1,5 +1,5 @@
 import { apiPattern } from '@/utils/pattern';
-import { PasswordChange, ProfileUpdate } from '@/types/types';
+import { PasswordChange, Profile, ProfileUpdate, User } from '@/types/types';
 
 const useMember = () => {
     const getProfile = async () => {
@@ -30,7 +30,7 @@ const useMember = () => {
                     "joinedDate": result?.created_at,
                     "avatar": result?.image,
                     "role": result?.role,
-                },
+                } as Profile,
             }
         } catch (error) {
             return {
@@ -66,7 +66,7 @@ const useMember = () => {
 
             return {
                 message: "Profile updated successfully",
-                data: result,
+                data: result as User,
             }
         } catch (error) {
             return {
@@ -102,7 +102,7 @@ const useMember = () => {
 
             return {
                 message: result.message,
-                data: result.data,
+                data: result.data as User,
             }
         } catch (error) {
             return {

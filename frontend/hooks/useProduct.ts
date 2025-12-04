@@ -1,4 +1,5 @@
 import { apiPattern } from "@/utils/pattern"
+import { VPSPlan, CartItem } from "@/types/types"
 
 const useProduct = () => {
     const getPlans = async () => {
@@ -23,7 +24,7 @@ const useProduct = () => {
             }
 
             return {
-                data: result,
+                data: result as VPSPlan[] || [],
             }
         } catch {
             return {
@@ -57,7 +58,7 @@ const useProduct = () => {
                 }
             }
             return {
-                data: result,
+                data: result as VPSPlan,
             }
         } catch {
             return {
@@ -114,7 +115,7 @@ const useProduct = () => {
             }
 
             return {
-                data: result,
+                data: result as CartItem,
             }
         } catch (error) {
             return {
@@ -148,7 +149,7 @@ const useProduct = () => {
             }
 
             return {
-                data: result,
+                data: result as CartItem[] || [],
             }
         } catch (error) {
             return {
