@@ -110,7 +110,7 @@ const CartPage = () => {
             } else {
                 setCartItem(null);
                 setAppliedPromo(null);
-                setCartAmount(0); 
+                setCartAmount(0);
                 toast.success("Cart cleared successfully");
             }
         } catch {
@@ -130,7 +130,7 @@ const CartPage = () => {
                 });
             } else {
                 setCartItem(prevItems => prevItems ? prevItems.filter(item => item.id !== itemId) : null);
-                decrementCart(); 
+                decrementCart();
                 toast.success("Item removed from cart");
             }
         } catch {
@@ -491,7 +491,7 @@ const CartPage = () => {
 
                                     {appliedPromo && (
                                         <div className="flex justify-between items-center text-lg">
-                                            <span className="font-medium text-green-600 dark:text-green-400">Discount ({appliedPromo.promotion.discount_value}%)</span>
+                                            <span className="font-medium text-green-600 dark:text-green-400">Discount</span>
                                             <span className="font-bold text-green-600 dark:text-green-400">-{formatPrice(calculateDiscount())}</span>
                                         </div>
                                     )}

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useLocale } from 'next-intl';
 
 type PaymentStatus = 'loading' | 'success' | 'failed';
 
@@ -12,16 +13,18 @@ interface PaymentResult {
     status: PaymentStatus;
     message: string;
     transactionId?: string;
+    momoTransId?: string;
     amount?: string;
     orderNumber?: string;
 }
 
 const MoMoReturnPage: React.FC = () => {
+    const locale = useLocale();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [result, setResult] = useState<PaymentResult>({
         status: 'loading',
-        message: 'Đang xác minh giao dịch...'
+        message: 'Đang xác minh giao dịch MoMo...'
     });
 
     useEffect(() => {
@@ -47,8 +50,9 @@ const MoMoReturnPage: React.FC = () => {
                     localStorage.removeItem('vps_cart');
                     setResult({
                         status: 'success',
-                        message: 'Thanh toán thành công!',
-                        transactionId: transId || data.transaction_id,
+                        message: 'Thanh toán MoMo thành công!',
+                        transactionId: orderId || data.transaction_id,
+                        momoTransId: transId || data.momo_trans_id,
                         amount: amount ? parseInt(amount).toLocaleString('vi-VN') + ' VNĐ' : undefined,
                         orderNumber: orderId || undefined
                     });
@@ -110,9 +114,9 @@ const MoMoReturnPage: React.FC = () => {
                             </div>
                         )}
                     </div>
-                    <CardTitle className={`text-2xl ${result.status === 'success' ? 'text-green-500' :
-                            result.status === 'failed' ? 'text-red-500' :
-                                'text-pink-500'
+                    <CardTitle className={`text-2xl ${result.status === 'success' ? 'text-pink-500' :
+                        result.status === 'failed' ? 'text-red-500' :
+                            'text-pink-500'
                         }`}>
                         {result.status === 'loading' ? 'Đang xử lý...' :
                             result.status === 'success' ? 'Thanh toán thành công!' :
@@ -130,10 +134,10 @@ const MoMoReturnPage: React.FC = () => {
                                     <p className="text-lg font-mono font-bold">{result.orderNumber}</p>
                                 </div>
                             )}
-                            {result.transactionId && (
-                                <div className="bg-secondary p-4 rounded-lg">
-                                    <p className="text-sm font-medium text-muted-foreground">Mã giao dịch MoMo</p>
-                                    <p className="text-lg font-mono">{result.transactionId}</p>
+                            {result.momoTransId && (
+                                <div className="bg-pink-50 dark:bg-pink-950/30 p-4 rounded-lg border border-pink-200 dark:border-pink-800">
+                                    <p className="text-sm font-medium text-pink-600 dark:text-pink-400">Mã giao dịch MoMo</p>
+                                    <p className="text-lg font-mono font-bold text-pink-700 dark:text-pink-300">{result.momoTransId}</p>
                                 </div>
                             )}
                             {result.amount && (
@@ -158,19 +162,19 @@ const MoMoReturnPage: React.FC = () => {
                     <div className="space-y-2 pt-4">
                         {result.status === 'success' ? (
                             <>
-                                <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" onClick={() => router.push('/dashboard')}>
+                                <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" onClick={() => router.push(`/${locale}/client-dashboard`)}>
                                     Đi đến Dashboard
                                 </Button>
-                                <Button variant="outline" className="w-full" onClick={() => router.push('/plans')}>
+                                <Button variant="outline" className="w-full" onClick={() => router.push(`/${locale}/plans`)}>
                                     Tiếp tục mua sắm
                                 </Button>
                             </>
                         ) : result.status === 'failed' ? (
                             <>
-                                <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" onClick={() => router.push('/checkout')}>
+                                <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" onClick={() => router.push(`/${locale}/checkout`)}>
                                     Thử lại
                                 </Button>
-                                <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
+                                <Button variant="outline" className="w-full" onClick={() => router.push(`/${locale}`)}>
                                     Về trang chủ
                                 </Button>
                             </>

@@ -652,26 +652,38 @@ async def create_demo_momo_payment(
 
         # MoMo parameters
         request_id = f"demo_{payment_request.order_number}"
-        order_info = f"Thanh toan don hang {payment_request.order_number}"
+        order_info = (
+            f"Payment for order {payment_request.order_number}"  # Use ASCII only
+        )
+        redirect_url = payment_request.return_url or settings.MOMO_RETURN_URL
+        ipn_url = settings.MOMO_NOTIFY_URL
+        extra_data = ""
+        # Use payWithMethod to allow user to choose payment method (wallet, ATM, CC)
+        request_type = "payWithMethod"
 
+        # Raw signature string - parameters MUST be in alphabetical order
         raw_signature = (
             f"accessKey={settings.MOMO_ACCESS_KEY}"
             f"&amount={int(payment_request.amount)}"
-            f"&extraData="
-            f"&ipnUrl={settings.MOMO_NOTIFY_URL}"
+            f"&extraData={extra_data}"
+            f"&ipnUrl={ipn_url}"
             f"&orderId={payment_request.order_number}"
             f"&orderInfo={order_info}"
             f"&partnerCode={settings.MOMO_PARTNER_CODE}"
-            f"&redirectUrl={payment_request.return_url or settings.MOMO_RETURN_URL}"
+            f"&redirectUrl={redirect_url}"
             f"&requestId={request_id}"
-            f"&requestType=payWithMethod"
+            f"&requestType={request_type}"
         )
+
+        logger.info(f"MoMo raw signature string: {raw_signature}")
 
         signature = hmac.new(
             settings.MOMO_SECRET_KEY.encode("utf-8"),
             raw_signature.encode("utf-8"),
             hashlib.sha256,
         ).hexdigest()
+
+        logger.info(f"MoMo signature: {signature}")
 
         # Build request
         momo_request = {
@@ -682,14 +694,16 @@ async def create_demo_momo_payment(
             "amount": int(payment_request.amount),
             "orderId": payment_request.order_number,
             "orderInfo": order_info,
-            "redirectUrl": payment_request.return_url or settings.MOMO_RETURN_URL,
-            "ipnUrl": settings.MOMO_NOTIFY_URL,
+            "redirectUrl": redirect_url,
+            "ipnUrl": ipn_url,
             "lang": "vi",
-            "requestType": "payWithMethod",
+            "requestType": request_type,
             "autoCapture": True,
-            "extraData": "",
+            "extraData": extra_data,
             "signature": signature,
         }
+
+        logger.info(f"MoMo Request: {momo_request}")
 
         # Send request to MoMo
         async with httpx.AsyncClient() as client:
@@ -699,6 +713,8 @@ async def create_demo_momo_payment(
                 timeout=30.0,
             )
             data = response.json()
+
+        logger.info(f"MoMo Response: {data}")
 
         if data.get("resultCode") == 0:
             return PaymentResponse(

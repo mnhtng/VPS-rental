@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     MOMO_ACCESS_KEY: str = ""
     MOMO_SECRET_KEY: str = ""
     MOMO_ENDPOINT: str = "https://test-payment.momo.vn/v2/gateway/api/create"
-    MOMO_RETURN_URL: str = "http://localhost:3000/payment/momo/return"
-    MOMO_NOTIFY_URL: str = "http://localhost:8000/api/payment/momo/notify"
+    MOMO_RETURN_URL: str = "http://localhost:3000/checkout/momo-return"
+    MOMO_NOTIFY_URL: str = "http://localhost:8000/api/v1/payments/momo/notify"
 
     @field_validator("ALLOWED_ORIGINS")
     def parse_allowed_origins(cls, v: str) -> List[str]:

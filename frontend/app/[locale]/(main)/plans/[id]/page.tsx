@@ -299,11 +299,19 @@ const PlanDetailPage = () => {
                                         </SelectTrigger>
 
                                         <SelectContent>
-                                            {operatingSystemOptions.map((os) => (
-                                                <SelectItem key={os.value} value={os.value}>
-                                                    {os.label}
-                                                </SelectItem>
-                                            ))}
+                                            {operatingSystemOptions
+                                                .filter(os => {
+                                                    if (plan.ram_gb < 4 || plan.vcpu < 4) {
+                                                        return os.template_os !== 'windows';
+                                                    }
+                                                    return true;
+                                                })
+                                                .map((os) => (
+                                                    <SelectItem key={os.value} value={os.value}>
+                                                        {os.label}
+                                                    </SelectItem>
+                                                ))
+                                            }
                                         </SelectContent>
                                     </Select>
                                 </div>

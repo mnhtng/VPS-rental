@@ -148,7 +148,8 @@ const CheckoutPage: React.FC = () => {
         };
 
         fetchCart();
-    }, [router, getCartItems]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Load VNPay banks when payment method is vnpay
     useEffect(() => {
@@ -290,6 +291,7 @@ const CheckoutPage: React.FC = () => {
 
             if (result.data?.success && result.data.payment_id) {
                 setPaymentId(result.data.payment_id);
+                // Redirect will be handled by processDemoMoMoPayment
             }
         } catch (err) {
             setStep('payment');
