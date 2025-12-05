@@ -35,6 +35,8 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     "/login",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="User login",
+    description="Login user and return JWT access token if email is verified. Sets refresh token in HttpOnly Secure cookie.",
 )
 async def login(
     response: Response,
@@ -109,6 +111,8 @@ async def login(
     "/oauth-login",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="OAuth login",
+    description="Login user via OAuth token and return JWT access token. Sets refresh token in HttpOnly Secure cookie.",
 )
 async def oauth_login(
     response: Response,
@@ -167,6 +171,8 @@ async def oauth_login(
     "/register",
     response_model=Dict[str, Any],
     status_code=status.HTTP_201_CREATED,
+    summary="User registration",
+    description="Register a new user and return verification token",
 )
 async def register(user_data: AuthRegister, session: Session = Depends(get_session)):
     """
@@ -209,6 +215,8 @@ async def register(user_data: AuthRegister, session: Session = Depends(get_sessi
     "/resend-verification",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Resend verification email",
+    description="Resend verification email to the user",
 )
 async def resend_verification(
     data: AuthResendVerification, session: Session = Depends(get_session)
@@ -252,6 +260,8 @@ async def resend_verification(
     "/verify-email",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Verify email",
+    description="Verify the user's email using a token. Sets refresh token in HttpOnly Secure cookie.",
 )
 async def verify_email(data: AuthVerifyEmail, session: Session = Depends(get_session)):
     """
@@ -294,6 +304,8 @@ async def verify_email(data: AuthVerifyEmail, session: Session = Depends(get_ses
     "/resend-reset-password",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Resend reset password email",
+    description="Resend password reset email to the user",
 )
 async def resend_reset_password_email(
     data: AuthResendVerification, session: Session = Depends(get_session)
@@ -334,6 +346,8 @@ async def resend_reset_password_email(
     "/forgot-password",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Request password reset email",
+    description="Request password reset email to be sent to the user",
 )
 async def forgot_password(
     data: AuthForgotPassword, session: Session = Depends(get_session)
@@ -379,6 +393,8 @@ async def forgot_password(
     "/reset-password",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Reset password",
+    description="Reset user password using a valid reset token",
 )
 async def reset_password(
     data: AuthResetPassword, session: Session = Depends(get_session)
@@ -423,6 +439,8 @@ async def reset_password(
     "/validate-reset-token",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Validate reset token",
+    description="Validate a password reset token",
 )
 async def validate_reset_token(
     token: str, email: str, session: Session = Depends(get_session)
@@ -465,7 +483,13 @@ async def validate_reset_token(
         )
 
 
-@router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get current user info",
+    description="Get current authenticated user info",
+)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """
     Get current authenticated user info.
@@ -493,7 +517,13 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         )
 
 
-@router.put("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.put(
+    "/me",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update current user profile",
+    description="Update current authenticated user's profile",
+)
 async def update_profile(
     user_update: UserUpdate,
     current_user: User = Depends(get_current_user),
@@ -532,6 +562,8 @@ async def update_profile(
     "/change-password",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Change user password",
+    description="Change the password of the current authenticated user",
 )
 async def change_password(
     password_change: UserChangePassword,
@@ -563,6 +595,8 @@ async def change_password(
     "/refresh-token",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Refresh access token",
+    description="Refresh access token using refresh token from HttpOnly cookie",
 )
 async def refresh_access_token(
     response: Response,
@@ -651,6 +685,8 @@ async def refresh_access_token(
     "/logout",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
+    summary="Logout user",
+    description="Logout user by revoking refresh token and clearing cookie",
 )
 async def logout(
     response: Response,

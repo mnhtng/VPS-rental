@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNC Console</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/base.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .console-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .console-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .console-info {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .console-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .console-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #screen canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .status-bar {
+            background: #2d2d2d;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            border-top: 1px solid #444;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #dc3545;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #28a745;
+        }
+
+        .status-dot.connecting {
+            background: #ffc107;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .loading-spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .info-message {
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid #667eea;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .info-message h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .info-message p {
+            margin: 10px 0;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        .info-message a,
+        .info-message button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 8px 4px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .info-message a:hover,
+        .info-message button:hover {
+            transform: translateY(-2px);
+        }
+
+        .info-message .secondary-btn {
+            background: #444;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="console-header">
+        <div class="console-title">
+            <span>🖥️</span>
+            <span id="vmTitle">VNC Console</span>
+        </div>
+        <div class="console-controls">
+            <button class="control-button" onclick="sendCtrlAltDel()" id="ctrlAltDelBtn" disabled>
+                ⌨️ Ctrl+Alt+Del
+            </button>
+            <button class="control-button" onclick="toggleFullscreen()">
+                ⛶ Fullscreen
+            </button>
+            <button class="control-button" onclick="reconnect()">
+                🔄 Reconnect
+            </button>
+            <button class="control-button" onclick="openProxmoxDirect()">
+                🌐 Proxmox
+            </button>
+            <button class="control-button" onclick="disconnect()">
+                ✖️ Close
+            </button>
+        </div>
+    </div>
+
+    <div class="console-container">
+        <div id="screen"></div>
+
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Đang kết nối với VM console...</p>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-indicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Đang kết nối...</span>
+        </div>
+        <div class="console-info" id="consoleInfo">
+            VM ID: - | Node: -
+        </div>
+    </div>
+
+    <script type="module">
+        import RFB from 'https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js';
+
+        let rfb = null;
+        let connected = false;
+        const urlParams = new URLSearchParams(window.location.search);
+        const node = urlParams.get('node') || 'pve';
+        const vmid = urlParams.get('vmid');
+        const vmname = urlParams.get('vmname') || `VM-${vmid}`;
+        const host = urlParams.get('host') || window.location.hostname;
+
+        // API URL from parent (backend origin, e.g., http://localhost:8000)
+        const apiUrl = urlParams.get('api') || 'http://localhost:8000';
+        // Extract host:port from apiUrl for WebSocket connection
+        const apiHost = new URL(apiUrl).host;
+
+        console.log('VNC Console initialized:', { node, vmid, vmname, apiUrl, apiHost });
+
+        // Update UI
+        document.getElementById('vmTitle').textContent = `${vmname} Console`;
+        document.getElementById('consoleInfo').textContent = `VM ID: ${vmid} | Node: ${node}`;
+
+        // Store Proxmox host for direct access
+        let proxmoxHost = host;
+
+        async function connectToConsole() {
+            if (!vmid) {
+                showError('Không có VM ID', 'Vui lòng cung cấp vmid trong URL');
+                return;
+            }
+
+            console.log('=== VNC Console Debug ===');
+            console.log('vmid:', vmid);
+            console.log('node:', node);
+            console.log('apiUrl:', apiUrl);
+            console.log('apiHost:', apiHost);
+
+            try {
+                // Show loading
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                document.getElementById('loadingText').textContent = 'Đang lấy thông tin VNC...';
+                updateStatus('connecting', 'Đang kết nối...');
+
+                // Get VNC proxy info from backend
+                const vncApiUrl = `${apiUrl}/api/v1/proxmox/vms/${vmid}/vnc`;
+                console.log('Fetching VNC info from:', vncApiUrl);
+
+                const response = await fetch(vncApiUrl, {
+                    credentials: 'include'
+                });
+
+                console.log('VNC API response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('VNC API error:', errorText);
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('VNC Info:', result);
+
+                if (!result.success || !result.task) {
+                    throw new Error(result.message || result.detail || 'Không thể lấy thông tin VNC');
+                }
+
+                const { port, ticket } = result.task;
+                proxmoxHost = result.host || host;
+                // Use authTicket from response (PVEAuthCookie for WebSocket proxy)
+                const authTicket = result.authTicket || result.task.cert || ticket;
+
+                console.log('VNC connection info:', {
+                    port,
+                    ticket: ticket.substring(0, 20) + '...',
+                    proxmoxHost,
+                    hasAuthTicket: !!result.authTicket
+                });
+
+                // Update loading text
+                document.getElementById('loadingText').textContent = `Đang kết nối qua WebSocket proxy...`;
+
+                // Build WebSocket URL - connect through our backend proxy
+                // Use ws:// for http backend, wss:// for https backend
+                const wsProtocol = apiUrl.startsWith('https') ? 'wss:' : 'ws:';
+
+                // Use our FastAPI WebSocket proxy on the BACKEND host (not frontend)
+                const wsUrl = `${wsProtocol}//${apiHost}/api/v1/vnc/ws?node=${node}&vmid=${vmid}&port=${port}&ticket=${encodeURIComponent(ticket)}&authticket=${encodeURIComponent(authTicket)}`;
+
+                console.log('Connecting to WebSocket proxy:', wsUrl);
+
+                const screen = document.getElementById('screen');
+                rfb = new RFB(screen, wsUrl, {
+                    credentials: { password: ticket }
+                });
+
+                // Configure
+                rfb.scaleViewport = true;
+                rfb.resizeSession = false;
+                rfb.clipViewport = false;
+                rfb.focusOnClick = true;
+
+                // Event handlers
+                rfb.addEventListener("connect", onConnected);
+                rfb.addEventListener("disconnect", onDisconnected);
+                rfb.addEventListener("securityfailure", onSecurityFailure);
+
+                // Timeout for connection
+                setTimeout(() => {
+                    if (!connected && rfb) {
+                        console.log('Connection timeout');
+                        showError(
+                            'Kết nối hết thời gian',
+                            'Không thể kết nối đến VNC console. Vui lòng thử sử dụng Proxmox Console trực tiếp.'
+                        );
+                        updateStatus('', 'Timeout');
+                        try { rfb.disconnect(); } catch (e) { }
+                        rfb = null;
+                    }
+                }, 15000);
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                showError('Lỗi kết nối', error.message);
+            }
+        }
+
+        function onConnected() {
+            console.log('Connected to VNC');
+            connected = true;
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            updateStatus('connected', 'Đã kết nối');
+            document.getElementById('ctrlAltDelBtn').disabled = false;
+        }
+
+        function onDisconnected(e) {
+            console.log('Disconnected:', e.detail);
+            connected = false;
+            rfb = null;
+            updateStatus('', 'Đã ngắt kết nối');
+            document.getElementById('ctrlAltDelBtn').disabled = true;
+
+            if (e.detail && !e.detail.clean) {
+                showError('Kết nối bị ngắt', 'Kết nối VNC đã bị đóng không mong muốn.');
+            }
+        }
+
+        function onSecurityFailure(e) {
+            console.error('Security failure:', e.detail);
+            showError('Lỗi xác thực', e.detail?.reason || 'Xác thực VNC thất bại');
+        }
+
+        function updateStatus(status, text) {
+            const dot = document.getElementById('statusDot');
+            dot.className = 'status-dot';
+            if (status) dot.classList.add(status);
+            document.getElementById('statusText').textContent = text;
+        }
+
+        function showError(title, message) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.innerHTML = `
+                <div class="info-message">
+                    <h3>⚠️ ${title}</h3>
+                    <p>${message}</p>
+                    <p style="font-size: 0.9em;">
+                        Nếu không thể kết nối, vui lòng sử dụng Proxmox Web UI.
+                    </p>
+                    <div>
+                        <button onclick="location.reload()">🔄 Thử lại</button>
+                        <a href="https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmid}&vmname=${vmname}&node=${node}" target="_blank">
+                            🌐 Proxmox Console
+                        </a>
+                    </div>
+                </div>
+            `;
+            overlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        // Global functions
+        window.sendCtrlAltDel = function () {
+            if (rfb) {
+                rfb.sendCtrlAltDel();
+            }
+        };
+
+        window.toggleFullscreen = function () {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        window.reconnect = function () {
+            if (rfb) {
+                rfb.disconnect();
+                rfb = null;
+            }
+            connected = false;
+            location.reload();
+        };
+
+        window.disconnect = function () {
+            if (rfb) {
+                rfb.disconnect();
+                rfb = null;
+            }
+            connected = false;
+            window.close();
+        };
+
+        window.openProxmoxDirect = function () {
+            const proxmoxUrl = `https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmid}&vmname=${vmname}&node=${node}&resize=off`;
+            window.open(proxmoxUrl, '_blank', 'width=1024,height=768,toolbar=no,menubar=no,resizable=yes');
+        };
+
+        // Auto connect on load
+        connectToConsole();
+    </script>
+</body>
+
+</html>

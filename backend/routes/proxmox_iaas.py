@@ -633,13 +633,51 @@ def resize_vm_disk(
 
 
 @router.get("/vms/{vm_id}/vnc")
-def get_vm_vnc(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
+def get_vm_vnc(
+    vm_id: int,
+    session: Session = Depends(get_session),
+):
     """Get VNC connection info for a VM"""
-    proxmox, vm, node, cluster = proxmox_data
+    # proxmox, vm, node, cluster = proxmox_data
+
+    proxmox = CommonProxmoxService.get_connection(
+        host=settings.PROXMOX_HOST,
+        port=settings.PROXMOX_PORT,
+        user=settings.PROXMOX_USER,
+        password=settings.PROXMOX_PASSWORD,
+        verify_ssl=False,
+    )
 
     try:
-        vnc_info = CommonProxmoxService.get_vnc_info(proxmox, node.name, vm.vmid)
-        vnc_info["host"] = cluster.api_host
+        vnc_info = ProxmoxVMService.get_vnc_info(proxmox, "pve", vm_id)
+
+        # Add host and node info for WebSocket connection
+        vnc_info["host"] = settings.PROXMOX_HOST
+        vnc_info["port"] = settings.PROXMOX_PORT
+        vnc_info["node"] = "pve"
+        vnc_info["vmid"] = vm_id
+
+        # Add auth ticket for WebSocket proxy authentication
+        # Get the auth ticket from proxmox connection
+        if hasattr(proxmox, "_store") and "ticket" in proxmox._store:
+            vnc_info["authTicket"] = proxmox._store["ticket"]
+        else:
+            # Fallback: login again to get fresh ticket
+            import requests
+
+            login_url = f"https://{settings.PROXMOX_HOST}:{settings.PROXMOX_PORT}/api2/json/access/ticket"
+            response = requests.post(
+                login_url,
+                data={
+                    "username": settings.PROXMOX_USER,
+                    "password": settings.PROXMOX_PASSWORD,
+                },
+                verify=False,
+            )
+            if response.ok:
+                auth_data = response.json().get("data", {})
+                vnc_info["authTicket"] = auth_data.get("ticket")
+
         return vnc_info
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

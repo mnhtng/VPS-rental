@@ -163,6 +163,8 @@ from .promotions import (
     PromotionUpdate,
     PromotionPublic,
     PromotionResponse,
+    PromotionValidateRequest,
+    PromotionValidateResponse,
 )
 
 from .user_promotions import (
@@ -327,6 +329,8 @@ __all__ = [
     "PromotionUpdate",
     "PromotionPublic",
     "PromotionResponse",
+    "PromotionValidateRequest",
+    "PromotionValidateResponse",
     # User Promotion schemas
     "UserPromotionBase",
     "UserPromotionCreate",

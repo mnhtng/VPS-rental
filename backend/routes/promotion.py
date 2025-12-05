@@ -9,6 +9,8 @@ from backend.db import get_session
 from backend.models import Cart, VMTemplate, VPSPlan, User
 from backend.schemas import (
     PromotionResponse,
+    PromotionValidateRequest,
+    PromotionValidateResponse,
     UserPromotionResponse,
 )
 from backend.utils import get_current_user, get_admin_user
@@ -17,25 +19,6 @@ from backend.services import PromotionService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/promotions", tags=["Promotions"])
-
-
-# Request/Response schemas
-class ValidatePromotionRequest(BaseModel):
-    """Request schema for validating a promotion code"""
-
-    code: str = Field(..., description="Promotion code to validate")
-    cart_total: float = Field(..., description="Total cart amount", gt=0)
-
-
-class ValidatePromotionResponse(BaseModel):
-    """Response schema for promotion validation"""
-
-    valid: bool = Field(..., description="Whether the promotion is valid")
-    promotion: PromotionResponse = Field(..., description="Promotion details")
-    discount_amount: float = Field(..., description="Calculated discount amount")
-    discount_type: str = Field(..., description="Type of discount")
-    discount_value: float = Field(..., description="Discount value")
-    final_amount: float = Field(..., description="Final amount after discount")
 
 
 @router.get(
@@ -67,6 +50,8 @@ async def get_available_promotions(
         promotions = promotion_service.get_available_promotions(current_user.id)
 
         return promotions
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f">>> Error fetching available promotions: {str(e)}")
         raise HTTPException(
@@ -77,12 +62,12 @@ async def get_available_promotions(
 
 @router.post(
     "/validate",
-    response_model=ValidatePromotionResponse,
+    response_model=PromotionValidateResponse,
     summary="Validate a promotion code",
     description="Validates if a promotion code can be applied to the current user's cart",
 )
 async def validate_promotion(
-    request: ValidatePromotionRequest,
+    request: PromotionValidateRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
@@ -94,43 +79,34 @@ async def validate_promotion(
     - Time validity (start/end dates)
     - Usage limits (total and per-user)
     - Calculates discount amount
+
+    Args:
+        request (ValidatePromotionRequest): Request data containing promotion code and cart total.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: 401 if user is not authenticated.
+        HTTPException: 404 if promotion code is not found.
+        HTTPException: 400 if promotion is not valid for the user or cart.
+        HTTPException: 500 if there is a server error.
+
+    Returns:
+        ValidatePromotionResponse: Details about the promotion validation and calculated discount.
     """
     try:
         promotion_service = PromotionService(session)
-
-        # Validate promotion
         result = promotion_service.validate_promotion(
-            code=request.code,
             user_id=current_user.id,
-            cart_total=Decimal(str(request.cart_total)),
+            code=request.code,
+            cart_total_amount=Decimal(str(request.cart_total_amount)),
         )
 
-        # Convert to response model
-        promotion = result["promotion"]
-        return ValidatePromotionResponse(
-            valid=result["valid"],
-            promotion=PromotionResponse(
-                id=promotion.id,
-                code=promotion.code,
-                description=promotion.description,
-                discount_type=promotion.discount_type,
-                discount_value=float(promotion.discount_value),
-                start_date=promotion.start_date,
-                end_date=promotion.end_date,
-                usage_limit=promotion.usage_limit,
-                per_user_limit=promotion.per_user_limit,
-                created_at=promotion.created_at,
-                updated_at=promotion.updated_at,
-            ),
-            discount_amount=result["discount_amount"],
-            discount_type=result["discount_type"],
-            discount_value=result["discount_value"],
-            final_amount=result["final_amount"],
-        )
+        return result
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error validating promotion: {str(e)}")
+        logger.error(f">>> Error validating promotion: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to validate promotion",
@@ -148,7 +124,18 @@ async def get_promotion_history(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Get all promotions used by the current user.
+    Get promotion usage history for the current user.
+
+    Args:
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: 401 if user is not authenticated.
+        HTTPException: 500 if there is a server error.
+
+    Returns:
+        List[UserPromotionResponse]: List of user's promotion usage history.
     """
     try:
         promotion_service = PromotionService(session)
@@ -158,14 +145,16 @@ async def get_promotion_history(
             UserPromotionResponse(
                 id=up.id,
                 used_at=up.used_at,
-                user=None,  # Optional: can populate if needed
-                promotion=None,  # Optional: can populate if needed
-                order=None,  # Optional: can populate if needed
+                user=None,
+                promotion=None,
+                order=None,
             )
             for up in user_promotions
         ]
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error fetching promotion history: {str(e)}")
+        logger.error(f">>> Error fetching promotion history: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch promotion history",

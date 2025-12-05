@@ -21,7 +21,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/plans", tags=["VPS Plans"])
 
 
-@router.get("/", response_model=List[VPSPlanResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=List[VPSPlanResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get a list of VPS plans",
+    description="Retrieve a list of VPS plans with optional pagination",
+)
 async def get_vps_plans(
     skip: int = 0,
     limit: int = None,
@@ -50,6 +56,8 @@ async def get_vps_plans(
         plans = session.exec(statement).all()
 
         return plans
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f">>> Error fetching VPS plans: {e}")
         raise HTTPException(
@@ -62,6 +70,8 @@ async def get_vps_plans(
     "/{plan_id}",
     response_model=VPSPlanResponse,
     status_code=status.HTTP_200_OK,
+    summary="Get a VPS plan by ID",
+    description="Retrieve a VPS plan by its unique identifier",
 )
 async def get_vps_plan(plan_id: uuid.UUID, session: Session = Depends(get_session)):
     """
@@ -87,6 +97,8 @@ async def get_vps_plan(plan_id: uuid.UUID, session: Session = Depends(get_sessio
             )
 
         return plan
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f">>> Error fetching VPS plan {plan_id}: {e}")
         raise HTTPException(
@@ -99,6 +111,8 @@ async def get_vps_plan(plan_id: uuid.UUID, session: Session = Depends(get_sessio
     "/{plan_id}",
     response_model=VPSPlanResponse,
     status_code=status.HTTP_200_OK,
+    summary="Update a VPS plan",
+    description="Update the details of a VPS plan (Admin only)",
 )
 async def update_vps_plan(
     plan_id: int,
@@ -106,46 +120,109 @@ async def update_vps_plan(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
 ):
-    """Update a VPS plan (Admin only)"""
-    plan = session.get(VPSPlan, plan_id)
-    if not plan:
+    """
+    Update a VPS plan (Admin only)
+
+    Args:
+        plan_id (int): The ID of the VPS plan to update
+        plan_update (VPSPlanUpdate): The updated data for the VPS plan
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+
+    Raises:
+        HTTPException: 401 if the user is not authenticated
+        HTTPException: 403 if the user is not an admin
+        HTTPException: 404 if the VPS plan is not found
+        HTTPException: 500 if there is an error updating the VPS plan
+
+    Returns:
+        VPSPlan: The updated VPS plan object.
+    """
+    try:
+        plan = session.get(VPSPlan, plan_id)
+        if not plan:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="VPS plan not found",
+            )
+
+        update_data = plan_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(plan, field, value)
+
+        session.add(plan)
+        session.commit()
+        session.refresh(plan)
+
+        return plan
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error updating VPS plan {plan_id}: {e}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="VPS plan not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error updating VPS plan",
         )
 
-    # Update fields
-    update_data = plan_update.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(plan, field, value)
 
-    session.add(plan)
-    session.commit()
-    session.refresh(plan)
-    return plan
-
-
-@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{plan_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a VPS plan",
+    description="Delete a VPS plan (Admin only)",
+)
 async def delete_vps_plan(
     plan_id: int,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
 ):
-    """Delete a VPS plan (Admin only)"""
-    plan = session.get(VPSPlan, plan_id)
-    if not plan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="VPS plan not found"
-        )
+    """
+    Delete a VPS plan (Admin only)
 
-    session.delete(plan)
-    session.commit()
-    return {"message": "VPS plan deleted successfully"}
+    Args:
+        plan_id (int): The ID of the VPS plan to delete
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+
+    Raises:
+        HTTPException: 401 if the user is not authenticated
+        HTTPException: 403 if the user is not an admin
+        HTTPException: 404 if the VPS plan is not found
+        HTTPException: 500 if there is an error deleting the VPS plan
+
+    Returns:
+        dict: A message indicating successful deletion
+    """
+    try:
+        plan = session.get(VPSPlan, plan_id)
+        if not plan:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="VPS plan not found",
+            )
+
+        session.delete(plan)
+        session.commit()
+
+        return {"message": "VPS plan deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error deleting VPS plan {plan_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error deleting VPS plan",
+        )
 
 
 @router.get(
     "/search/",
     response_model=List[VPSPlanResponse],
     status_code=status.HTTP_200_OK,
+    summary="Search VPS plans with filters",
+    description="Search VPS plans using various filters like CPU, RAM, storage type, and price range",
 )
 async def search_vps_plans(
     min_cpu: Optional[int] = Query(None, ge=1),
@@ -157,7 +234,22 @@ async def search_vps_plans(
     max_price: Optional[float] = Query(None, ge=0),
     session: Session = Depends(get_session),
 ):
-    """Search VPS plans with filters"""
+    """
+    Search VPS plans with filters
+
+    Args:
+        min_cpu (Optional[int], optional): _minimum CPU cores_. Defaults to Query(None, ge=1).
+        max_cpu (Optional[int], optional): _maximum CPU cores_. Defaults to Query(None, le=16).
+        min_ram (Optional[int], optional): _minimum RAM in GB_. Defaults to Query(None, ge=1).
+        max_ram (Optional[int], optional): _maximum RAM in GB_. Defaults to Query(None, le=64).
+        storage_type (Optional[str], optional): _type of storage (e.g., SSD, HDD)_. Defaults to Query(None).
+        min_price (Optional[float], optional): _minimum monthly price_. Defaults to Query(None, ge=0).
+        max_price (Optional[float], optional): _maximum monthly price_. Defaults to Query(None, ge=0).
+        session (Session, optional): _Database session_. Defaults to Depends(get_session).
+
+    Returns:
+        List[VPSPlanResponse]: A list of VPS plans matching the filters
+    """
     statement = select(VPSPlan).where(VPSPlan.is_active == True)
 
     if min_cpu is not None:
@@ -177,32 +269,3 @@ async def search_vps_plans(
 
     plans = session.exec(statement).all()
     return plans
-
-
-@router.get("/stats/", response_model=dict, status_code=status.HTTP_200_OK)
-async def get_plan_stats(session: Session = Depends(get_session)):
-    """Get statistics about VPS plans"""
-    statement = select(VPSPlan).where(VPSPlan.is_active == True)
-    plans = session.exec(statement).all()
-
-    if not plans:
-        return {
-            "total_plans": 0,
-            "cpu_range": {"min": 0, "max": 0},
-            "ram_range": {"min": 0, "max": 0},
-            "price_range": {"min": 0, "max": 0},
-            "storage_types": [],
-        }
-
-    cpu_cores = [plan.cpu_cores for plan in plans]
-    ram_gbs = [plan.ram_gb for plan in plans]
-    prices = [plan.monthly_price for plan in plans]
-    storage_types = list(set([plan.storage_type for plan in plans]))
-
-    return {
-        "total_plans": len(plans),
-        "cpu_range": {"min": min(cpu_cores), "max": max(cpu_cores)},
-        "ram_range": {"min": min(ram_gbs), "max": max(ram_gbs)},
-        "price_range": {"min": min(prices), "max": max(prices)},
-        "storage_types": storage_types,
-    }

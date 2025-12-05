@@ -13,6 +13,8 @@ from backend.routes import (
     vps_plans_router,
     cart_router,
     promotion_router,
+    payment_router,
+    vnc_websocket_router,
 )
 
 
@@ -42,14 +44,25 @@ app = FastAPI(
 )
 
 
-origins = settings.ALLOWED_ORIGINS
+# CORS origins - include Proxmox host for VNC WebSocket
+origins = list(settings.ALLOWED_ORIGINS)
+# Add Proxmox VNC WebSocket origins
+proxmox_origins = [
+    f"https://{settings.PROXMOX_HOST}:{settings.PROXMOX_PORT}",
+    f"wss://{settings.PROXMOX_HOST}:{settings.PROXMOX_PORT}",
+    f"https://{settings.PROXMOX_HOST}",
+    "https://10.10.1.12:8006",
+    "wss://10.10.1.12:8006",
+]
+origins.extend(proxmox_origins)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins for WebSocket compatibility
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Register all custom exception handlers
@@ -65,6 +78,8 @@ app.include_router(proxmox_iaas_router, prefix=api_prefix)
 app.include_router(vps_plans_router, prefix=api_prefix)
 app.include_router(cart_router, prefix=api_prefix)
 app.include_router(promotion_router, prefix=api_prefix)
+app.include_router(payment_router, prefix=api_prefix)
+app.include_router(vnc_websocket_router, prefix=api_prefix)
 
 
 @app.get(f"{api_prefix}/")

@@ -39,17 +39,19 @@ import usePromotion from '@/hooks/usePromotion';
 import { toast } from 'sonner';
 import { useLocale } from 'next-intl';
 import CartPlaceholder from '@/components/custom/placeholder/cart';
+import { useCart } from '@/contexts/CartContext';
 
 const CartPage = () => {
-    const { getCartItems } = useProduct();
-    const { getAvailablePromotions, validatePromotion } = usePromotion();
     const locale = useLocale();
+    const { getCartItems, removeCartItem, clearCart } = useProduct();
+    const { getAvailablePromotions, validatePromotion } = usePromotion();
+    const { setCartAmount, decrementCart } = useCart();
 
     const [cartItem, setCartItem] = useState<CartItem[] | null>(null);
     const [availablePromotions, setAvailablePromotions] = useState<Promotion[]>([]);
     const [appliedPromo, setAppliedPromo] = useState<ValidatePromotionResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingPromotions, setIsLoadingPromotions] = useState(false);
+    const [isLoadingPromotions, setIsLoadingPromotions] = useState(true);
 
     const fetchCart = async () => {
         try {
@@ -72,16 +74,13 @@ const CartPage = () => {
     };
 
     const fetchAvailablePromotions = async () => {
-        setIsLoadingPromotions(true);
         try {
             const result = await getAvailablePromotions();
 
             if (result.error) {
-                if (result.error.code !== 'NO_ACCESS_TOKEN') {
-                    toast.error(result.message, {
-                        description: result.error.details,
-                    });
-                }
+                toast.error(result.message, {
+                    description: result.error.details,
+                });
             } else {
                 setAvailablePromotions(result.data || []);
             }
@@ -100,42 +99,46 @@ const CartPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const removeCart = () => {
-        // TODO: Implement API call to remove cart
-        setCartItem(null);
-        setAppliedPromo(null);
-    };
-
-    const handleDiscountSelection = async (promotionCode: string) => {
-        const cartTotal = calculateSubtotal();
-
+    const handleClearCart = async () => {
         try {
-            const result = await validatePromotion({
-                code: promotionCode,
-                cartTotal,
-            });
+            const result = await clearCart();
 
-            if (result.error) {
+            if (result && result.error) {
                 toast.error(result.message, {
                     description: result.error.details,
                 });
             } else {
-                setAppliedPromo(result.data || null);
-                toast.success("Promotion applied successfully!", {
-                    description: `You saved ${formatPrice(result.data?.discount_amount || 0)}`,
-                });
+                setCartItem(null);
+                setAppliedPromo(null);
+                setCartAmount(0); 
+                toast.success("Cart cleared successfully");
             }
         } catch {
-            toast.error("Failed to apply promotion", {
+            toast.error("Failed to clear cart", {
                 description: "Please try again later",
             });
         }
     };
 
-    const removePromoCode = () => {
-        setAppliedPromo(null);
-        toast.info("Promotion removed");
-    };
+    const handleRemoveCartItem = async (itemId: string) => {
+        try {
+            const result = await removeCartItem(itemId);
+
+            if (result && result.error) {
+                toast.error(result.message, {
+                    description: result.error.details,
+                });
+            } else {
+                setCartItem(prevItems => prevItems ? prevItems.filter(item => item.id !== itemId) : null);
+                decrementCart(); 
+                toast.success("Item removed from cart");
+            }
+        } catch {
+            toast.error("Failed to remove item from cart", {
+                description: "Please try again later",
+            });
+        }
+    }
 
     const calculateSubtotal = () => {
         if (!cartItem) return 0;
@@ -154,7 +157,30 @@ const CartPage = () => {
     const calculateSetupFee = () => {
         if (!cartItem) return 0;
         return cartItem.reduce((total, item) => total + item.template.setup_fee, 0);
-    }
+    };
+
+    const handleDiscountSelection = async (promotionCode: string) => {
+        const cartTotalAmount = calculateSubtotal();
+
+        try {
+            const result = await validatePromotion({
+                code: promotionCode,
+                cartTotalAmount,
+            });
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.details,
+                });
+            } else {
+                setAppliedPromo(result.data || null);
+            }
+        } catch {
+            toast.error("Failed to apply promotion", {
+                description: "Please try again later",
+            });
+        }
+    };
 
     const getNetworkSpeed = (mbps: number) => {
         if (mbps >= 1000) {
@@ -235,7 +261,7 @@ const CartPage = () => {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 h-8 px-2 md:px-3"
+                                            className="text-red-600 dark:text-red-500 hover:text-red-700 hover:bg-red-50 border-red-200 dark:border-red-800 h-8 px-2 md:px-3"
                                         >
                                             <BrushCleaning className="h-3.5 w-3.5 md:mr-1" />
                                             <span className="hidden md:inline">Clear Cart</span>
@@ -250,7 +276,7 @@ const CartPage = () => {
                                         </DialogDescription>
                                         <DialogFooter>
                                             <DialogClose>Cancel</DialogClose>
-                                            <Button variant="destructive" onClick={removeCart}>Clear Cart</Button>
+                                            <Button variant="destructive" onClick={handleClearCart}>Clear Cart</Button>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>
@@ -293,7 +319,12 @@ const CartPage = () => {
                                                     </DialogDescription>
                                                     <DialogFooter>
                                                         <DialogClose>Cancel</DialogClose>
-                                                        <Button variant="destructive">Remove</Button>
+                                                        <Button
+                                                            variant="destructive"
+                                                            onClick={() => handleRemoveCartItem(item.id)}
+                                                        >
+                                                            Remove
+                                                        </Button>
                                                     </DialogFooter>
                                                 </DialogContent>
                                             </Dialog>
@@ -399,7 +430,7 @@ const CartPage = () => {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={removePromoCode}
+                                                onClick={() => setAppliedPromo(null)}
                                                 className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-full"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -469,7 +500,7 @@ const CartPage = () => {
                                         <span className="text-muted-foreground">Setup Fee</span>
                                         <div className="flex items-center space-x-2">
                                             {calculateSetupFee() === 0 ? (
-                                                <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                                                <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs border-green-700">
                                                     FREE
                                                 </Badge>
                                             ) : (

@@ -28,6 +28,7 @@ import { Label } from '@radix-ui/react-label';
 import useProduct from '@/hooks/useProduct';
 import { useLocale } from 'next-intl';
 import { PlanItemPlaceholder } from '@/components/custom/placeholder/vps_plan';
+import { useCart } from '@/contexts/CartContext';
 
 const operatingSystemOptions = [
     { value: 'Ubuntu 22.04.5 LTS', label: 'Ubuntu 22.04.5 LTS', template_os: 'linux', template_version: '6.x-2.6' },
@@ -56,6 +57,7 @@ const PlanDetailPage = () => {
     const router = useRouter();
     const locale = useLocale();
     const { getPlanItem, addToCart } = useProduct();
+    const { incrementCart } = useCart();
 
     const [loading, setLoading] = useState(true);
     const [plan, setPlan] = useState<VPSPlan | null>(null);
@@ -166,6 +168,7 @@ const PlanDetailPage = () => {
                     description: result.error.details,
                 });
             } else {
+                incrementCart();
                 toast.success("Added to cart successfully");
                 router.push(`/${locale}/cart`);
             }

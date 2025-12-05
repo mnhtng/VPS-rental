@@ -23,12 +23,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["User"])
 
 
-@router.get("/", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=List[UserResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get a list of users",
+    description="Retrieve a list of users with optional pagination (Admin only)",
+)
 async def get_users(
     skip: int = 0,
     limit: int = None,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
 ):
     """
     Get list of users.
@@ -54,6 +60,8 @@ async def get_users(
         users = session.exec(statement).all()
 
         return users
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f">>> Error retrieving users: {str(e)}")
         raise HTTPException(
@@ -62,7 +70,13 @@ async def get_users(
         )
 
 
-@router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.get(
+    "/{user_id}",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get a user by ID",
+    description="Retrieve a user by their unique identifier",
+)
 async def get_user(
     user_id: uuid.UUID,
     session: Session = Depends(get_session),
@@ -112,11 +126,13 @@ async def get_user(
     "/email/{email}",
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
+    summary="Get a user by email",
+    description="Retrieve a user by their email address",
 )
 async def get_user_by_email(
     email: str,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
 ):
     """
     Get user by email.
@@ -153,10 +169,16 @@ async def get_user_by_email(
         )
 
 
-@router.get("/count/", response_model=Dict[str, Any], status_code=status.HTTP_200_OK)
+@router.get(
+    "/count/",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    summary="Get total number of users",
+    description="Retrieve the total count of users (Admin only)",
+)
 async def get_user_count(
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
 ):
     """
     Get total number of users.
@@ -172,7 +194,10 @@ async def get_user_count(
     try:
         statement = select(func.count()).select_from(User)
         count = session.exec(statement).one()
+
         return {"user_count": count}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f">>> Error retrieving user count: {str(e)}")
         raise HTTPException(
@@ -181,11 +206,17 @@ async def get_user_count(
         )
 
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new user",
+    description="Create a new user (Admin only)",
+)
 async def create_user(
     user_data: UserCreate,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
 ):
     """
     Create a new user.
@@ -235,12 +266,18 @@ async def create_user(
         )
 
 
-@router.put("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.put(
+    "/{user_id}",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update a user",
+    description="Update user information (Admin only)",
+)
 async def update_user(
     user_id: uuid.UUID,
     user_data: UserUpdate,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
 ):
     """
     Update user information.
@@ -296,11 +333,16 @@ async def update_user(
         )
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a user",
+    description="Delete user by ID (Admin only)",
+)
 async def delete_user(
     user_id: uuid.UUID,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
 ):
     """
     Delete user by ID.
@@ -343,11 +385,13 @@ async def delete_user(
     "/search/",
     response_model=List[UserResponse],
     status_code=status.HTTP_200_OK,
+    summary="Search users",
+    description="Search users by name, email, phone, address, or role (Admin only)",
 )
 async def search_users(
     query: str = "",
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
 ):
     """
     Search users by name, email, phone, address, or role.
@@ -377,6 +421,8 @@ async def search_users(
         ).all()
 
         return users
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f">>> Error searching users: {str(e)}")
         raise HTTPException(

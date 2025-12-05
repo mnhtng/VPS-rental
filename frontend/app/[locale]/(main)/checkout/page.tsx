@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     CreditCard,
     QrCode,
@@ -16,17 +17,30 @@ import {
     ArrowLeft,
     ArrowRight,
     CheckCircle,
-    User
+    User,
+    Building2
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import Link from 'next/link';
-import { formatPrice, convertUSDToVND } from '@/utils/currency';
+import { formatPrice } from '@/utils/currency';
 import { Badge } from '@/components/ui/badge';
+import { usePayment } from '@/hooks/usePayment';
+import useProduct from '@/hooks/useProduct';
+import { CartItem as ApiCartItem } from '@/types/types';
+import { toast } from 'sonner';
 
-interface CartItem {
-    planId: number;
-    quantity: number;
+interface VNPayBank {
+    code: string;
+    name: string;
+}
+
+interface CheckoutCartItem {
+    id: string;
+    planId: string;
     planName: string;
+    hostname: string;
+    os: string;
+    durationMonths: number;
     price: number;
 }
 
@@ -72,33 +86,82 @@ const CheckoutPage: React.FC = () => {
         cardName: ''
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingCart, setIsLoadingCart] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [cartItems, setCartItems] = useState<CheckoutCartItem[]>([]);
     const [qrCodeData, setQrCodeData] = useState<string>('');
     const [orderNumber, setOrderNumber] = useState<string>('');
+    const [vnpayBanks, setVnpayBanks] = useState<VNPayBank[]>([]);
+    const [selectedBank, setSelectedBank] = useState<string>('');
+    const [, setPaymentId] = useState<string>('');
 
-    // Load cart data on mount
+    // Payment hook - using demo endpoints for testing
+    const {
+        processDemoVNPayPayment,
+        processDemoMoMoPayment,
+        getVNPayBanks,
+    } = usePayment();
+
+    // Product hook for cart
+    const { getCartItems } = useProduct();
+
+    // Load cart data from API on mount
     useEffect(() => {
-        const savedCart = localStorage.getItem('vps_cart');
-        if (savedCart) {
+        const fetchCart = async () => {
             try {
-                const cartData = JSON.parse(savedCart);
-                // Mock cart items loading
-                const mockItems = Object.entries(cartData).map(([planId, quantity]) => ({
-                    planId: parseInt(planId),
-                    quantity: quantity as number,
-                    planName: planId === '1' ? 'Starter' : 'Business',
-                    price: planId === '1' ? convertUSDToVND(15) : convertUSDToVND(50)
+                setIsLoadingCart(true);
+                const result = await getCartItems();
+
+                if (result.error) {
+                    toast.error(result.message, {
+                        description: result.error.details,
+                    });
+                    router.push('/cart');
+                    return;
+                }
+
+                if (!result.data || result.data.length === 0) {
+                    toast.error('Your cart is empty');
+                    router.push('/cart');
+                    return;
+                }
+
+                // Transform API cart items to checkout format
+                const checkoutItems: CheckoutCartItem[] = result.data.map((item: ApiCartItem) => ({
+                    id: item.id,
+                    planId: item.vps_plan.id,
+                    planName: item.vps_plan.name,
+                    hostname: item.hostname,
+                    os: item.os,
+                    durationMonths: item.duration_months,
+                    price: item.total_price,
                 }));
-                setCartItems(mockItems);
+
+                setCartItems(checkoutItems);
             } catch (error) {
                 console.error('Error loading cart:', error);
+                toast.error('Failed to load cart');
                 router.push('/cart');
+            } finally {
+                setIsLoadingCart(false);
             }
-        } else {
-            router.push('/cart');
-        }
-    }, [router]);
+        };
+
+        fetchCart();
+    }, [router, getCartItems]);
+
+    // Load VNPay banks when payment method is vnpay
+    useEffect(() => {
+        const loadBanks = async () => {
+            if (formData.paymentMethod === 'vnpay' && vnpayBanks.length === 0) {
+                const result = await getVNPayBanks();
+                if (result.data) {
+                    setVnpayBanks(result.data);
+                }
+            }
+        };
+        loadBanks();
+    }, [formData.paymentMethod, getVNPayBanks, vnpayBanks.length]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -111,7 +174,7 @@ const CheckoutPage: React.FC = () => {
     };
 
     const calculateTotal = () => {
-        return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        return cartItems.reduce((total, item) => total + item.price, 0);
     };
 
     const validateCustomerInfo = () => {
@@ -151,47 +214,86 @@ const CheckoutPage: React.FC = () => {
         setQrCodeData(`Bank: ${qrData.bank}|Account: ${qrData.account}|Amount: ${formatPrice(qrData.amount)}|Message: ${qrData.description}`);
     };
 
-    const processMoMoPayment = async () => {
+    const handleVNPayPayment = async () => {
         setIsLoading(true);
+        setError(null);
         try {
-            // Mock MoMo payment processing
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // Generate order number
+            const orderNum = `VPS-${Date.now()}`;
+            setOrderNumber(orderNum);
 
-            // Simulate payment success
-            setStep('success');
-            setOrderNumber(`VPS-${Date.now()}`);
-            localStorage.removeItem('vps_cart');
-        } catch {
-            setError('MoMo payment failed. Please try again.');
-        } finally {
+            // Calculate total amount
+            const totalAmount = calculateTotal();
+
+            // Get return URL for redirect back after payment
+            const returnUrl = `${window.location.origin}/vi/checkout/vnpay-return`;
+
+            // Create VNPay demo payment and redirect
+            // If selectedBank is empty or VNPAYQR, don't send bank_code to let VNPay choose
+            const bankCode = selectedBank && selectedBank !== 'VNPAYQR' ? selectedBank : undefined;
+
+            const result = await processDemoVNPayPayment(
+                orderNum,
+                totalAmount,
+                returnUrl,
+                bankCode,
+                false  // Don't open in new tab, redirect in same window
+            );
+
+            if (result.error) {
+                setStep('payment');
+                setError(result.error.details || 'Không thể tạo thanh toán VNPay. Vui lòng thử lại.');
+                setIsLoading(false);
+                return;
+            }
+
+            if (result.data?.success && result.data.payment_id) {
+                setPaymentId(result.data.payment_id);
+                // User will be redirected to VNPay, so we keep the processing state
+                // The redirect happens inside processDemoVNPayPayment
+            }
+        } catch (err) {
+            setStep('payment');
+            setError(err instanceof Error ? err.message : 'Thanh toán thất bại. Vui lòng thử lại.');
             setIsLoading(false);
         }
     };
 
-    const processVNPayPayment = async () => {
+    const handleMoMoPayment = async () => {
         setIsLoading(true);
+        setError(null);
         try {
-            // Validate card details
-            if (!formData.cardNumber.replace(/\s/g, '').match(/^\d{16}$/)) {
-                throw new Error('Invalid card number');
-            }
-            if (!formData.cardExpiry.match(/^(0[1-9]|1[0-2])\/\d{2}$/)) {
-                throw new Error('Invalid expiry date (MM/YY)');
-            }
-            if (!formData.cardCvv.match(/^\d{3,4}$/)) {
-                throw new Error('Invalid CVV');
+            // Generate order number
+            const orderNum = `VPS-${Date.now()}`;
+            setOrderNumber(orderNum);
+
+            // Calculate total amount
+            const totalAmount = calculateTotal();
+
+            // Get return URL for redirect back after payment
+            const returnUrl = `${window.location.origin}/vi/checkout/momo-return`;
+
+            // Create MoMo demo payment and redirect
+            const result = await processDemoMoMoPayment(
+                orderNum,
+                totalAmount,
+                returnUrl,
+                false
+            );
+
+            if (result.error) {
+                setStep('payment');
+                setError(result.error.details || 'Không thể tạo thanh toán MoMo. Vui lòng thử lại.');
+                setIsLoading(false);
+                return;
             }
 
-            // Mock VNPay payment processing
-            await new Promise(resolve => setTimeout(resolve, 3000));
-
-            // Simulate payment success
-            setStep('success');
-            setOrderNumber(`VPS-${Date.now()}`);
-            localStorage.removeItem('vps_cart');
+            if (result.data?.success && result.data.payment_id) {
+                setPaymentId(result.data.payment_id);
+            }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Payment failed. Please try again.');
-        } finally {
+            setStep('payment');
+            setError(err instanceof Error ? err.message : 'Thanh toán thất bại. Vui lòng thử lại.');
             setIsLoading(false);
         }
     };
@@ -210,9 +312,9 @@ const CheckoutPage: React.FC = () => {
                 localStorage.removeItem('vps_cart');
             }, 5000);
         } else if (formData.paymentMethod === 'momo') {
-            await processMoMoPayment();
+            await handleMoMoPayment();
         } else if (formData.paymentMethod === 'vnpay') {
-            await processVNPayPayment();
+            await handleVNPayPayment();
         }
     };
 
@@ -600,6 +702,65 @@ const CheckoutPage: React.FC = () => {
                                             </RadioGroup>
                                         </div>
 
+                                        {/* VNPay Bank Selection */}
+                                        {formData.paymentMethod === 'vnpay' && (
+                                            <div className="space-y-4 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                                                <h3 className="text-lg font-semibold flex items-center text-green-700 dark:text-green-400">
+                                                    <Building2 className="mr-2 h-5 w-5" />
+                                                    Chọn ngân hàng (tùy chọn)
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Bạn có thể chọn ngân hàng hoặc để VNPay tự động chọn
+                                                </p>
+                                                <Select
+                                                    value={selectedBank}
+                                                    onValueChange={setSelectedBank}
+                                                >
+                                                    <SelectTrigger className="w-full h-12 bg-white dark:bg-gray-800">
+                                                        <SelectValue placeholder="Chọn ngân hàng (để trống nếu muốn chọn sau)" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-[300px]">
+                                                        <SelectItem value="VNPAYQR">
+                                                            -- Để VNPay tự chọn (QR Code) --
+                                                        </SelectItem>
+                                                        {vnpayBanks.map((bank) => (
+                                                            <SelectItem key={bank.code} value={bank.code}>
+                                                                {bank.name} ({bank.code})
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                                                    <Shield className="h-4 w-4" />
+                                                    <span>Giao dịch được bảo mật bởi VNPay</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* MoMo Info */}
+                                        {formData.paymentMethod === 'momo' && (
+                                            <div className="space-y-4 p-6 bg-pink-50 dark:bg-pink-900/20 rounded-xl border border-pink-200 dark:border-pink-800">
+                                                <h3 className="text-lg font-semibold flex items-center text-pink-700 dark:text-pink-400">
+                                                    <Smartphone className="mr-2 h-5 w-5" />
+                                                    Thanh toán qua MoMo
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Bạn sẽ được chuyển đến trang thanh toán MoMo để hoàn tất giao dịch.
+                                                </p>
+                                                <div className="flex items-center gap-2 text-sm text-pink-600 dark:text-pink-400">
+                                                    <Shield className="h-4 w-4" />
+                                                    <span>Giao dịch được bảo mật bởi MoMo</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Error Message */}
+                                        {error && (
+                                            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                                                <p className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</p>
+                                            </div>
+                                        )}
+
                                         <div className="flex justify-end pt-6 border-t border-gray-400 border-dashed">
                                             <Button
                                                 type="submit"
@@ -610,12 +771,14 @@ const CheckoutPage: React.FC = () => {
                                                 {isLoading ? (
                                                     <>
                                                         <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-3"></div>
-                                                        Processing Payment...
+                                                        Đang xử lý...
                                                     </>
                                                 ) : (
                                                     <>
                                                         <Shield className="mr-3 h-5 w-5" />
-                                                        Complete Payment
+                                                        {formData.paymentMethod === 'vnpay' ? 'Thanh toán với VNPay' :
+                                                            formData.paymentMethod === 'momo' ? 'Thanh toán với MoMo' :
+                                                                'Hoàn tất thanh toán'}
                                                     </>
                                                 )}
                                             </Button>
@@ -648,18 +811,17 @@ const CheckoutPage: React.FC = () => {
                                                     <h3 className="font-bold text-lg text-black">{item.planName}</h3>
 
                                                     <Badge variant="secondary" className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-green-200">
-                                                        x{item.quantity} VPS
+                                                        {item.durationMonths} month(s)
                                                     </Badge>
                                                 </div>
 
                                                 <div className="text-sm text-black/70 space-y-1">
-                                                    <p>• 2 CPU Cores</p>
-                                                    <p>• 4GB RAM</p>
-                                                    <p>• 50GB NVMe SSD</p>
+                                                    <p>• Hostname: {item.hostname}</p>
+                                                    <p>• OS: {item.os}</p>
 
                                                     <div className="mt-4">
                                                         <div className="text-lg sm:text-2xl font-bold text-purple-700">
-                                                            {formatPrice(item.price * item.quantity)}
+                                                            {formatPrice(item.price)}
                                                         </div>
                                                     </div>
                                                 </div>

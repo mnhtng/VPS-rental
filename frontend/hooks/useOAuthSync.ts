@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { toast } from 'sonner';
 
 /**
  * Hook to sync OAuth login with backend API
@@ -28,18 +27,11 @@ export function useOAuthSync() {
                 }),
             });
 
-            const result = await response.json();
-
             if (!response.ok) {
-                toast.error('OAuth login failed', {
-                    description: result.detail,
-                });
                 return;
             }
         } catch {
-            toast.error('OAuth login failed', {
-                description: 'Internal server error',
-            });
+            return;
         }
     }, [session?.user?.email, session?.user?.role]);
 

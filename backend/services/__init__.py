@@ -16,6 +16,7 @@ from .payment import (
     MoMoService,
     VNPayService,
 )
+from .payment_service import PaymentService
 
 from .proxmox import (
     CommonProxmoxService,
@@ -33,8 +34,10 @@ from .auth import AuthService
 
 __all__ = [
     # Payment Service
+    "QRCodeService",
     "MoMoService",
     "VNPayService",
+    "PaymentService",
     # Proxmox Service
     "CommonProxmoxService",
     "ProxmoxAccessService",

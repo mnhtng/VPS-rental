@@ -3903,7 +3903,9 @@ class ProxmoxVMService:
             VNC connection information
         """
         try:
-            vnc_data = proxmox.nodes(node).qemu(vmid).vncproxy.post()
+            vnc_data = (
+                proxmox.nodes(node).qemu(vmid).vncproxy.post(node=node, vmid=vmid)
+            )
             return {
                 "success": True,
                 "task": {

@@ -80,8 +80,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 }
             }
 
-            if (token?.id || token?.email)
-                console.log(">>> JWT: ", token);
+            // if (token?.id || token?.email)
+            // console.log(">>> JWT: ", token);
             return token;
         },
         async session({ session, token }): Promise<Session> {
@@ -103,8 +103,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 session.refresh_token = token.refresh_token as string;
             }
 
-            if (session.user?.id || session.user?.email)
-                console.log(">>> Session: ", session);
+            // if (session.user?.id || session.user?.email)
+            // console.log(">>> Session: ", session);
             return session;
         },
     },

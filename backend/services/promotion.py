@@ -68,7 +68,7 @@ class PromotionService:
         return available_promotions
 
     def validate_promotion(
-        self, code: str, user_id: uuid.UUID, cart_total: Decimal
+        self, user_id: uuid.UUID, code: str, cart_total_amount: Decimal
     ) -> Dict[str, Any]:
         """
         Validate if a promotion code can be used by a user.
@@ -76,21 +76,22 @@ class PromotionService:
         Args:
             code: The promotion code
             user_id: The UUID of the user
-            cart_total: The total amount in cart
+            cart_total_amount: The total amount in cart
+
+        Raises:
+            HTTPException: 404 if promotion not found
+            HTTPException: 400 if promotion is not valid for the user or cart
 
         Returns:
             Dict with validation result and calculated discount
-
-        Raises:
-            HTTPException: If promotion is invalid
         """
-        # Find promotion by code
-        promotion_query = select(Promotion).where(Promotion.code == code.upper())
-        promotion = self.session.exec(promotion_query).first()
+        statement = select(Promotion).where(Promotion.code == code.upper())
+        promotion = self.session.exec(statement).first()
 
         if not promotion:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Promotion code not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Promotion code not found",
             )
 
         current_time = datetime.now(timezone.utc)
@@ -99,7 +100,7 @@ class PromotionService:
         if promotion.start_date and promotion.start_date > current_time:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"This promotion will start on {promotion.start_date.strftime('%Y-%m-%d %H:%M:%S')}",
+                detail="This promotion is not yet active",
             )
 
         # Check if promotion has expired
@@ -133,11 +134,11 @@ class PromotionService:
             if user_usage >= promotion.per_user_limit:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"You have already used this promotion {user_usage} time(s). Maximum allowed: {promotion.per_user_limit}",
+                    detail="You have reached the usage limit for this promotion",
                 )
 
         # Calculate discount
-        discount_amount = self._calculate_discount(promotion, cart_total)
+        discount_amount = self._calculate_discount(promotion, cart_total_amount)
 
         return {
             "valid": True,
@@ -145,29 +146,8 @@ class PromotionService:
             "discount_amount": float(discount_amount),
             "discount_type": promotion.discount_type,
             "discount_value": float(promotion.discount_value),
-            "final_amount": float(cart_total - discount_amount),
+            "final_amount": float(cart_total_amount - discount_amount),
         }
-
-    def _calculate_discount(self, promotion: Promotion, cart_total: Decimal) -> Decimal:
-        """
-        Calculate discount amount based on promotion type.
-
-        Args:
-            promotion: The Promotion object
-            cart_total: The total amount in cart
-
-        Returns:
-            The discount amount as Decimal
-        """
-        if promotion.discount_type == "percentage":
-            discount = cart_total * (promotion.discount_value / 100)
-        elif promotion.discount_type == "fixed_amount":
-            discount = min(promotion.discount_value, cart_total)
-        else:
-            discount = Decimal(0)
-
-        # Ensure discount doesn't exceed cart total
-        return min(discount, cart_total)
 
     def apply_promotion(
         self, promotion_id: uuid.UUID, user_id: uuid.UUID, order_id: uuid.UUID
@@ -196,19 +176,6 @@ class PromotionService:
 
         return user_promotion
 
-    def get_promotion_by_code(self, code: str) -> Optional[Promotion]:
-        """
-        Get a promotion by its code.
-
-        Args:
-            code: The promotion code
-
-        Returns:
-            Promotion object or None
-        """
-        promotion_query = select(Promotion).where(Promotion.code == code.upper())
-        return self.session.exec(promotion_query).first()
-
     def get_user_promotion_history(self, user_id: uuid.UUID) -> List[UserPromotion]:
         """
         Get all promotions used by a specific user.
@@ -219,5 +186,31 @@ class PromotionService:
         Returns:
             List of UserPromotion objects
         """
-        query = select(UserPromotion).where(UserPromotion.user_id == user_id)
-        return list(self.session.exec(query).all())
+        statement = select(UserPromotion).where(UserPromotion.user_id == user_id)
+        return List(self.session.exec(statement).all())
+
+    # =============================================================================
+    # Private Methods
+    # =============================================================================
+    def _calculate_discount(
+        self, promotion: Promotion, cart_total_amount: Decimal
+    ) -> Decimal:
+        """
+        Calculate discount amount based on promotion type.
+
+        Args:
+            promotion: The Promotion object
+            cart_total_amount: The total amount in cart
+
+        Returns:
+            The discount amount as Decimal
+        """
+        if promotion.discount_type == "percentage":
+            discount = cart_total_amount * (promotion.discount_value / 100)
+        elif promotion.discount_type == "fixed_amount":
+            discount = min(promotion.discount_value, cart_total_amount)
+        else:
+            discount = Decimal(0)
+
+        # Ensure discount doesn't exceed cart total
+        return min(discount, cart_total_amount)

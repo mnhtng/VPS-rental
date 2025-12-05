@@ -30,6 +30,8 @@ const ROUTE_PATTERNS = new Set([
     'verify-email',
     'forgot-password',
     'reset-password',
+    'client-dashboard',
+    'vps'
 ]);
 
 // Protected routes that require authentication

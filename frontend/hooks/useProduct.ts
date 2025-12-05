@@ -164,11 +164,120 @@ const useProduct = () => {
         }
     }
 
+    const clearCart = async () => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
+                method: 'DELETE',
+            });
+
+            if (response.status === 204) {
+                return;
+            }
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Clear cart failed",
+                    error: {
+                        code: "CLEAR_CART_FAILED",
+                        details: result.detail,
+                    }
+                }
+            }
+
+            return;
+        } catch (error) {
+            return {
+                message: "Clear cart failed",
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'CLEAR_CART_FAILED',
+                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An unexpected error occurred while clearing the cart",
+                }
+            }
+        }
+    }
+
+    const removeCartItem = async (item: string) => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart/${item}`, {
+                method: 'DELETE',
+            });
+
+            if (response.status === 204) {
+                return;
+            }
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Remove cart item failed",
+                    error: {
+                        code: "REMOVE_CART_ITEM_FAILED",
+                        details: result.detail,
+                    }
+                }
+            }
+
+            return;
+        } catch (error) {
+            return {
+                message: "Remove cart item failed",
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'REMOVE_CART_ITEM_FAILED',
+                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An unexpected error occurred while removing the cart item",
+                }
+            }
+        }
+    }
+
+    const getCartItemsAmount = async () => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart/count`, {
+                method: 'GET',
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Get cart items amount failed",
+                    error: {
+                        code: "GET_CART_ITEMS_AMOUNT_FAILED",
+                        details: result.detail,
+                    }
+                }
+            }
+
+            return {
+                data: result as { total_items: number },
+            }
+        } catch (error) {
+            return {
+                message: "Get cart items amount failed",
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_CART_ITEMS_AMOUNT_FAILED',
+                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An unexpected error occurred while getting cart items amount",
+                }
+            }
+        }
+    }
+
     return {
         getPlans,
         getPlanItem,
         addToCart,
         getCartItems,
+        clearCart,
+        removeCartItem,
+        getCartItemsAmount,
     }
 }
 

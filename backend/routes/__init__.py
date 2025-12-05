@@ -13,6 +13,8 @@ from .proxmox_iaas import router as proxmox_iaas_router
 from .vps_plans import router as vps_plans_router
 from .cart import router as cart_router
 from .promotion import router as promotion_router
+from .payment import router as payment_router
+from .vnc_websocket import router as vnc_websocket_router
 
 __all__ = [
     "auth_router",
@@ -23,4 +25,6 @@ __all__ = [
     "vps_plans_router",
     "cart_router",
     "promotion_router",
+    "payment_router",
+    "vnc_websocket_router",
 ]

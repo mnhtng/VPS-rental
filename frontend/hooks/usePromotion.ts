@@ -36,22 +36,19 @@ const usePromotion = () => {
         }
     }
 
-    /**
-     * Validate a promotion code with the current cart total
-     */
     const validatePromotion = async ({
         code,
-        cartTotal,
+        cartTotalAmount,
     }: {
         code: string,
-        cartTotal: number,
+        cartTotalAmount: number,
     }) => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/promotions/validate`, {
                 method: 'POST',
                 body: JSON.stringify({
                     code: code.toUpperCase(),
-                    cart_total: cartTotal,
+                    cart_total_amount: cartTotalAmount,
                 }),
             })
 
@@ -83,9 +80,6 @@ const usePromotion = () => {
         }
     }
 
-    /**
-     * Get promotion usage history for the current user
-     */
     const getPromotionHistory = async () => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/promotions/history`, {

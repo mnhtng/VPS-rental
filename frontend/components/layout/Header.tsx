@@ -43,6 +43,7 @@ import { Separator } from '@radix-ui/react-separator';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 import HeaderPlaceHolder from '@/components/custom/placeholder/header';
 
 export const Header = () => {
@@ -50,6 +51,7 @@ export const Header = () => {
     const t = useTranslations('header');
     const locale = useLocale();
     const { logout } = useAuth();
+    const { cartItemsAmount } = useCart();
 
     const [active, setActive] = useState<string>('');
     const pathname = usePathname();
@@ -139,7 +141,7 @@ export const Header = () => {
                                     <Button variant="ghost" size="sm" className="relative hover:scale-105 transition-transform duration-200">
                                         <ShoppingCart className="h-5 w-5" />
                                         <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs animate-pulse">
-                                            2
+                                            {cartItemsAmount > 99 ? '99+' : cartItemsAmount}
                                         </Badge>
                                     </Button>
                                 </Link>
@@ -155,8 +157,11 @@ export const Header = () => {
                                 {/* User */}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="relative h-8 w-8 rounded-full hidden md:inline-flex">
-                                            <Avatar className="h-8 w-8">
+                                        <Button variant="ghost" className="relative h-10 w-10 rounded-full hidden md:inline-flex p-0 overflow-visible">
+                                            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#ff0000,#ff8000,#ffff00,#80ff00,#00ff00,#00ff80,#00ffff,#0080ff,#0000ff,#8000ff,#ff00ff,#ff0080,#ff0000)] animate-spin [animation-duration:2s]" />
+                                            <div className="absolute inset-[2px] rounded-full bg-background" />
+
+                                            <Avatar className="h-8 w-8 relative z-10">
                                                 <AvatarImage src={session.user.image || ''} />
                                                 <AvatarFallback>
                                                     {session.user.name ? session.user.name.charAt(0).toUpperCase() : 'U'}

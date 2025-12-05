@@ -1,4 +1,5 @@
-from typing import Dict, List, Any
+import uuid
+from typing import Dict, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 import logging
@@ -16,7 +17,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cart", tags=["Cart"])
 
 
-@router.get("/", response_model=List[CartResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=List[CartResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get current user's cart",
+    description="Retrieve the shopping cart for the currently authenticated user",
+)
 async def get_cart(
     session: Session = Depends(get_session),
     current_user=Depends(get_current_user),
@@ -53,7 +60,55 @@ async def get_cart(
         )
 
 
-@router.post("/", response_model=CartResponse, status_code=status.HTTP_201_CREATED)
+@router.get(
+    "/count",
+    response_model=Dict[str, int],
+    status_code=status.HTTP_200_OK,
+    summary="Get total items in current user's cart",
+    description="Retrieve the total number of items in the shopping cart for the currently authenticated user",
+)
+async def get_cart_total(
+    session: Session = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
+    """
+    Get the total number of items in the current user's cart.
+
+    Args:
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 500 if there is a server error.
+
+    Returns:
+        Dict[str, int]: A dictionary containing the total number of items in the cart.
+    """
+    try:
+        statement = select(Cart).where(Cart.user_id == current_user.id)
+        cart_items = session.exec(statement).all()
+
+        return {"total_items": len(cart_items)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f">>> Error calculating cart items total for user {current_user.id}: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error calculating cart total",
+        )
+
+
+@router.post(
+    "/",
+    response_model=CartResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add item to cart",
+    description="Add a VPS plan to the shopping cart for the currently authenticated user",
+)
 async def add_to_cart(
     cart_data: CartAdd,
     session: Session = Depends(get_session),
@@ -128,7 +183,12 @@ async def add_to_cart(
         )
 
 
-@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Clear current user's cart",
+    description="Clear the shopping cart for the currently authenticated user",
+)
 async def clear_cart(
     session: Session = Depends(get_session),
     current_user=Depends(get_current_user),
@@ -166,12 +226,32 @@ async def clear_cart(
         )
 
 
-@router.delete("/{cart_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{cart_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove item from cart",
+    description="Remove a specific item from the shopping cart for the currently authenticated user",
+)
 async def remove_cart_item(
-    cart_id: int,
+    cart_id: uuid.UUID,
     session: Session = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
+    """
+    Remove a specific item from the current user's cart.
+
+    Args:
+        cart_id (uuid.UUID): The ID of the cart item to remove.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: 404 if the cart item is not found or does not belong to the user.
+        HTTPException: 500 if there is a server error.
+
+    Returns:
+        Dict[str, str]: A message indicating the cart item was removed successfully.
+    """
     try:
         cart = session.get(Cart, cart_id)
         if not cart or cart.user_id != current_user.id:
