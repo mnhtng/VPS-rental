@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     VNPAY_TMN_CODE: str = ""
     VNPAY_HASH_SECRET: str = ""
     VNPAY_URL: str = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-    VNPAY_RETURN_URL: str = "http://localhost:3000/payment/vnpay/return"
+    VNPAY_RETURN_URL: str = "http://localhost:3000/checkout/vnpay-return"
 
     MOMO_PARTNER_CODE: str = ""
     MOMO_ACCESS_KEY: str = ""

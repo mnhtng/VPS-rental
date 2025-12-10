@@ -1,10 +1,3 @@
-"""
-VNC WebSocket Proxy for Proxmox
-
-This module provides a WebSocket proxy that forwards VNC traffic between
-the browser and Proxmox VNC WebSocket, bypassing CORS and SSL certificate issues.
-"""
-
 import asyncio
 import ssl
 import logging

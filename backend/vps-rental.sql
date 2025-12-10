@@ -350,6 +350,7 @@ CREATE TABLE "carts" (
     "duration_months" INTEGER NOT NULL DEFAULT 1,
     "unit_price" DECIMAL(10,2) NOT NULL,
     "total_price" DECIMAL(10,2) NOT NULL,
+	"discount_code" VARCHAR(50),
     "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -372,18 +373,18 @@ EXECUTE PROCEDURE update_updated_at_column();
 CREATE TABLE "orders" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID,
-    "order_number" VARCHAR(50) NOT NULL, -- ORD-YYYYMMDD-XXXX
+    "order_number" VARCHAR(50) NOT NULL, -- VPS-YYYYMMDD-XXXX
     "price" DECIMAL(10,2) NOT NULL,
     "billing_address" TEXT,
     "billing_phone" VARCHAR(20),
-    "status" VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, paid, processing, cancelled
+    "status" VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, paid, cancelled
     "note" TEXT,
     "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT "orders_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "orders_order_number_key" UNIQUE ("order_number"),
-    CONSTRAINT "orders_status_check" CHECK (status IN ('pending', 'paid', 'processing', 'cancelled')),
+    CONSTRAINT "orders_status_check" CHECK (status IN ('pending', 'paid', 'cancelled')),
     CONSTRAINT "orders_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 

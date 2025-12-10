@@ -1,13 +1,9 @@
 from __future__ import annotations
-import uuid
 import re
-from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from pydantic import (
     BaseModel,
     Field,
-    EmailStr,
-    ConfigDict,
     field_validator,
 )
 from enum import Enum

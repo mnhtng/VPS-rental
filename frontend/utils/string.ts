@@ -14,3 +14,9 @@ export const normalizeString = (str: string): string => {
         .replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y")
         .replace(/đ/g, "d")
 }
+
+export const generateOrderNumber = () => {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `VPS-${timestamp}-${randomStr}`;
+}

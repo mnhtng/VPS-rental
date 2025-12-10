@@ -16,10 +16,10 @@ export default async function RootLayout({
     const session = await auth()
 
     if (!session || session.user.role !== "ADMIN") {
-        throw new Error('401', {
+        throw new Error('403', {
             cause: {
-                status: 401,
-                code: 'UNAUTHORIZED',
+                status: 403,
+                code: 'FORBIDDEN',
                 message: 'You are not authorized to access this page.',
             },
         });

@@ -25,6 +25,9 @@ class CartBase(BaseModel):
     duration_months: int = Field(default=1, description="Duration in months")
     unit_price: float = Field(..., description="Unit price per month")
     total_price: float = Field(..., description="Total price")
+    discount_code: Optional[str] = Field(
+        None, description="Optional discount code applied to the cart"
+    )
 
     @field_validator("hostname", "os")
     @classmethod
@@ -39,6 +42,19 @@ class CartBase(BaseModel):
             raise ValueError(f"{field_name} must not be empty")
         if info.field_name == "hostname" and len(v) > 255:
             raise ValueError(f"{field_name} must not exceed 255 characters")
+        return v
+
+    @field_validator("discount_code")
+    @classmethod
+    def validate_discount_code(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        v = v.strip()
+        if len(v) == 0:
+            return None
+        if len(v) > 50:
+            raise ValueError("Discount code must not exceed 50 characters")
         return v
 
     @field_validator("duration_months", "unit_price", "total_price")
@@ -69,8 +85,11 @@ class CartUpdate(BaseModel):
     duration_months: Optional[int] = Field(None, description="Duration in months")
     unit_price: Optional[float] = Field(None, description="Unit price per month")
     total_price: Optional[float] = Field(None, description="Total price")
+    discount_code: Optional[str] = Field(
+        None, description="Optional discount code applied to the cart"
+    )
 
-    @field_validator("hostname", "os")
+    @field_validator("hostname", "os", "discount_code")
     @classmethod
     def validate_hostname(cls, v: Optional[str], info: ValidationInfo) -> Optional[str]:
         field_name = info.field_name.replace("_", " ").capitalize()
@@ -81,8 +100,14 @@ class CartUpdate(BaseModel):
         v = v.strip()
         if len(v) == 0:
             return None
-        if info.field_name == "hostname" and len(v) > 255:
-            raise ValueError(f"{field_name} must not exceed 255 characters")
+
+        max_lengths = {
+            "hostname": 255,
+            "discount_code": 50,
+        }
+        max_length = max_lengths.get(info.field_name)
+        if max_length and len(v) > max_length:
+            raise ValueError(f"{field_name} must not exceed {max_length} characters")
         return v
 
     @field_validator("duration_months", "unit_price", "total_price")
@@ -141,6 +166,27 @@ class CartAdd(BaseModel):
             raise ValueError(f"{field_name} must not be empty")
         if v <= 0:
             raise ValueError(f"{field_name} must be a positive value")
+        return v
+
+
+class CartProceedToCheckout(BaseModel):
+    """Schema to proceed to checkout with optional promotion code"""
+
+    promotion_code: Optional[str] = Field(
+        None, description="Optional promotion code to apply during checkout"
+    )
+
+    @field_validator("promotion_code")
+    @classmethod
+    def validate_promotion_code(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        v = v.strip()
+        if len(v) == 0:
+            return None
+        if len(v) > 50:
+            raise ValueError("Promotion code must not exceed 50 characters")
         return v
 
 

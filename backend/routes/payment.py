@@ -1,84 +1,82 @@
-"""
-Payment Routes
-==============
-
-API endpoints for payment processing with MoMo and VNPay.
-"""
-
 import uuid
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlmodel import Session
-from pydantic import BaseModel, Field
+from sqlmodel import Session, select
 
 from backend.db import get_session
-from backend.models import User, Order
+from backend.models import User, Order, Cart
+from backend.schemas import (
+    CartProceedToCheckout,
+    PaymentRequest,
+    PaymentResponse,
+    PaymentStatusResponse,
+    CallbackResponse,
+)
+from backend.services import PaymentService
 from backend.utils import get_current_user
-from backend.services.payment_service import PaymentService
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
 
-# Request/Response Schemas
-class CreateMoMoPaymentRequest(BaseModel):
-    """Request to create MoMo payment"""
+@router.post(
+    "/checkout-proceed",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    summary="Proceed to checkout",
+    description="Proceed to checkout by applying promotion code to all cart items",
+)
+async def proceed_to_checkout(
+    data: CartProceedToCheckout,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Proceed to checkout by applying promotion code to all cart items.
 
-    order_id: uuid.UUID = Field(..., description="Order ID to pay for")
-    return_url: Optional[str] = Field(
-        None, description="Custom return URL after payment"
-    )
+    Args:
+        promotion_code (Optional[str], optional): Promotion code to apply. Defaults to None.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
 
+    Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 400 if cart is empty.
+        HTTPException: 500 if there is a server error.
 
-class CreateVNPayPaymentRequest(BaseModel):
-    """Request to create VNPay payment"""
+    Returns:
+        Dict[str, Any]: Result of the checkout proceed operation.
+    """
+    try:
+        statement = select(Cart).where(Cart.user_id == current_user.id)
+        cart = session.exec(statement).all()
 
-    order_id: uuid.UUID = Field(..., description="Order ID to pay for")
-    return_url: Optional[str] = Field(
-        None, description="Custom return URL after payment"
-    )
-    bank_code: Optional[str] = Field(
-        None, description="Bank code for direct bank selection"
-    )
+        if not cart:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cart is empty",
+            )
 
+        for item in cart:
+            item.discount_code = data.promotion_code
 
-class PaymentResponse(BaseModel):
-    """Payment creation response"""
+        session.add_all(cart)
+        session.commit()
 
-    success: bool
-    payment_url: Optional[str] = None
-    qr_code_url: Optional[str] = None
-    deeplink: Optional[str] = None
-    transaction_id: Optional[str] = None
-    payment_id: Optional[str] = None
-    error: Optional[str] = None
-
-
-class PaymentStatusResponse(BaseModel):
-    """Payment status response"""
-
-    payment_id: str
-    transaction_id: Optional[str]
-    payment_method: str
-    amount: float
-    currency: str
-    status: str
-    order_id: Optional[str]
-    order_number: Optional[str]
-    order_status: Optional[str]
-    created_at: str
-    updated_at: str
-
-
-class CallbackResponse(BaseModel):
-    """Callback response"""
-
-    valid: bool
-    success: Optional[bool] = None
-    transaction_id: Optional[str] = None
-    message: Optional[str] = None
-    error: Optional[str] = None
+        return {
+            "message": "Proceeded to checkout successfully",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error proceeding to checkout: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error proceeding to checkout",
+        )
 
 
 # MoMo Endpoints
@@ -86,98 +84,80 @@ class CallbackResponse(BaseModel):
     "/momo/create",
     response_model=PaymentResponse,
     summary="Create MoMo payment",
-    description="Create a new MoMo payment request for an order",
+    description="Create a MoMo payment for an order",
 )
 async def create_momo_payment(
-    request: CreateMoMoPaymentRequest,
+    payment_request: PaymentRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-) -> PaymentResponse:
+):
     """
-    Create MoMo payment for an order.
+    Create demo MoMo payment for testing.
 
-    Returns payment URL to redirect user to MoMo payment page.
+    Args:
+        payment_request (PaymentRequest): Payment request data
+        session (Session, optional): Database session, defaults to Depends(get_session)
+        current_user (User, optional): Currently authenticated user, defaults to Depends(get_current_user)
+
+    Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 400 if order is not in pending payment status or failure in payment creation.
+        HTTPException: 403 if user does not have permission to pay for the order.
+        HTTPException: 404 if order is not found.
+        HTTPException: 500 if there is a server error.
+
+    Returns:
+        PaymentResponse: Response containing payment details or error information
     """
     try:
-        # Get order
-        order = session.get(Order, request.order_id)
-        if not order:
+        payment_service = PaymentService(session)
+        order_initialized = payment_service.initialize_order(
+            order_number=payment_request.order_number,
+            amount=payment_request.amount,
+            user_id=current_user.id,
+            phone=payment_request.phone,
+            address=payment_request.address,
+        )
+
+        if not order_initialized:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Không tìm thấy đơn hàng",
+                detail="Not found order",
             )
 
-        # Check order ownership
-        if order.user_id != current_user.id:
+        if order_initialized.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Bạn không có quyền thanh toán đơn hàng này",
+                detail="You do not have permission to pay for this order",
             )
 
-        # Check order status
-        if order.status != "pending":
+        if order_initialized.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Đơn hàng không ở trạng thái chờ thanh toán",
+                detail="Order is not in pending payment status",
             )
 
-        # Create payment
-        payment_service = PaymentService(session)
         result = payment_service.create_momo_payment(
-            order=order,
-            return_url=request.return_url,
+            order=order_initialized,
+            return_url=payment_request.return_url,
         )
 
         if not result["success"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=result.get("error", "Không thể tạo thanh toán MoMo"),
+                detail=result.error,
             )
 
-        return PaymentResponse(**result)
-
+        return result
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error creating MoMo payment: {str(e)}")
-        raise HTTPException(
+        session.rollback()
+        logger.error(f">>> Error creating demo MoMo payment: {str(e)}")
+        return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Lỗi khi tạo thanh toán MoMo",
+            detail="Error creating demo MoMo payment",
         )
-
-
-@router.post(
-    "/momo/notify",
-    summary="MoMo IPN callback",
-    description="Receive payment notification from MoMo (IPN)",
-)
-async def momo_notify(
-    request: Request,
-    session: Session = Depends(get_session),
-) -> Dict[str, Any]:
-    """
-    Handle MoMo Instant Payment Notification (IPN).
-
-    This endpoint is called by MoMo server when payment status changes.
-    """
-    try:
-        data = await request.json()
-        logger.info(f"MoMo IPN received: {data}")
-
-        payment_service = PaymentService(session)
-        result = payment_service.verify_momo_callback(data)
-
-        if result["valid"]:
-            return {"resultCode": 0, "message": "Received"}
-        else:
-            return {
-                "resultCode": 1,
-                "message": result.get("error", "Verification failed"),
-            }
-
-    except Exception as e:
-        logger.error(f"MoMo IPN error: {str(e)}")
-        return {"resultCode": 1, "message": str(e)}
 
 
 @router.get(
@@ -189,18 +169,20 @@ async def momo_notify(
 async def momo_return(
     request: Request,
     session: Session = Depends(get_session),
-) -> CallbackResponse:
+):
     """
     Handle MoMo redirect after payment.
 
-    User is redirected here after completing/canceling payment on MoMo.
+    Args:
+        request (Request): HTTP request object containing query parameters from MoMo redirect
+        session (Session, optional): Database session, defaults to Depends(get_session).
+
+    Returns:
+        CallbackResponse: Response model indicating the result of the callback
     """
     try:
-        # Get query parameters
         params = dict(request.query_params)
-        logger.info(f"MoMo return params: {params}")
 
-        # Convert to expected format
         data = {
             "partnerCode": params.get("partnerCode"),
             "orderId": params.get("orderId"),
@@ -226,11 +208,65 @@ async def momo_return(
             transaction_id=result.get("transaction_id"),
             message=result.get("message"),
             error=result.get("error"),
+            data=result.get("data"),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> MoMo return error: {str(e)}")
+        return CallbackResponse(
+            valid=False,
+            error="An error occurred while processing MoMo return",
         )
 
+
+@router.post(
+    "/momo/notify",
+    response_model=Dict[str, Any],
+    summary="MoMo IPN callback",
+    description="Receive payment notification from MoMo (IPN)",
+)
+async def momo_notify(
+    request: Request,
+    session: Session = Depends(get_session),
+):
+    """
+    Handle MoMo Instant Payment Notification (IPN).
+    Called by MoMo server when payment status changes.
+
+    Args:
+        request (Request): The incoming request from MoMo containing payment notification data.
+        session (Session, optional): Database session, defaults to Depends(get_session).
+
+    Returns:
+        Dict[str, Any]: Response indicating the result of the IPN processing.
+    """
+    try:
+        data = await request.json()
+
+        payment_service = PaymentService(session)
+        result = payment_service.verify_momo_callback(data)
+
+        if result["valid"]:
+            return {
+                "resultCode": 0,
+                "message": "Received",
+            }
+        else:
+            return {
+                "resultCode": 1,
+                "message": result.get("error", "Verification failed"),
+            }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"MoMo return error: {str(e)}")
-        return CallbackResponse(valid=False, error=str(e))
+        session.rollback()
+        logger.error(f">>> MoMo IPN error: {str(e)}")
+        return {
+            "resultCode": 1,
+            "message": "An error occurred while processing MoMo IPN",
+        }
 
 
 # VNPay Endpoints
@@ -241,37 +277,56 @@ async def momo_return(
     description="Create a new VNPay payment request for an order",
 )
 async def create_vnpay_payment(
-    payment_request: CreateVNPayPaymentRequest,
+    payment_request: PaymentRequest,
     request: Request,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-) -> PaymentResponse:
+):
     """
-    Create VNPay payment for an order.
+    Create demo VNPay payment for testing.
 
-    Returns payment URL to redirect user to VNPay payment page.
+    Args:
+        payment_request (PaymentRequest): Payment request data
+        request (Request): HTTP request object
+        session (Session, optional): Database session, defaults to Depends(get_session)
+        current_user (User, optional): Currently authenticated user, defaults to Depends(get_current_user)
+
+    Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 400 if order is not in pending payment status or failure in payment creation.
+        HTTPException: 403 if user does not have permission to pay for the order.
+        HTTPException: 404 if order is not found.
+        HTTPException: 500 if there is a server error.
+
+    Returns:
+        PaymentResponse: Response containing payment details or error information
     """
     try:
-        # Get order
-        order = session.get(Order, payment_request.order_id)
-        if not order:
+        payment_service = PaymentService(session)
+        order_initialized = payment_service.initialize_order(
+            order_number=payment_request.order_number,
+            amount=payment_request.amount,
+            user_id=current_user.id,
+            phone=payment_request.phone,
+            address=payment_request.address,
+        )
+
+        if not order_initialized:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Không tìm thấy đơn hàng",
+                detail="Not found order",
             )
 
-        # Check order ownership
-        if order.user_id != current_user.id:
+        if order_initialized.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Bạn không có quyền thanh toán đơn hàng này",
+                detail="You do not have permission to pay for this order",
             )
 
-        # Check order status
-        if order.status != "pending":
+        if order_initialized.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Đơn hàng không ở trạng thái chờ thanh toán",
+                detail="Order is not in pending payment status",
             )
 
         # Get client IP
@@ -280,30 +335,27 @@ async def create_vnpay_payment(
         if forwarded:
             client_ip = forwarded.split(",")[0].strip()
 
-        # Create payment
-        payment_service = PaymentService(session)
         result = payment_service.create_vnpay_payment(
-            order=order,
+            order=order_initialized,
             client_ip=client_ip,
             return_url=payment_request.return_url,
-            bank_code=payment_request.bank_code,
         )
 
         if not result["success"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=result.get("error", "Không thể tạo thanh toán VNPay"),
+                detail=result.error,
             )
 
-        return PaymentResponse(**result)
-
+        return result
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error creating VNPay payment: {str(e)}")
-        raise HTTPException(
+        session.rollback()
+        logger.error(f">>> Error creating VNPay payment: {str(e)}")
+        return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Lỗi khi tạo thanh toán VNPay",
+            detail="Error creating demo VNPay payment",
         )
 
 
@@ -316,16 +368,19 @@ async def create_vnpay_payment(
 async def vnpay_return(
     request: Request,
     session: Session = Depends(get_session),
-) -> CallbackResponse:
+):
     """
     Handle VNPay redirect after payment.
 
-    User is redirected here after completing/canceling payment on VNPay.
+    Args:
+        request (Request): HTTP request object
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+
+    Returns:
+        CallbackResponse: Response model indicating the result of the callback
     """
     try:
-        # Get query parameters
         params = dict(request.query_params)
-        logger.info(f"VNPay return params: {params}")
 
         payment_service = PaymentService(session)
         result = payment_service.verify_vnpay_return(params)
@@ -336,46 +391,65 @@ async def vnpay_return(
             transaction_id=result.get("transaction_id"),
             message=result.get("message"),
             error=result.get("error"),
+            data=result.get("data"),
         )
-
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"VNPay return error: {str(e)}")
-        return CallbackResponse(valid=False, error=str(e))
+        session.rollback()
+        logger.error(f">>> VNPay return error: {str(e)}")
+        return CallbackResponse(
+            valid=False,
+            error="An error occurred while processing VNPay return",
+        )
 
 
 @router.post(
     "/vnpay/ipn",
+    response_model=Dict[str, str],
     summary="VNPay IPN callback",
     description="Receive payment notification from VNPay (IPN)",
 )
 async def vnpay_ipn(
     request: Request,
     session: Session = Depends(get_session),
-) -> Dict[str, str]:
+):
     """
     Handle VNPay Instant Payment Notification (IPN).
+    Called by VNPay server when payment status changes.
 
-    This endpoint is called by VNPay server when payment status changes.
+    Args:
+        request (Request): HTTP request object
+        session (Session, optional): Database session, defaults to Depends(get_session).
+
+    Returns:
+        Dict[str, str]: Response indicating the result of the IPN processing.
     """
     try:
-        # Get query parameters
         params = dict(request.query_params)
-        logger.info(f"VNPay IPN received: {params}")
 
         payment_service = PaymentService(session)
         result = payment_service.verify_vnpay_return(params)
 
         if result["valid"] and result.get("success"):
-            return {"RspCode": "00", "Message": "Confirm Success"}
+            return {
+                "RspCode": "00",
+                "Message": "Confirm Success",
+            }
         else:
             return {
                 "RspCode": "97",
                 "Message": result.get("error", "Invalid signature"),
             }
-
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"VNPay IPN error: {str(e)}")
-        return {"RspCode": "99", "Message": str(e)}
+        session.rollback()
+        logger.error(f">>> VNPay IPN error: {str(e)}")
+        return {
+            "RspCode": "99",
+            "Message": "An error occurred while processing VNPay IPN",
+        }
 
 
 # Common Payment Endpoints
@@ -479,261 +553,4 @@ async def get_order_payments(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Lỗi khi lấy danh sách thanh toán",
-        )
-
-
-# Bank codes for VNPay (for frontend reference)
-@router.get(
-    "/vnpay/banks",
-    summary="Get VNPay bank list",
-    description="Get list of supported banks for VNPay",
-)
-async def get_vnpay_banks() -> Dict[str, Any]:
-    """
-    Get list of supported banks for VNPay direct payment.
-    """
-    banks = [
-        {"code": "NCB", "name": "Ngân hàng NCB"},
-        {"code": "AGRIBANK", "name": "Ngân hàng Agribank"},
-        {"code": "SCB", "name": "Ngân hàng SCB"},
-        {"code": "SACOMBANK", "name": "Ngân hàng Sacombank"},
-        {"code": "EXIMBANK", "name": "Ngân hàng Eximbank"},
-        {"code": "MSBANK", "name": "Ngân hàng Maritime Bank"},
-        {"code": "NAMABANK", "name": "Ngân hàng Nam Á"},
-        {"code": "VNMART", "name": "Ví điện tử VnMart"},
-        {"code": "VIETINBANK", "name": "Ngân hàng Vietinbank"},
-        {"code": "VIETCOMBANK", "name": "Ngân hàng Vietcombank"},
-        {"code": "HDBANK", "name": "Ngân hàng HDBank"},
-        {"code": "DONGABANK", "name": "Ngân hàng Đông Á"},
-        {"code": "TPBANK", "name": "Ngân hàng TPBank"},
-        {"code": "OJB", "name": "Ngân hàng OceanBank"},
-        {"code": "BIDV", "name": "Ngân hàng BIDV"},
-        {"code": "TECHCOMBANK", "name": "Ngân hàng Techcombank"},
-        {"code": "VPBANK", "name": "Ngân hàng VPBank"},
-        {"code": "MBBANK", "name": "Ngân hàng MBBank"},
-        {"code": "ACB", "name": "Ngân hàng ACB"},
-        {"code": "OCB", "name": "Ngân hàng OCB"},
-        {"code": "IVB", "name": "Ngân hàng IVB"},
-        {"code": "VISA", "name": "Thanh toán qua VISA/Master"},
-    ]
-
-    return {
-        "success": True,
-        "banks": banks,
-    }
-
-
-# Demo/Test Endpoints (for development only)
-class CreateDemoPaymentRequest(BaseModel):
-    """Request for demo payment without real order"""
-
-    order_number: str = Field(..., description="Order number for reference")
-    amount: float = Field(..., description="Amount in VND")
-    return_url: Optional[str] = Field(None, description="Return URL after payment")
-    bank_code: Optional[str] = Field(None, description="Bank code for VNPay")
-
-
-@router.post(
-    "/demo/vnpay",
-    response_model=PaymentResponse,
-    summary="Create demo VNPay payment",
-    description="Create a demo VNPay payment for testing (no real order required)",
-)
-async def create_demo_vnpay_payment(
-    payment_request: CreateDemoPaymentRequest,
-    request: Request,
-) -> PaymentResponse:
-    """
-    Create demo VNPay payment for testing.
-
-    This endpoint allows testing the VNPay integration without creating a real order.
-    Should only be enabled in development/sandbox environment.
-    """
-    try:
-        from backend.core import settings
-
-        # Get client IP
-        client_ip = request.client.host if request.client else "127.0.0.1"
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            client_ip = forwarded.split(",")[0].strip()
-
-        # Create payment URL directly using VNPay sandbox
-        import hashlib
-        import hmac
-        import urllib.parse
-        from datetime import datetime
-
-        # VNPay parameters
-        vnp_params = {
-            "vnp_Version": "2.1.0",
-            "vnp_Command": "pay",
-            "vnp_TmnCode": settings.VNPAY_TMN_CODE,
-            "vnp_Amount": int(
-                payment_request.amount * 100
-            ),  # VNPay uses smallest currency unit
-            "vnp_CurrCode": "VND",
-            "vnp_TxnRef": payment_request.order_number,
-            "vnp_OrderInfo": f"Thanh toan don hang {payment_request.order_number}",
-            "vnp_OrderType": "other",
-            "vnp_Locale": "vn",
-            "vnp_ReturnUrl": payment_request.return_url or settings.VNPAY_RETURN_URL,
-            "vnp_IpAddr": client_ip,
-            "vnp_CreateDate": datetime.now().strftime("%Y%m%d%H%M%S"),
-        }
-
-        if payment_request.bank_code:
-            vnp_params["vnp_BankCode"] = payment_request.bank_code
-
-        # Sort parameters alphabetically by key
-        sorted_params = sorted(vnp_params.items())
-
-        # Build query string (same string used for hash and URL)
-        query_string = ""
-        seq = 0
-        for key, val in sorted_params:
-            if seq == 1:
-                query_string += "&" + key + "=" + urllib.parse.quote_plus(str(val))
-            else:
-                seq = 1
-                query_string = key + "=" + urllib.parse.quote_plus(str(val))
-
-        # Create secure hash using HMAC-SHA512
-        secure_hash = hmac.new(
-            settings.VNPAY_HASH_SECRET.encode("utf-8"),
-            query_string.encode("utf-8"),
-            hashlib.sha512,
-        ).hexdigest()
-
-        # Build payment URL with SecureHash
-        payment_url = (
-            f"{settings.VNPAY_URL}?{query_string}&vnp_SecureHash={secure_hash}"
-        )
-
-        logger.info(f"VNPay query_string: {query_string}")
-        logger.info(f"VNPay secure_hash: {secure_hash}")
-
-        return PaymentResponse(
-            success=True,
-            payment_url=payment_url,
-            transaction_id=payment_request.order_number,
-            payment_id=payment_request.order_number,
-        )
-
-    except Exception as e:
-        logger.error(f"Error creating demo VNPay payment: {str(e)}")
-        return PaymentResponse(
-            success=False,
-            error=str(e),
-        )
-
-
-@router.post(
-    "/demo/momo",
-    response_model=PaymentResponse,
-    summary="Create demo MoMo payment",
-    description="Create a demo MoMo payment for testing (no real order required)",
-)
-async def create_demo_momo_payment(
-    payment_request: CreateDemoPaymentRequest,
-) -> PaymentResponse:
-    """
-    Create demo MoMo payment for testing.
-
-    This endpoint allows testing the MoMo integration without creating a real order.
-    Should only be enabled in development/sandbox environment.
-    """
-    try:
-        import hashlib
-        import hmac
-        import json
-        import httpx
-        from backend.core import settings
-
-        # MoMo parameters
-        request_id = f"demo_{payment_request.order_number}"
-        order_info = (
-            f"Payment for order {payment_request.order_number}"  # Use ASCII only
-        )
-        redirect_url = payment_request.return_url or settings.MOMO_RETURN_URL
-        ipn_url = settings.MOMO_NOTIFY_URL
-        extra_data = ""
-        # Use payWithMethod to allow user to choose payment method (wallet, ATM, CC)
-        request_type = "payWithMethod"
-
-        # Raw signature string - parameters MUST be in alphabetical order
-        raw_signature = (
-            f"accessKey={settings.MOMO_ACCESS_KEY}"
-            f"&amount={int(payment_request.amount)}"
-            f"&extraData={extra_data}"
-            f"&ipnUrl={ipn_url}"
-            f"&orderId={payment_request.order_number}"
-            f"&orderInfo={order_info}"
-            f"&partnerCode={settings.MOMO_PARTNER_CODE}"
-            f"&redirectUrl={redirect_url}"
-            f"&requestId={request_id}"
-            f"&requestType={request_type}"
-        )
-
-        logger.info(f"MoMo raw signature string: {raw_signature}")
-
-        signature = hmac.new(
-            settings.MOMO_SECRET_KEY.encode("utf-8"),
-            raw_signature.encode("utf-8"),
-            hashlib.sha256,
-        ).hexdigest()
-
-        logger.info(f"MoMo signature: {signature}")
-
-        # Build request
-        momo_request = {
-            "partnerCode": settings.MOMO_PARTNER_CODE,
-            "partnerName": "VPS Rental",
-            "storeId": settings.MOMO_PARTNER_CODE,
-            "requestId": request_id,
-            "amount": int(payment_request.amount),
-            "orderId": payment_request.order_number,
-            "orderInfo": order_info,
-            "redirectUrl": redirect_url,
-            "ipnUrl": ipn_url,
-            "lang": "vi",
-            "requestType": request_type,
-            "autoCapture": True,
-            "extraData": extra_data,
-            "signature": signature,
-        }
-
-        logger.info(f"MoMo Request: {momo_request}")
-
-        # Send request to MoMo
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                settings.MOMO_ENDPOINT,
-                json=momo_request,
-                timeout=30.0,
-            )
-            data = response.json()
-
-        logger.info(f"MoMo Response: {data}")
-
-        if data.get("resultCode") == 0:
-            return PaymentResponse(
-                success=True,
-                payment_url=data.get("payUrl"),
-                qr_code_url=data.get("qrCodeUrl"),
-                deeplink=data.get("deeplink"),
-                transaction_id=data.get("orderId"),
-                payment_id=payment_request.order_number,
-            )
-        else:
-            return PaymentResponse(
-                success=False,
-                error=data.get("message", "MoMo payment creation failed"),
-            )
-
-    except Exception as e:
-        logger.error(f"Error creating demo MoMo payment: {str(e)}")
-        return PaymentResponse(
-            success=False,
-            error=str(e),
         )

@@ -29,9 +29,10 @@ import {
     Rocket,
     Package,
     Monitor,
-    BrushCleaning
+    BrushCleaning,
+    RefreshCw
 } from 'lucide-react';
-import { CartItem, Promotion, ValidatePromotionResponse } from '@/types/types';
+import { CartItem, Promotion, ValidatePromotion } from '@/types/types';
 import { Label } from '@radix-ui/react-label';
 import { formatPrice } from '@/utils/currency';
 import useProduct from '@/hooks/useProduct';
@@ -40,63 +41,85 @@ import { toast } from 'sonner';
 import { useLocale } from 'next-intl';
 import CartPlaceholder from '@/components/custom/placeholder/cart';
 import { useCart } from '@/contexts/CartContext';
+import usePayment from '@/hooks/usePayment';
+import { useRouter } from 'next/navigation';
 
 const CartPage = () => {
+    const router = useRouter();
     const locale = useLocale();
     const { getCartItems, removeCartItem, clearCart } = useProduct();
     const { getAvailablePromotions, validatePromotion } = usePromotion();
+    const { proceedToCheckout } = usePayment();
     const { setCartAmount, decrementCart } = useCart();
 
     const [cartItem, setCartItem] = useState<CartItem[] | null>(null);
     const [availablePromotions, setAvailablePromotions] = useState<Promotion[]>([]);
-    const [appliedPromo, setAppliedPromo] = useState<ValidatePromotionResponse | null>(null);
+    const [appliedPromo, setAppliedPromo] = useState<ValidatePromotion | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingPromotions, setIsLoadingPromotions] = useState(true);
+    const [isProceedCheckoutLoading, setIsProceedCheckoutLoading] = useState(false);
 
-    const fetchCart = async () => {
+    const fetchCart = async (signal?: AbortSignal) => {
         try {
-            const result = await getCartItems();
+            const result = await getCartItems(signal);
+
+            if (signal?.aborted) return;
 
             if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details,
+                    description: result.error.detail,
                 });
             } else {
                 setCartItem(result.data);
             }
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
+
             toast.error("Failed to fetch cart items", {
                 description: "Please try again later",
             });
         } finally {
-            setIsLoading(false);
+            if (!signal?.aborted) {
+                setIsLoading(false);
+            }
         }
     };
 
-    const fetchAvailablePromotions = async () => {
+    const fetchAvailablePromotions = async (signal?: AbortSignal) => {
         try {
-            const result = await getAvailablePromotions();
+            const result = await getAvailablePromotions(signal);
+
+            if (signal?.aborted) return;
 
             if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details,
+                    description: result.error.detail,
                 });
             } else {
                 setAvailablePromotions(result.data || []);
             }
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
+
             toast.error("Failed to fetch promotions", {
                 description: "Please try again later",
             });
         } finally {
-            setIsLoadingPromotions(false);
+            if (!signal?.aborted) {
+                setIsLoadingPromotions(false);
+            }
         }
     };
 
     useEffect(() => {
-        fetchCart();
-        fetchAvailablePromotions();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const controller = new AbortController();
+
+        fetchCart(controller.signal);
+        fetchAvailablePromotions(controller.signal);
+
+        return () => {
+            controller.abort();
+        };
     }, []);
 
     const handleClearCart = async () => {
@@ -105,13 +128,13 @@ const CartPage = () => {
 
             if (result && result.error) {
                 toast.error(result.message, {
-                    description: result.error.details,
+                    description: result.error.detail,
                 });
             } else {
                 setCartItem(null);
                 setAppliedPromo(null);
                 setCartAmount(0);
-                toast.success("Cart cleared successfully");
+                toast.success(result.message);
             }
         } catch {
             toast.error("Failed to clear cart", {
@@ -124,19 +147,68 @@ const CartPage = () => {
         try {
             const result = await removeCartItem(itemId);
 
-            if (result && result.error) {
+            if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details,
+                    description: result.error.detail,
                 });
             } else {
                 setCartItem(prevItems => prevItems ? prevItems.filter(item => item.id !== itemId) : null);
                 decrementCart();
-                toast.success("Item removed from cart");
+                toast.success(result.message);
             }
         } catch {
             toast.error("Failed to remove item from cart", {
                 description: "Please try again later",
             });
+        }
+    }
+
+    const handleDiscountSelection = async (promotionCode: string) => {
+        try {
+            setIsLoadingPromotions(true);
+
+            const cartTotalAmount = calculateSubtotal();
+
+            const result = await validatePromotion({
+                code: promotionCode,
+                cartTotalAmount,
+            });
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.detail,
+                });
+            } else {
+                setAppliedPromo(result.data || null);
+            }
+        } catch {
+            toast.error("Failed to apply promotion", {
+                description: "Please try again later",
+            });
+        } finally {
+            setIsLoadingPromotions(false);
+        }
+    };
+
+    const handleProceedToCheckout = async () => {
+        try {
+            setIsProceedCheckoutLoading(true);
+
+            const result = await proceedToCheckout(appliedPromo?.promotion.code);
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.detail,
+                });
+            } else {
+                router.push(`/${locale}/checkout`);
+            }
+        } catch {
+            toast.error("Failed to proceed to checkout", {
+                description: "Please try again later",
+            });
+        } finally {
+            setIsProceedCheckoutLoading(false);
         }
     }
 
@@ -157,29 +229,6 @@ const CartPage = () => {
     const calculateSetupFee = () => {
         if (!cartItem) return 0;
         return cartItem.reduce((total, item) => total + item.template.setup_fee, 0);
-    };
-
-    const handleDiscountSelection = async (promotionCode: string) => {
-        const cartTotalAmount = calculateSubtotal();
-
-        try {
-            const result = await validatePromotion({
-                code: promotionCode,
-                cartTotalAmount,
-            });
-
-            if (result.error) {
-                toast.error(result.message, {
-                    description: result.error.details,
-                });
-            } else {
-                setAppliedPromo(result.data || null);
-            }
-        } catch {
-            toast.error("Failed to apply promotion", {
-                description: "Please try again later",
-            });
-        }
     };
 
     const getNetworkSpeed = (mbps: number) => {
@@ -362,8 +411,6 @@ const CartPage = () => {
                                             </div>
                                         </div>
 
-                                        <Separator className="my-3 md:my-4 bg-gradient-to-r from-transparent via-foreground to-transparent" />
-
                                         {/* Configuration Details */}
                                         <div>
                                             <h4 className="text-xs md:text-sm font-semibold text-muted-foreground mb-2 flex items-center">
@@ -376,7 +423,7 @@ const CartPage = () => {
                                                     <span className="font-semibold text-xs md:text-sm truncate block">{item.hostname}</span>
                                                 </div>
                                                 <div className="p-2 md:p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                                                    <span className="text-[10px] md:text-xs text-muted-foreground block mb-0.5">OS</span>
+                                                    <span className="text-[10px] md:text-xs text-muted-foreground block mb-0.5">Operating System</span>
                                                     <span className="font-semibold text-xs md:text-sm capitalize">{item.os}</span>
                                                 </div>
                                                 <div className="p-2 md:p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -537,12 +584,19 @@ const CartPage = () => {
                                 <Button
                                     className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl hover:scale-105"
                                     size="lg"
-                                    asChild
+                                    onClick={handleProceedToCheckout}
                                 >
-                                    <Link href={`/${locale}/checkout`}>
-                                        <span className="text-sm md:text-md xl:text-lg">Proceed to Checkout</span>
-                                        <ArrowRight className="ml-1 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                    </Link>
+                                    {isProceedCheckoutLoading ? (
+                                        <>
+                                            <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                                            <span className="text-sm md:text-md xl:text-lg">Proceed to Checkout</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-sm md:text-md xl:text-lg">Proceed to Checkout</span>
+                                            <ArrowRight className="ml-1 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
                                 </Button>
 
                                 <Button

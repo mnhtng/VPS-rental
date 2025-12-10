@@ -1,204 +1,159 @@
 import {
-    Body,
     Button,
-    Container,
-    Head,
     Heading,
-    Html,
-    Img,
-    Preview,
     Section,
     Text,
 } from "@react-email/components";
-
-interface EmailVerificationTemplateProps {
-    name: string;
-    verificationUrl: string;
-}
-
-const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'https://mnhtng.site';
+import * as React from "react";
+import EmailLayout from "@/components/custom/email/EmailLayout";
+import { EmailVerificationTemplateProps } from "@/types/types";
 
 const EmailVerificationTemplate = ({
     name = "Khách hàng",
     verificationUrl,
 }: EmailVerificationTemplateProps) => {
-    const currentYear = new Date().getFullYear();
 
     return (
-        <Html>
-            <Head />
-            <Preview>Xác minh địa chỉ email của bạn - PCloud</Preview>
-            <Body style={main}>
-                <Container style={container}>
-                    <Section style={header}>
-                        <Img
-                            src={`${baseUrl}/bg.png`}
-                            width="60"
-                            height="60"
-                            alt="PCloud"
-                            style={logo}
-                        />
-                        <Heading style={h1}>PCloud</Heading>
-                    </Section>
+        <EmailLayout preview="Chào mừng bạn đến với PCloud! Xác thực email để kích hoạt tài khoản">
+            <Section style={wrapper}>
+                <div style={iconContainer}>
+                    <Text style={mailIcon}>✉️</Text>
+                </div>
 
-                    <Section style={content}>
-                        <Heading style={h2}>Xác minh địa chỉ email của bạn</Heading>
+                <Heading style={title}>Xác Thực Email</Heading>
 
-                        <Text style={text}>
-                            Xin chào {name},
-                        </Text>
+                <Text style={text}>
+                    Xin chào <strong>{name}</strong>,
+                </Text>
 
-                        <Text style={text}>
-                            Cảm ơn bạn đã đăng ký tài khoản tại PCloud! Để hoàn tất quá trình đăng ký và kích hoạt tài khoản của bạn, vui lòng xác minh địa chỉ email bằng cách click vào nút bên dưới.
-                        </Text>
+                <Text style={text}>
+                    Cảm ơn bạn đã đăng ký dịch vụ tại <strong>PCloud</strong>.
+                    Để đảm bảo an toàn và kích hoạt đầy đủ tính năng, vui lòng xác thực địa chỉ email của bạn.
+                </Text>
 
-                        <Section style={buttonContainer}>
-                            <Button style={button} href={verificationUrl}>
-                                Xác minh Email
-                            </Button>
-                        </Section>
+                <Section style={buttonContainer}>
+                    <Button style={button} href={verificationUrl}>
+                        Xác Thực Ngay
+                    </Button>
+                </Section>
 
-                        <Text style={smallText}>
-                            Hoặc copy và dán link sau vào trình duyệt của bạn:
-                        </Text>
-                        <Text style={linkText}>{verificationUrl}</Text>
+                <Section style={infoBox}>
+                    <Text style={infoText}>
+                        ⏰ Link xác thực sẽ hết hạn trong <strong>24 giờ</strong>.
+                    </Text>
+                </Section>
 
-                        <Text style={warningText}>
-                            ⚠️ Link xác minh này sẽ hết hạn trong 24 giờ.
-                        </Text>
+                <div style={divider} />
 
-                        <Text style={text}>
-                            Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.
-                        </Text>
-
-                        <Text style={signature}>
-                            Trân trọng,<br />
-                            PCloud Team
-                        </Text>
-                    </Section>
-
-                    <Section style={footer}>
-                        <Text style={footerText}>
-                            © {currentYear} PCloud. Tất cả quyền được bảo lưu.
-                        </Text>
-                    </Section>
-                </Container>
-            </Body>
-        </Html>
+                <Text style={smallText}>
+                    Nếu bạn gặp vấn đề với nút bấm trên, hãy copy link bên dưới:
+                </Text>
+                <code style={codeBlock}>{verificationUrl}</code>
+            </Section>
+        </EmailLayout>
     );
 };
 
-// Styles
-const main = {
-    backgroundColor: "#f6f9fc",
-    fontFamily:
-        '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+export default EmailVerificationTemplate;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UNIQUE COLOR PALETTE - "Midnight Teal" 
+// Primary: Teal #14B8A6, Dark: #0F172A
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const wrapper = {
+    textAlign: 'center' as const,
 };
 
-const container = {
-    backgroundColor: "#ffffff",
-    margin: "0 auto",
-    padding: "20px 0 48px",
-    marginBottom: "64px",
+const iconContainer = {
+    width: '72px',
+    height: '72px',
+    background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)', // Teal 50
+    borderRadius: '50%',
+    margin: '0 auto 20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '2px solid #5EEAD4', // Teal 300
 };
 
-const header = {
-    padding: "20px",
-    textAlign: "center" as const,
+const mailIcon = {
+    fontSize: '32px',
+    margin: '0',
+    lineHeight: '72px',
 };
 
-const logo = {
-    display: "inline-block",
-    marginBottom: "16px",
-};
-
-const h1 = {
-    color: "#1f2937",
-    fontSize: "36px",
-    fontWeight: "700",
-    margin: "0",
-};
-
-const content = {
-    padding: "0 20px",
-};
-
-const h2 = {
-    color: "#1f2937",
-    fontSize: "20px",
-    fontWeight: "600",
-    margin: "32px 0 16px",
-    textAlign: "center" as const,
+const title = {
+    color: '#0F172A',
+    fontSize: '26px',
+    fontWeight: '800',
+    margin: '0 0 24px',
+    letterSpacing: '-0.5px',
 };
 
 const text = {
-    color: "#374151",
-    fontSize: "16px",
-    lineHeight: "24px",
-    margin: "16px 0",
+    color: '#475569',
+    fontSize: '16px',
+    lineHeight: '1.6',
+    margin: '0 0 16px',
+    textAlign: 'left' as const,
 };
 
 const buttonContainer = {
-    textAlign: "center" as const,
-    margin: "32px 0",
+    textAlign: 'center' as const,
+    margin: '32px 0 24px',
 };
 
 const button = {
-    backgroundColor: "#2563eb",
-    borderRadius: "6px",
-    color: "#ffffff",
-    fontSize: "16px",
-    fontWeight: "600",
-    textDecoration: "none",
-    textAlign: "center" as const,
-    display: "inline-block",
-    padding: "12px 32px",
+    background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', // Teal gradient
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    textDecoration: 'none',
+    textAlign: 'center' as const,
+    display: 'inline-block',
+    padding: '16px 44px',
+    boxShadow: '0 8px 16px -4px rgba(20, 184, 166, 0.4)',
+};
+
+const infoBox = {
+    backgroundColor: '#F0FDFA', // Teal 50
+    border: '1px solid #99F6E4', // Teal 200
+    borderRadius: '10px',
+    padding: '14px 20px',
+    marginBottom: '24px',
+};
+
+const infoText = {
+    color: '#0F766E', // Teal 700
+    fontSize: '14px',
+    margin: '0',
+    fontWeight: '500',
+};
+
+const divider = {
+    height: '1px',
+    background: 'linear-gradient(to right, transparent, #CBD5E1, transparent)',
+    margin: '24px 0',
 };
 
 const smallText = {
-    color: "#6b7280",
-    fontSize: "14px",
-    lineHeight: "20px",
-    margin: "24px 0 8px",
-    textAlign: "center" as const,
+    color: '#94A3B8',
+    fontSize: '13px',
+    marginBottom: '8px',
+    textAlign: 'left' as const,
 };
 
-const linkText = {
-    color: "#2563eb",
-    fontSize: "14px",
-    textDecoration: "underline",
-    wordBreak: "break-all" as const,
-    margin: "0 0 16px",
-    textAlign: "center" as const,
+const codeBlock = {
+    display: 'block',
+    padding: '14px',
+    background: '#F8FAFC', // Slate 50
+    borderRadius: '8px',
+    color: '#475569',
+    fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
+    fontSize: '11px',
+    overflowWrap: 'break-word' as const,
+    textAlign: 'left' as const,
+    border: '1px solid #E2E8F0',
 };
-
-const warningText = {
-    color: "#dc2626",
-    fontSize: "14px",
-    fontWeight: "600",
-    margin: "24px 0",
-    textAlign: "center" as const,
-};
-
-const signature = {
-    color: "#374151",
-    fontSize: "16px",
-    lineHeight: "24px",
-    margin: "32px 0",
-};
-
-const footer = {
-    borderTop: "1px solid #e5e7eb",
-    padding: "20px",
-    textAlign: "center" as const,
-};
-
-const footerText = {
-    color: "#6b7280",
-    fontSize: "12px",
-    margin: "0",
-};
-
-export default EmailVerificationTemplate;

@@ -48,7 +48,7 @@ class Order(SQLModel, table=True):
             "status",
         ),
         CheckConstraint(
-            "status IN ('pending', 'paid', 'processing', 'cancelled')",
+            "status IN ('pending', 'paid', 'cancelled')",
             name="orders_status_check",
         ),
     )

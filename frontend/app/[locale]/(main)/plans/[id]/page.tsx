@@ -66,46 +66,45 @@ const PlanDetailPage = () => {
     const [selectedDuration, setSelectedDuration] = useState(1);
     const [addingToCart, setAddingToCart] = useState(false);
 
-    const fetchPlanItem = async () => {
+    const fetchPlanItem = async (signal?: AbortSignal) => {
         setLoading(true);
 
         try {
             const planId = params.id as string;
-            const result = await getPlanItem(planId);
+            const result = await getPlanItem(planId, signal);
+
+            if (signal?.aborted) return;
 
             if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details,
+                    description: result.error.detail,
                 });
                 setPlan(null);
             } else {
                 setPlan(result.data);
             }
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
+
             toast.error("Failed to load plan", {
                 description: "Please try again later",
             });
             setPlan(null);
         } finally {
-            setLoading(false);
+            if (!signal?.aborted) {
+                setLoading(false);
+            }
         }
-    };
-
-    const getBadgeVariant = (category: string) => {
-        return category === 'basic' ? 'secondary' : category === 'standard' ? 'default' : 'destructive';
-    };
-
-    const getNetworkSpeed = (mbps: number) => {
-        if (mbps >= 1000) {
-            const gbps = (mbps / 1000).toFixed(1);
-            return `${gbps} Gbps`;
-        }
-        return `${mbps} Mbps`;
     };
 
     useEffect(() => {
-        fetchPlanItem();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const controller = new AbortController()
+
+        fetchPlanItem(controller.signal);
+
+        return () => {
+            controller.abort()
+        }
     }, []);
 
     if (loading) {
@@ -165,7 +164,7 @@ const PlanDetailPage = () => {
 
             if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details,
+                    description: result.error.detail,
                 });
             } else {
                 incrementCart();
@@ -179,6 +178,18 @@ const PlanDetailPage = () => {
         } finally {
             setAddingToCart(false);
         }
+    };
+
+    const getBadgeVariant = (category: string) => {
+        return category === 'basic' ? 'secondary' : category === 'standard' ? 'default' : 'destructive';
+    };
+
+    const getNetworkSpeed = (mbps: number) => {
+        if (mbps >= 1000) {
+            const gbps = (mbps / 1000).toFixed(1);
+            return `${gbps} Gbps`;
+        }
+        return `${mbps} Mbps`;
     };
 
     return (

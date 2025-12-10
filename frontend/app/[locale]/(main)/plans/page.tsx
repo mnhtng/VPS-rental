@@ -62,15 +62,17 @@ const PlansPage = () => {
         setMemoryFilter('all');
     };
 
-    const fetchPlans = async () => {
+    const fetchPlans = async (signal?: AbortSignal) => {
         setIsLoading(true);
 
         try {
-            const result = await getPlans();
+            const result = await getPlans(signal);
+
+            if (signal?.aborted) return;
 
             if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details,
+                    description: result.error.detail,
                 });
 
                 setPlans([]);
@@ -87,7 +89,9 @@ const PlansPage = () => {
                     setPriceRange([min, max]);
                 }
             }
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
+
             toast.error("Failed to load plans", {
                 description: "Please try again later",
             });
@@ -95,16 +99,22 @@ const PlansPage = () => {
             setPlans([]);
             setFilteredPlans([]);
         } finally {
-            setIsLoading(false);
+            if (!signal?.aborted) {
+                setIsLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        fetchPlans();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const controller = new AbortController();
+
+        fetchPlans(controller.signal);
+
+        return () => {
+            controller.abort();
+        };
     }, []);
 
-    // Filter plans based on selected criteria
     useEffect(() => {
         if (!plans || plans.length === 0) {
             setFilteredPlans([]);
@@ -141,6 +151,11 @@ const PlansPage = () => {
         setFilteredPlans(filtered);
     }, [plans, selectedCategory, priceRange, memoryFilter]);
 
+    const handleShowDetails = (planId: string) => {
+        setSelectedPlanId(planId);
+        router.push(`/plans/${planId}`);
+    };
+
     const getBadgeVariant = (category: string) => {
         return category === 'basic' ? 'secondary' : category === 'standard' ? 'default' : 'destructive';
     };
@@ -160,11 +175,6 @@ const PlansPage = () => {
             case 'high': return 'High Memory (9GB+)';
             default: return filter;
         }
-    };
-
-    const handleShowDetails = (planId: string) => {
-        setSelectedPlanId(planId);
-        router.push(`/plans/${planId}`);
     };
 
     return (

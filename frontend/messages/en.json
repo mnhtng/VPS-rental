@@ -20,6 +20,11 @@
             "description": "Choose from our flexible VPS hosting plans with SSD/NVMe storage, dedicated resources, and 24/7 support. Perfect for websites, applications, and development.",
             "keywords": "VPS plans, VPS pricing, cloud server plans, SSD VPS, NVMe VPS, hosting plans"
         },
+        "plan_item": {
+            "title": "VPS Plan - PCloud",
+            "description": "View details of a specific VPS plan and its features.",
+            "keywords": "VPS plan details, cloud server specs, VPS features, server configuration, VPS specifications, hosting plan details"
+        },
         "support": {
             "title": "Support Center - PCloud",
             "description": "Get help with your VPS hosting services. Access documentation, submit tickets, and contact our 24/7 technical support team.",
@@ -49,6 +54,16 @@
             "title": "Checkout - PCloud",
             "description": "Complete your purchase of VPS hosting plans with secure payment options and instant setup.",
             "keywords": "VPS checkout, secure payment, purchase VPS, hosting plans"
+        },
+        "vnpay-return": {
+            "title": "VNPAY Return - PCloud",
+            "description": "Return from VNPAY payment gateway.",
+            "keywords": "VNPAY return, payment gateway, VNPAY return page"
+        },
+        "momo-return": {
+            "title": "MOMO Return - PCloud",
+            "description": "Return from MOMO payment gateway.",
+            "keywords": "MOMO return, payment gateway, MOMO return page"
         },
         "admin": {
             "title": "Admin Dashboard - PCloud",
@@ -229,18 +244,18 @@
             "needHelp": "Need help?",
             "contactUs": "Contact us"
         },
-        "unauthorized": {
-            "title": "Unauthorized Access",
-            "subtitle": "You don't have permission to access this page. Please log in or contact the administrator for support.",
+        "forbidden": {
+            "title": "Access Denied",
+            "subtitle": "You do not have permission to access this page or resource. Please log in with the appropriate account or contact support if you believe this is an error.",
             "login": "Log in",
             "backHome": "Back to Home",
             "goBack": "Go Back",
             "whyTitle": "Why am I seeing this page?",
             "reasons": [
-                "You are not logged into the system",
-                "Your account doesn't have access rights",
-                "Your login session has expired",
-                "The page requires special permissions"
+                "You are not logged in",
+                "Your account does not have the necessary permissions",
+                "The resource is restricted to certain users",
+                "You might be trying to access an admin-only area"
             ],
             "needHelp": "Need help?",
             "contactUs": "Contact us"

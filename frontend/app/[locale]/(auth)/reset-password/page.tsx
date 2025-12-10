@@ -44,8 +44,6 @@ const ResetPasswordPage = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const hasValidated = useRef(false); // Prevent multiple API calls
 
-
-    // Validate token on component mount
     useEffect(() => {
         const validateToken = async () => {
             // Prevent multiple API calls
@@ -76,7 +74,9 @@ const ResetPasswordPage = () => {
                 }
             } catch {
                 setIsValidToken(false);
-                toast.error('An error occurred while validating the link');
+                toast.error("Token validation failed", {
+                    description: "Please try again later"
+                });
             } finally {
                 setIsValidating(false);
             }

@@ -1,11 +1,12 @@
 import { apiPattern } from "@/utils/pattern"
-import { Promotion, ValidatePromotionResponse } from "@/types/types"
+import { ApiResponse, Promotion, ValidatePromotion } from "@/types/types"
 
 const usePromotion = () => {
-    const getAvailablePromotions = async () => {
+    const getAvailablePromotions = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/promotions/available`, {
                 method: 'GET',
+                signal,
             })
 
             const result = await response.json()
@@ -15,7 +16,7 @@ const usePromotion = () => {
                     message: "Failed to fetch available promotions",
                     error: {
                         code: "GET_PROMOTIONS_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
@@ -28,7 +29,7 @@ const usePromotion = () => {
                 message: "Failed to fetch available promotions",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_PROMOTIONS_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An unexpected error occurred while fetching promotions",
                 }
@@ -42,7 +43,7 @@ const usePromotion = () => {
     }: {
         code: string,
         cartTotalAmount: number,
-    }) => {
+    }): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/promotions/validate`, {
                 method: 'POST',
@@ -59,20 +60,20 @@ const usePromotion = () => {
                     message: "Promotion validation failed",
                     error: {
                         code: "VALIDATE_PROMOTION_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
 
             return {
-                data: result as ValidatePromotionResponse,
+                data: result as ValidatePromotion,
             }
         } catch (error) {
             return {
                 message: "Promotion validation failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'VALIDATE_PROMOTION_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An unexpected error occurred while validating promotion",
                 }
@@ -80,10 +81,11 @@ const usePromotion = () => {
         }
     }
 
-    const getPromotionHistory = async () => {
+    const getPromotionHistory = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/promotions/history`, {
                 method: 'GET',
+                signal,
             })
 
             const result = await response.json()
@@ -93,22 +95,58 @@ const usePromotion = () => {
                     message: "Failed to fetch promotion history",
                     error: {
                         code: "GET_PROMOTION_HISTORY_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
 
             return {
-                data: result,
+                data: result as Promotion[] || [],
             }
         } catch (error) {
             return {
                 message: "Failed to fetch promotion history",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_PROMOTION_HISTORY_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An unexpected error occurred while fetching promotion history",
+                }
+            }
+        }
+    }
+
+    const getPromotionCart = async (signal?: AbortSignal): Promise<ApiResponse> => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/promotions/cart`, {
+                method: 'GET',
+                signal,
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                return {
+                    message: "Failed to fetch promotion in cart",
+                    error: {
+                        code: "GET_PROMOTION_CART_FAILED",
+                        detail: result.detail,
+                    }
+                }
+            }
+
+            return {
+                message: "Promotion in cart fetched successfully",
+                data: result as ValidatePromotion | null,
+            }
+        } catch (error) {
+            return {
+                message: "Failed to fetch promotion in cart",
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_PROMOTION_CART_FAILED',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An unexpected error occurred while fetching promotion in cart",
                 }
             }
         }
@@ -118,6 +156,7 @@ const usePromotion = () => {
         getAvailablePromotions,
         validatePromotion,
         getPromotionHistory,
+        getPromotionCart,
     }
 }
 

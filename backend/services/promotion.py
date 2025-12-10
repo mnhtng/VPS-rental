@@ -1,12 +1,12 @@
 import uuid
 from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
+from typing import List, Dict, Any
 from decimal import Decimal
 from sqlmodel import Session, select, func
 from fastapi import HTTPException, status
 
 from backend.models import Promotion, UserPromotion
-from backend.schemas import PromotionResponse
+from backend.schemas import PromotionResponse, UserPromotionResponse
 
 
 class PromotionService:
@@ -151,7 +151,7 @@ class PromotionService:
 
     def apply_promotion(
         self, promotion_id: uuid.UUID, user_id: uuid.UUID, order_id: uuid.UUID
-    ) -> UserPromotion:
+    ) -> UserPromotionResponse:
         """
         Record that a promotion was used by a user on an order.
 
@@ -176,7 +176,9 @@ class PromotionService:
 
         return user_promotion
 
-    def get_user_promotion_history(self, user_id: uuid.UUID) -> List[UserPromotion]:
+    def get_user_promotion_history(
+        self, user_id: uuid.UUID
+    ) -> List[UserPromotionResponse]:
         """
         Get all promotions used by a specific user.
 

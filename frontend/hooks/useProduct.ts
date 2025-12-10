@@ -1,14 +1,12 @@
 import { apiPattern } from "@/utils/pattern"
-import { VPSPlan, CartItem } from "@/types/types"
+import { VPSPlan, CartItem, AddToCartPayload, ApiResponse } from "@/types/types"
 
 const useProduct = () => {
-    const getPlans = async () => {
+    const getPlans = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/plans`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                signal,
             })
 
             const result = await response.json()
@@ -18,7 +16,7 @@ const useProduct = () => {
                     message: "Get plans failed",
                     error: {
                         code: "GET_PLANS_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
@@ -31,19 +29,17 @@ const useProduct = () => {
                 message: "Get plans failed",
                 error: {
                     code: "GET_PLANS_FAILED",
-                    details: "An unexpected error occurred while fetching plans",
+                    detail: "An unexpected error occurred while fetching plans",
                 }
             }
         }
     }
 
-    const getPlanItem = async (planId: string) => {
+    const getPlanItem = async (planId: string, signal?: AbortSignal): Promise<ApiResponse> => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans/${planId}`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/plans/${planId}`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                signal,
             })
 
             const result = await response.json()
@@ -53,7 +49,7 @@ const useProduct = () => {
                     message: "Get plan failed",
                     error: {
                         code: "GET_PLAN_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
@@ -65,7 +61,7 @@ const useProduct = () => {
                 message: "Get plan failed",
                 error: {
                     code: "GET_PLAN_FAILED",
-                    details: "An unexpected error occurred while fetching the plan",
+                    detail: "An unexpected error occurred while fetching the plan",
                 }
             }
         }
@@ -79,15 +75,7 @@ const useProduct = () => {
         templateVersion,
         durationMonths,
         totalPrice,
-    }: {
-        planID: string,
-        hostname: string,
-        os: string,
-        templateOS: string,
-        templateVersion: string,
-        durationMonths: number,
-        totalPrice: number,
-    }) => {
+    }: AddToCartPayload): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
                 method: 'POST',
@@ -109,7 +97,7 @@ const useProduct = () => {
                     message: "Add to cart failed",
                     error: {
                         code: "ADD_TO_CART_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
@@ -122,7 +110,7 @@ const useProduct = () => {
                 message: "Add to cart failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'ADD_TO_CART_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An unexpected error occurred while adding to cart",
                 }
@@ -130,10 +118,11 @@ const useProduct = () => {
         }
     }
 
-    const getCartItems = async () => {
+    const getCartItems = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
                 method: 'GET',
+                signal,
             });
 
             const result = await response.json();
@@ -143,7 +132,7 @@ const useProduct = () => {
                     message: "Get cart items failed",
                     error: {
                         code: "GET_CART_ITEMS_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
@@ -156,7 +145,7 @@ const useProduct = () => {
                 message: "Get cart items failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_CART_ITEMS_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An unexpected error occurred while getting cart items",
                 }
@@ -164,14 +153,17 @@ const useProduct = () => {
         }
     }
 
-    const clearCart = async () => {
+    const clearCart = async (): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
                 method: 'DELETE',
             });
 
             if (response.status === 204) {
-                return;
+                return {
+                    message: "Cart cleared successfully",
+                    data: null,
+                }
             }
 
             const result = await response.json();
@@ -181,18 +173,21 @@ const useProduct = () => {
                     message: "Clear cart failed",
                     error: {
                         code: "CLEAR_CART_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
 
-            return;
+            return {
+                message: "Cart cleared successfully",
+                data: null,
+            };
         } catch (error) {
             return {
                 message: "Clear cart failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'CLEAR_CART_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An unexpected error occurred while clearing the cart",
                 }
@@ -200,14 +195,17 @@ const useProduct = () => {
         }
     }
 
-    const removeCartItem = async (item: string) => {
+    const removeCartItem = async (item: string): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart/${item}`, {
                 method: 'DELETE',
             });
 
             if (response.status === 204) {
-                return;
+                return {
+                    message: "Cart item removed successfully",
+                    data: null,
+                };
             }
 
             const result = await response.json();
@@ -217,18 +215,21 @@ const useProduct = () => {
                     message: "Remove cart item failed",
                     error: {
                         code: "REMOVE_CART_ITEM_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
 
-            return;
+            return {
+                message: "Cart item removed successfully",
+                data: null,
+            };
         } catch (error) {
             return {
                 message: "Remove cart item failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'REMOVE_CART_ITEM_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An unexpected error occurred while removing the cart item",
                 }
@@ -236,10 +237,11 @@ const useProduct = () => {
         }
     }
 
-    const getCartItemsAmount = async () => {
+    const getCartItemsAmount = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/cart/count`, {
                 method: 'GET',
+                signal,
             });
 
             const result = await response.json();
@@ -249,12 +251,13 @@ const useProduct = () => {
                     message: "Get cart items amount failed",
                     error: {
                         code: "GET_CART_ITEMS_AMOUNT_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
 
             return {
+                message: "Get cart items amount successfully",
                 data: result as { total_items: number },
             }
         } catch (error) {
@@ -262,7 +265,7 @@ const useProduct = () => {
                 message: "Get cart items amount failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_CART_ITEMS_AMOUNT_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An unexpected error occurred while getting cart items amount",
                 }

@@ -53,13 +53,16 @@ const HomePage = () => {
     }
   }, [status]);
 
-  const fetchPopularPlans = async () => {
+  const fetchPopularPlans = async (signal?: AbortSignal) => {
     try {
-      const result = await getPlans();
+      const result = await getPlans(signal);
+
+      // Ignore if request was aborted
+      if (signal?.aborted) return;
 
       if (result.error) {
         toast.error(result.message, {
-          description: result.error.details,
+          description: result.error.detail,
         });
 
         setPopularPlans([]);
@@ -71,7 +74,10 @@ const HomePage = () => {
         ] : [];
         setPopularPlans(plansData);
       }
-    } catch {
+    } catch (error) {
+      // Ignore abort errors
+      if (error instanceof Error && error.name === 'AbortError') return;
+
       toast.error("Failed to load popular plans", {
         description: "Please try again later",
       });
@@ -81,8 +87,14 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    fetchPopularPlans();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const controller = new AbortController();
+
+    fetchPopularPlans(controller.signal);
+
+    // Cleanup: cancel pending requests when component unmounts
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   const features = [

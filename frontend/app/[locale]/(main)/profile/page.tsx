@@ -30,8 +30,8 @@ import useMember from '@/hooks/useMember';
 import { useSession } from 'next-auth/react';
 
 const ProfilePage = () => {
-    const { getProfile, updateProfile, changePassword } = useMember();
     const { data: session } = useSession();
+    const { getProfile, updateProfile, changePassword } = useMember();
 
     const [userInfo, setUserInfo] = useState<Profile | null>(null);
     const [originalUserInfo, setOriginalUserInfo] = useState<Profile | null>(null);
@@ -45,32 +45,43 @@ const ProfilePage = () => {
         confirmPassword: '',
     });
 
-    const fetchUserProfile = async () => {
+    const fetchUserProfile = async (signal?: AbortSignal) => {
         try {
             setIsLoading(true);
 
-            const result = await getProfile();
+            const result = await getProfile(signal);
+
+            if (signal?.aborted) return;
 
             if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details
+                    description: result.error.detail
                 });
             } else {
                 setUserInfo(result.data);
                 setOriginalUserInfo(result.data);
             }
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
+
             toast.error('Get user profile fail', {
                 description: 'Please try again later'
             });
         } finally {
-            setIsLoading(false);
+            if (!signal?.aborted) {
+                setIsLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        fetchUserProfile();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const controller = new AbortController();
+
+        fetchUserProfile(controller.signal);
+
+        return () => {
+            controller.abort();
+        };
     }, []);
 
     const handleSave = async () => {
@@ -94,10 +105,11 @@ const ProfilePage = () => {
 
             if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details
+                    description: result.error.detail
                 });
             } else {
                 toast.success(result.message);
+
                 await fetchUserProfile();
 
                 setOriginalUserInfo(userInfo);
@@ -155,7 +167,7 @@ const ProfilePage = () => {
 
             if (result.error) {
                 toast.error(result.message, {
-                    description: result.error.details
+                    description: result.error.detail
                 });
             } else {
                 toast.success(result.message);

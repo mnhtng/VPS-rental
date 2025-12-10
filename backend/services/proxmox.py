@@ -3266,72 +3266,6 @@ class ProxmoxTemplateService:
             raise Exception("Failed to get all templates")
 
     @staticmethod
-    def clone_template(
-        proxmox: ProxmoxAPI,
-        node: str,
-        template_vmid: int,
-        new_vmid: int,
-        name: str,
-        storage: Optional[str] = None,
-        full: bool = True,
-        pool: Optional[str] = None,
-        target: Optional[str] = None,
-        description: Optional[str] = None,
-        snapname: Optional[str] = None,
-        disk_format: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """
-        Clone a template to create a new VM
-
-        Args:
-            proxmox (ProxmoxAPI): ProxmoxAPI instance
-            node (str): Source node name
-            template_vmid (int): Template VM ID to clone from
-            new_vmid (int): New VM ID for the clone
-            name (str): Name/hostname for the new VM
-            storage (Optional[str], optional): Target storage (uses source if not specified). Defaults to None.
-            full (bool, optional): Full clone (True) or linked clone (False). Defaults to True.
-            pool (Optional[str], optional): Resource pool to add VM to. Defaults to None.
-            target (Optional[str], optional): Target node for clone (for cross-node cloning). Defaults to None.
-            description (Optional[str], optional): Description for the new VM. Defaults to None.
-            snapname (Optional[str], optional): Snapshot name to clone from (if applicable). Defaults to None.
-            disk_format (Optional[str], optional): Disk format (qcow2, raw, etc.). Defaults to None.
-
-        Returns:
-            Task ID and success status
-        """
-        try:
-            params = {
-                "newid": new_vmid,
-                "name": name,
-                "full": 1 if full else 0,
-            }
-
-            if storage:
-                params["storage"] = storage
-            if pool:
-                params["pool"] = pool
-            if target:
-                params["target"] = target
-            if description:
-                params["description"] = description
-            if snapname:
-                params["snapname"] = snapname
-            if disk_format:
-                params["format"] = disk_format
-
-            task = proxmox.nodes(node).qemu(template_vmid).clone.post(**params)
-            return {
-                "success": True,
-                "task": task,
-                "data": {"vmid": new_vmid},
-                "message": f"Template cloning initiated",
-            }
-        except ResourceException as e:
-            logger.error(f">>> Failed to clone template {template_vmid}: {str(e)}")
-            raise Exception("Failed to clone template")
-
-    @staticmethod
     def create_template_from_vm(
         proxmox: ProxmoxAPI,
         node: str,
@@ -3627,11 +3561,6 @@ class ProxmoxVMService:
         node: str,
         vmid: int,
         template_id: int,
-        name: Optional[str] = None,
-        cores: Optional[int] = None,
-        memory: Optional[int] = None,
-        storage: Optional[str] = None,
-        ipconfig: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Create a new VM or clone from template
@@ -3640,12 +3569,7 @@ class ProxmoxVMService:
             proxmox (ProxmoxAPI): ProxmoxAPI instance
             node (str): Node name
             vmid (int): VM ID
-            name (str): VM name/hostname
-            cores (int): Number of CPU cores
-            memory (int): RAM in MB
-            storage (str): Storage name
             template_id (Optional[int], optional): Template VMID to clone from (optional). Defaults to None.
-            **kwargs: Additional VM configuration parameters (e.g., net0, ide0, ostype, etc.)
 
         Returns:
             Task ID and success status

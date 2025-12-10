@@ -18,7 +18,7 @@ import {
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import debounce from "@/utils/performanceUtil/debounce"
-import { normalizeString } from "@/utils/normalization"
+import { normalizeString } from "@/utils/string"
 import { ArticleDataTable } from "@/components/custom/table/article-data-table"
 import Tiptap from "@/components/custom/text-editor/tiptap"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"

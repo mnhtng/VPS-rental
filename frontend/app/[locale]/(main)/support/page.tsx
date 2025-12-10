@@ -54,7 +54,7 @@ const faqs = [
     {
         id: 4,
         question: 'What payment methods do you accept?',
-        answer: 'We accept QR code banking, MoMo wallet, and VNPay (credit/debit cards). All payments are processed securely.',
+        answer: 'We accept MoMo wallet and VNPay (credit/debit cards). All payments are processed securely.',
         category: 'Billing'
     },
     {
@@ -83,7 +83,7 @@ const chatbotResponses: { [key: string]: string } = {
     'support': 'Our support team is available 24/7 via live chat, email (support@vpsrental.com), and phone (+1-234-567-8900). What specific issue can I help you with?',
     'backup': 'We provide automated daily backups for all plans. You can also create manual backups from your dashboard. Backups are stored securely and can be restored with one click.',
     'setup': 'VPS setup typically takes 5-10 minutes after payment. You\'ll receive login credentials via email. Need help with initial server configuration?',
-    'payment': 'We accept QR code banking, MoMo wallet, and VNPay. All payments are secure and processed instantly.',
+    'payment': 'We accept MoMo wallet and VNPay. All payments are secure and processed instantly.',
     'refund': 'We offer a 30-day money-back guarantee for new customers. Contact support to process your refund request.',
     'upgrade': 'You can upgrade your VPS plan anytime from your dashboard. Upgrades are processed immediately with prorated billing.',
     'default': 'I\'m not sure about that specific question. Let me connect you with our human support team who can provide detailed assistance. You can also browse our FAQ section below.'

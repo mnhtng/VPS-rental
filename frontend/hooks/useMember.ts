@@ -1,11 +1,12 @@
 import { apiPattern } from '@/utils/pattern';
-import { PasswordChange, Profile, ProfileUpdate, User } from '@/types/types';
+import { ApiResponse, PasswordChange, Profile, ProfileUpdate, User } from '@/types/types';
 
 const useMember = () => {
-    const getProfile = async () => {
+    const getProfile = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
                 method: 'GET',
+                signal,
             });
 
             const result = await response.json();
@@ -15,7 +16,7 @@ const useMember = () => {
                     message: "Get profile failed",
                     error: {
                         code: "GET_PROFILE_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
@@ -37,7 +38,7 @@ const useMember = () => {
                 message: "Get profile failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_PROFILE_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An error occurred while fetching the profile",
                 }
@@ -45,7 +46,7 @@ const useMember = () => {
         }
     }
 
-    const updateProfile = async (data: ProfileUpdate) => {
+    const updateProfile = async (data: ProfileUpdate): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
                 method: 'PUT',
@@ -59,7 +60,7 @@ const useMember = () => {
                     message: "Update profile failed",
                     error: {
                         code: "UPDATE_PROFILE_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
@@ -73,7 +74,7 @@ const useMember = () => {
                 message: "Update profile failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'UPDATE_PROFILE_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An error occurred while updating the profile",
                 }
@@ -81,7 +82,7 @@ const useMember = () => {
         }
     }
 
-    const changePassword = async (data: PasswordChange) => {
+    const changePassword = async (data: PasswordChange): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/auth/change-password`, {
                 method: 'POST',
@@ -95,7 +96,7 @@ const useMember = () => {
                     message: "Change password failed",
                     error: {
                         code: "CHANGE_PASSWORD_FAILED",
-                        details: result.detail,
+                        detail: result.detail,
                     }
                 }
             }
@@ -109,7 +110,7 @@ const useMember = () => {
                 message: "Change password failed",
                 error: {
                     code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'CHANGE_PASSWORD_FAILED',
-                    details: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? "No access token available"
                         : "An error occurred while changing password",
                 }

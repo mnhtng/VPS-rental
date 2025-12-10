@@ -113,6 +113,7 @@ from .carts import (
     CartCreate,
     CartUpdate,
     CartAdd,
+    CartProceedToCheckout,
     CartPublic,
     CartResponse,
 )
@@ -137,6 +138,10 @@ from .payment_transactions import (
     PaymentTransactionBase,
     PaymentTransactionCreate,
     PaymentTransactionUpdate,
+    PaymentRequest,
+    PaymentResponse,
+    PaymentStatusResponse,
+    CallbackResponse,
     PaymentTransactionPublic,
     PaymentTransactionResponse,
 )
@@ -291,6 +296,7 @@ __all__ = [
     "CartCreate",
     "CartUpdate",
     "CartAdd",
+    "CartProceedToCheckout",
     "CartPublic",
     "CartResponse",
     # Order schemas
@@ -309,6 +315,10 @@ __all__ = [
     "PaymentTransactionBase",
     "PaymentTransactionCreate",
     "PaymentTransactionUpdate",
+    "PaymentRequest",
+    "PaymentResponse",
+    "PaymentStatusResponse",
+    "CallbackResponse",
     "PaymentTransactionPublic",
     "PaymentTransactionResponse",
     # VPS Instance schemas

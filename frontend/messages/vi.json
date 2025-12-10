@@ -187,18 +187,18 @@
             "needHelp": "Cần hỗ trợ?",
             "contactUs": "Liên hệ với chúng tôi"
         },
-        "unauthorized": {
+        "forbidden": {
             "title": "Truy cập bị từ chối",
-            "subtitle": "Bạn không có quyền truy cập trang này. Vui lòng đăng nhập hoặc liên hệ quản trị viên để được hỗ trợ.",
+            "subtitle": "Bạn không có quyền truy cập trang hoặc tài nguyên này. Vui lòng đăng nhập bằng tài khoản phù hợp hoặc liên hệ hỗ trợ nếu bạn cho rằng đây là một lỗi.",
             "login": "Đăng nhập",
             "backHome": "Về trang chủ",
             "goBack": "Quay lại",
             "whyTitle": "Tại sao bạn thấy trang này?",
             "reasons": [
-                "Bạn chưa đăng nhập vào hệ thống",
-                "Tài khoản của bạn không có quyền truy cập",
-                "Phiên đăng nhập của bạn đã hết hạn",
-                "Trang này yêu cầu quyền truy cập đặc biệt"
+                "Bạn chưa đăng nhập",
+                "Tài khoản của bạn không có quyền cần thiết",
+                "Tài nguyên bị giới hạn cho một số người dùng",
+                "Bạn có thể đang cố gắng truy cập khu vực chỉ dành cho quản trị viên"
             ],
             "needHelp": "Cần hỗ trợ?",
             "contactUs": "Liên hệ với chúng tôi"

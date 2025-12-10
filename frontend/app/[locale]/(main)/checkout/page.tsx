@@ -8,389 +8,221 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     CreditCard,
-    QrCode,
     Smartphone,
     Shield,
     ArrowLeft,
     ArrowRight,
-    CheckCircle,
     User,
     Building2
 } from 'lucide-react';
-import QRCode from 'react-qr-code';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/currency';
 import { Badge } from '@/components/ui/badge';
-import { usePayment } from '@/hooks/usePayment';
+import usePayment from '@/hooks/usePayment';
 import useProduct from '@/hooks/useProduct';
-import { CartItem as ApiCartItem } from '@/types/types';
+import { CartItem, CheckoutFormData } from '@/types/types';
 import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { CheckoutPlaceholder } from '@/components/custom/placeholder/checkout';
+import { useLocale } from 'next-intl';
+import usePromotion from '@/hooks/usePromotion';
+import { ValidatePromotion } from '@/types/types';
+import { generateOrderNumber } from '@/utils/string';
 
-interface VNPayBank {
-    code: string;
-    name: string;
-}
-
-interface CheckoutCartItem {
-    id: string;
-    planId: string;
-    planName: string;
-    hostname: string;
-    os: string;
-    durationMonths: number;
-    price: number;
-}
-
-interface CheckoutFormData {
-    // Customer Information
-    name: string;
-    email: string;
-    phone: string;
-
-    // Billing Address
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-
-    // Payment Method
-    paymentMethod: 'qr' | 'momo' | 'vnpay';
-
-    // Card Details (for VNPay)
-    cardNumber: string;
-    cardExpiry: string;
-    cardCvv: string;
-    cardName: string;
-}
-
-const CheckoutPage: React.FC = () => {
+const CheckoutPage = () => {
     const router = useRouter();
-    const [step, setStep] = useState<'info' | 'payment' | 'processing' | 'success'>('info');
+    const locale = useLocale();
+    const { getCartItems } = useProduct();
+    const { getPromotionCart } = usePromotion();
+    const { processPayment } = usePayment();
+
+    const [step, setStep] = useState<'info' | 'payment' | 'processing'>('info');
     const [formData, setFormData] = useState<CheckoutFormData>({
-        name: '',
-        email: '',
         phone: '',
         address: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: 'Vietnam',
-        paymentMethod: 'qr',
-        cardNumber: '',
-        cardExpiry: '',
-        cardCvv: '',
-        cardName: ''
+        paymentMethod: 'momo',
     });
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [appliedPromo, setAppliedPromo] = useState<ValidatePromotion | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingCart, setIsLoadingCart] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [cartItems, setCartItems] = useState<CheckoutCartItem[]>([]);
-    const [qrCodeData, setQrCodeData] = useState<string>('');
-    const [orderNumber, setOrderNumber] = useState<string>('');
-    const [vnpayBanks, setVnpayBanks] = useState<VNPayBank[]>([]);
-    const [selectedBank, setSelectedBank] = useState<string>('');
-    const [, setPaymentId] = useState<string>('');
+    const [isPageLoading, setIsPageLoading] = useState(true);
 
-    // Payment hook - using demo endpoints for testing
-    const {
-        processDemoVNPayPayment,
-        processDemoMoMoPayment,
-        getVNPayBanks,
-    } = usePayment();
+    const fetchCart = async (signal?: AbortSignal) => {
+        try {
+            const result = await getCartItems(signal);
 
-    // Product hook for cart
-    const { getCartItems } = useProduct();
+            if (signal?.aborted) return;
 
-    // Load cart data from API on mount
-    useEffect(() => {
-        const fetchCart = async () => {
-            try {
-                setIsLoadingCart(true);
-                const result = await getCartItems();
-
-                if (result.error) {
-                    toast.error(result.message, {
-                        description: result.error.details,
-                    });
-                    router.push('/cart');
-                    return;
-                }
-
-                if (!result.data || result.data.length === 0) {
-                    toast.error('Your cart is empty');
-                    router.push('/cart');
-                    return;
-                }
-
-                // Transform API cart items to checkout format
-                const checkoutItems: CheckoutCartItem[] = result.data.map((item: ApiCartItem) => ({
-                    id: item.id,
-                    planId: item.vps_plan.id,
-                    planName: item.vps_plan.name,
-                    hostname: item.hostname,
-                    os: item.os,
-                    durationMonths: item.duration_months,
-                    price: item.total_price,
-                }));
-
-                setCartItems(checkoutItems);
-            } catch (error) {
-                console.error('Error loading cart:', error);
-                toast.error('Failed to load cart');
-                router.push('/cart');
-            } finally {
-                setIsLoadingCart(false);
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.detail,
+                });
+                router.push(`/${locale}/cart`);
+                return;
             }
-        };
 
-        fetchCart();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+            if (!result.data || result.data.length === 0) {
+                toast.error('Your cart is empty');
+                router.push(`/${locale}/cart`);
+                return;
+            }
+
+            const getPromotion = await getPromotionCart(signal);
+
+            if (signal?.aborted) return;
+
+            if (getPromotion.error) {
+                toast.error(getPromotion.message, {
+                    description: getPromotion.error.detail,
+                });
+                router.push(`/${locale}/cart`);
+                return;
+            }
+
+            setCartItems(result.data);
+            setAppliedPromo(getPromotion.data);
+            setFormData(prev => ({
+                ...prev,
+                email: result.data[0].user.email,
+                name: result.data[0].user.name,
+                phone: result.data[0].user.phone,
+                address: result.data[0].user.address,
+            }));
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
+
+            toast.error("Failed to load cart items", {
+                description: "Please try again later"
+            });
+            router.push(`/${locale}/cart`);
+        } finally {
+            if (!signal?.aborted) {
+                setIsPageLoading(false);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        fetchCart(controller.signal);
+
+        return () => {
+            controller.abort();
+        };
     }, []);
 
-    // Load VNPay banks when payment method is vnpay
-    useEffect(() => {
-        const loadBanks = async () => {
-            if (formData.paymentMethod === 'vnpay' && vnpayBanks.length === 0) {
-                const result = await getVNPayBanks();
-                if (result.data) {
-                    setVnpayBanks(result.data);
-                }
-            }
-        };
-        loadBanks();
-    }, [formData.paymentMethod, getVNPayBanks, vnpayBanks.length]);
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        if (error) setError(null);
     };
 
     const handlePaymentMethodChange = (value: string) => {
-        setFormData(prev => ({ ...prev, paymentMethod: value as 'qr' | 'momo' | 'vnpay' }));
+        setFormData(prev => ({ ...prev, paymentMethod: value as 'momo' | 'vnpay' }));
+    };
+
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => total + item.total_price, 0);
+    };
+
+    const calculateDiscount = () => {
+        if (!appliedPromo) return 0;
+        return appliedPromo.discount_amount;
     };
 
     const calculateTotal = () => {
-        return cartItems.reduce((total, item) => total + item.price, 0);
-    };
-
-    const validateCustomerInfo = () => {
-        if (!formData.name.trim()) throw new Error('Full name is required');
-        if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) {
-            throw new Error('Valid email is required');
-        }
-        if (!formData.phone.trim()) throw new Error('Phone number is required');
-        if (!formData.address.trim()) throw new Error('Address is required');
-        if (!formData.city.trim()) throw new Error('City is required');
+        return calculateSubtotal() - calculateDiscount();
     };
 
     const handleCustomerInfoSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         try {
-            validateCustomerInfo();
+            if (!formData.phone || !formData.address) {
+                toast.error("Please fill in all required fields");
+                return;
+            }
+
+            if (formData.phone.length < 10) {
+                toast.error('Please enter a valid phone number');
+                return;
+            }
+
             setStep('payment');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Validation failed');
+        } catch {
+            toast.error("Please fill in all required fields correctly", {
+                description: "Some fields are invalid"
+            });
         }
     };
 
-    const generateQRCode = () => {
-        const total = calculateTotal();
-        const orderNum = `VPS-${Date.now()}`;
-        setOrderNumber(orderNum);
-
-        // Generate QR code for bank transfer
-        const qrData = {
-            bank: 'VCB',
-            account: '1234567890',
-            amount: total,
-            description: `VPS Payment ${orderNum}`,
-            beneficiary: 'VPS Rental Company'
-        };
-
-        setQrCodeData(`Bank: ${qrData.bank}|Account: ${qrData.account}|Amount: ${formatPrice(qrData.amount)}|Message: ${qrData.description}`);
-    };
-
-    const handleVNPayPayment = async () => {
+    const handlePaymentMethod = async (method: 'momo' | 'vnpay') => {
         setIsLoading(true);
-        setError(null);
+
         try {
-            // Generate order number
-            const orderNum = `VPS-${Date.now()}`;
-            setOrderNumber(orderNum);
-
-            // Calculate total amount
+            const orderNum = generateOrderNumber();
             const totalAmount = calculateTotal();
+            const returnUrl = `${window.location.origin}/checkout/${method}-return`;
 
-            // Get return URL for redirect back after payment
-            const returnUrl = `${window.location.origin}/vi/checkout/vnpay-return`;
-
-            // Create VNPay demo payment and redirect
-            // If selectedBank is empty or VNPAYQR, don't send bank_code to let VNPay choose
-            const bankCode = selectedBank && selectedBank !== 'VNPAYQR' ? selectedBank : undefined;
-
-            const result = await processDemoVNPayPayment(
+            const result = await processPayment(
                 orderNum,
                 totalAmount,
+                formData.phone,
+                formData.address,
                 returnUrl,
-                bankCode,
-                false  // Don't open in new tab, redirect in same window
+                method
             );
 
             if (result.error) {
                 setStep('payment');
-                setError(result.error.details || 'Không thể tạo thanh toán VNPay. Vui lòng thử lại.');
                 setIsLoading(false);
+                toast.error(result.error.detail);
                 return;
             }
 
-            if (result.data?.success && result.data.payment_id) {
-                setPaymentId(result.data.payment_id);
-                // User will be redirected to VNPay, so we keep the processing state
-                // The redirect happens inside processDemoVNPayPayment
-            }
-        } catch (err) {
+            // Redirect to payment URL if available
+            // For VNPay, it will be a web URL; for MoMo, it could be a deeplink or web URL
+        } catch {
             setStep('payment');
-            setError(err instanceof Error ? err.message : 'Thanh toán thất bại. Vui lòng thử lại.');
+            toast.error('Failed to create payment', {
+                description: 'Please try again later'
+            });
+        } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleMoMoPayment = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            // Generate order number
-            const orderNum = `VPS-${Date.now()}`;
-            setOrderNumber(orderNum);
-
-            // Calculate total amount
-            const totalAmount = calculateTotal();
-
-            // Get return URL for redirect back after payment
-            const returnUrl = `${window.location.origin}/vi/checkout/momo-return`;
-
-            // Create MoMo demo payment and redirect
-            const result = await processDemoMoMoPayment(
-                orderNum,
-                totalAmount,
-                returnUrl,
-                false
-            );
-
-            if (result.error) {
-                setStep('payment');
-                setError(result.error.details || 'Không thể tạo thanh toán MoMo. Vui lòng thử lại.');
-                setIsLoading(false);
-                return;
-            }
-
-            if (result.data?.success && result.data.payment_id) {
-                setPaymentId(result.data.payment_id);
-                // Redirect will be handled by processDemoMoMoPayment
-            }
-        } catch (err) {
-            setStep('payment');
-            setError(err instanceof Error ? err.message : 'Thanh toán thất bại. Vui lòng thử lại.');
-            setIsLoading(false);
-        }
-    };
+    }
 
     const handlePaymentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
         setStep('processing');
 
-        if (formData.paymentMethod === 'qr') {
-            generateQRCode();
-            // For QR code, we'll show the code and simulate waiting for payment
-            setTimeout(() => {
-                setStep('success');
-                setOrderNumber(`VPS-${Date.now()}`);
-                localStorage.removeItem('vps_cart');
-            }, 5000);
-        } else if (formData.paymentMethod === 'momo') {
-            await handleMoMoPayment();
-        } else if (formData.paymentMethod === 'vnpay') {
-            await handleVNPayPayment();
-        }
+        await handlePaymentMethod(formData.paymentMethod)
     };
 
-    if (step === 'success') {
+    if (step === 'processing') {
         return (
             <div className="min-h-screen flex items-center justify-center px-4">
-                <Card className="max-w-md w-full">
-                    <CardHeader className="text-center">
-                        <div className="flex justify-center mb-4">
-                            <div className="bg-green-500 p-4 rounded-full">
-                                <CheckCircle className="h-8 w-8 text-white" />
+                <Card className="max-w-md w-full animate-in fade-in zoom-in duration-500">
+                    <CardContent className="text-center py-12 space-y-6">
+                        <div className="relative">
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 animate-pulse"></div>
                             </div>
                         </div>
-                        <CardTitle className="text-2xl text-green-500">Payment Successful!</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-center space-y-4">
-                        <p className="text-muted-foreground">
-                            Your VPS order has been confirmed and is being processed.
-                        </p>
-                        <div className="bg-secondary p-4 rounded-lg">
-                            <p className="text-sm font-medium">Order Number</p>
-                            <p className="text-lg font-mono">{orderNumber}</p>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                            You will receive a confirmation email shortly with your VPS access details.
-                        </p>
-                        <div className="space-y-2">
-                            <Button className="w-full" onClick={() => router.push('/plans')}>
-                                Continue Shopping
-                            </Button>
-                            <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
-                                Back to Home
-                            </Button>
-                        </div>
+                        <h2 className="text-2xl font-bold animate-pulse">Processing Payment</h2>
+                        <p className="text-muted-foreground">Please wait while we process your payment...</p>
                     </CardContent>
                 </Card>
             </div>
         );
     }
 
-    if (step === 'processing') {
+    if (isPageLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center px-4">
-                <Card className="max-w-md w-full">
-                    <CardContent className="text-center py-12 space-y-6">
-                        {formData.paymentMethod === 'qr' && qrCodeData ? (
-                            <>
-                                <h2 className="text-2xl font-bold">Scan QR Code to Pay</h2>
-                                <div className="flex justify-center">
-                                    <div className="bg-white p-4 rounded-lg shadow-lg">
-                                        <QRCode value={qrCodeData} size={200} />
-                                    </div>
-                                </div>
-                                <div className="text-sm space-y-2">
-                                    <p><strong>Bank:</strong> VCB (Vietcombank)</p>
-                                    <p><strong>Account:</strong> 1234567890</p>
-                                    <p><strong>Amount:</strong> {formatPrice(calculateTotal())}</p>
-                                    <p><strong>Message:</strong> VPS Payment {orderNumber}</p>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                    Please scan the QR code with your banking app to complete the payment.
-                                    This page will automatically update once payment is received.
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-                                <h2 className="text-2xl font-bold">Processing Payment</h2>
-                                <p className="text-muted-foreground">Please wait while we process your payment...</p>
-                            </>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+            <CheckoutPlaceholder />
         );
     }
 
@@ -398,10 +230,10 @@ const CheckoutPage: React.FC = () => {
         <div className="min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Header */}
-                <div className="mb-10">
+                <div className="mb-10 animate-in fade-in slide-in-from-top duration-700">
                     <Button
                         variant="ghost"
-                        className="mb-6"
+                        className="mb-6 hover:translate-x-1 transition-transform duration-200"
                     >
                         <Link href="/cart" className='flex items-center'>
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -415,7 +247,7 @@ const CheckoutPage: React.FC = () => {
                 </div>
 
                 {/* Progress Steps */}
-                <div className="mb-12">
+                <div className="mb-12 animate-in fade-in zoom-in duration-700 delay-100">
                     <div className="flex items-center justify-center space-x-8">
                         <div
                             className={`flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 space-x-3 transition-all duration-300 ${step === 'info' ? 'text-blue-600 dark:text-blue-400 scale-110' : 'text-green-600'}`}
@@ -452,7 +284,7 @@ const CheckoutPage: React.FC = () => {
                     {/* Main Content */}
                     <div className="lg:col-span-2">
                         {step === 'info' && (
-                            <Card className="bg-secondary backdrop-blur-sm border-0 shadow-2xl">
+                            <Card className="bg-secondary backdrop-blur-sm border-0 shadow-2xl animate-in fade-in slide-in-from-left duration-700">
                                 <CardHeader>
                                     <CardTitle className="flex items-center text-2xl">
                                         <User className="mr-3 h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -473,28 +305,21 @@ const CheckoutPage: React.FC = () => {
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="name" className="text-sm font-medium">Full Name *</Label>
+                                                    <Label className="text-sm font-medium">Full Name <span className='text-red-400'>*</span></Label>
                                                     <Input
-                                                        id="name"
-                                                        name="name"
-                                                        value={formData.name}
-                                                        onChange={handleInputChange}
-                                                        required
-                                                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                                                        value={cartItems[0]?.user.name || ''}
+                                                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
                                                         placeholder="Enter your full name"
+                                                        disabled
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="email" className="text-sm font-medium">Email Address *</Label>
+                                                    <Label className="text-sm font-medium">Email Address <span className='text-red-400'>*</span></Label>
                                                     <Input
-                                                        id="email"
-                                                        name="email"
-                                                        type="email"
-                                                        value={formData.email}
-                                                        onChange={handleInputChange}
-                                                        required
-                                                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                                                        value={cartItems[0]?.user.email || ''}
+                                                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
                                                         placeholder="your.email@example.com"
+                                                        disabled
                                                     />
                                                 </div>
                                             </div>
@@ -508,7 +333,7 @@ const CheckoutPage: React.FC = () => {
                                             </h3>
                                             <div className="space-y-6">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="phone" className="text-sm font-medium">Phone Number *</Label>
+                                                    <Label htmlFor="phone" className="text-sm font-medium">Phone Number <span className='text-red-400'>*</span></Label>
                                                     <Input
                                                         id="phone"
                                                         name="phone"
@@ -516,7 +341,7 @@ const CheckoutPage: React.FC = () => {
                                                         value={formData.phone}
                                                         onChange={handleInputChange}
                                                         required
-                                                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                                                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
                                                         placeholder="+1 (555) 123-4567"
                                                     />
                                                 </div>
@@ -529,56 +354,18 @@ const CheckoutPage: React.FC = () => {
                                                 <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3"></div>
                                                 Address Information
                                             </h3>
-                                            <div className="space-y-6">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="address" className="text-sm font-medium">Street Address *</Label>
-                                                    <Input
-                                                        id="address"
-                                                        name="address"
-                                                        value={formData.address}
-                                                        onChange={handleInputChange}
-                                                        required
-                                                        className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                                                        placeholder="Enter your street address"
-                                                    />
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="city" className="text-sm font-medium">City *</Label>
-                                                        <Input
-                                                            id="city"
-                                                            name="city"
-                                                            value={formData.city}
-                                                            onChange={handleInputChange}
-                                                            required
-                                                            className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                                                            placeholder="City"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="state" className="text-sm font-medium">State/Province</Label>
-                                                        <Input
-                                                            id="state"
-                                                            name="state"
-                                                            value={formData.state}
-                                                            onChange={handleInputChange}
-                                                            className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                                                            placeholder="State"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="zipCode" className="text-sm font-medium">ZIP/Postal Code</Label>
-                                                        <Input
-                                                            id="zipCode"
-                                                            name="zipCode"
-                                                            value={formData.zipCode}
-                                                            onChange={handleInputChange}
-                                                            className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
-                                                            placeholder="12345"
-                                                        />
-                                                    </div>
-                                                </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="address" className="text-sm font-medium">Street Address <span className='text-red-400'>*</span></Label>
+                                                <Textarea
+                                                    id="address"
+                                                    name="address"
+                                                    value={formData.address}
+                                                    onChange={handleInputChange}
+                                                    rows={3}
+                                                    required
+                                                    className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
+                                                    placeholder="Enter your street address"
+                                                />
                                             </div>
                                         </div>
 
@@ -598,7 +385,7 @@ const CheckoutPage: React.FC = () => {
                         )}
 
                         {step === 'payment' && (
-                            <Card className="bg-secondary backdrop-blur-sm border-0 shadow-2xl">
+                            <Card className="bg-secondary backdrop-blur-sm border-0 shadow-2xl animate-in fade-in slide-in-from-left duration-700">
                                 <CardHeader>
                                     <CardTitle className="flex items-center text-2xl">
                                         <CreditCard className="mr-3 h-6 w-6 text-green-600" />
@@ -621,33 +408,6 @@ const CheckoutPage: React.FC = () => {
                                                 onValueChange={handlePaymentMethodChange}
                                                 className="space-y-4"
                                             >
-                                                {/* QR Code Payment */}
-                                                <Label
-                                                    className={`relative group cursor-pointer transition-all duration-300 hover:scale-[1.02] ${formData.paymentMethod === 'qr'
-                                                        ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-400 dark:to-blue-600 border-2 border-blue-500 shadow-lg'
-                                                        : 'border-2 border-gray-200 hover:border-blue-300 hover:shadow-md'
-                                                        } rounded-xl p-6`}
-                                                    htmlFor="qr"
-                                                >
-                                                    <div className="flex items-center space-x-4">
-                                                        <RadioGroupItem value="qr" id="qr" className="bg-white text-blue-600 border-blue-600" />
-                                                        <div className="w-full flex items-center space-x-4">
-                                                            <div className={`p-3 rounded-full transition-all duration-300 ${formData.paymentMethod === 'qr' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600'
-                                                                }`}>
-                                                                <QrCode className="h-6 w-6" />
-                                                            </div>
-                                                            <div>
-                                                                <Label htmlFor="qr" className="text-lg font-semibold cursor-pointer">
-                                                                    QR Code Banking
-                                                                </Label>
-                                                                <p className="text-sm mt-1">
-                                                                    Pay instantly via QR code with any banking app
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Label>
-
                                                 {/* MoMo Payment */}
                                                 <Label
                                                     className={`relative group cursor-pointer transition-all duration-300 hover:scale-[1.02] ${formData.paymentMethod === 'momo'
@@ -668,7 +428,7 @@ const CheckoutPage: React.FC = () => {
                                                                     MoMo Wallet
                                                                 </Label>
                                                                 <p className="text-sm mt-1">
-                                                                    Pay with your MoMo e-wallet
+                                                                    Pay securely via MoMo e-wallet
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -695,7 +455,7 @@ const CheckoutPage: React.FC = () => {
                                                                     VNPay
                                                                 </Label>
                                                                 <p className="text-sm mt-1">
-                                                                    Pay with credit/debit card via VNPay
+                                                                    Pay securely via VNPay gateway
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -706,64 +466,48 @@ const CheckoutPage: React.FC = () => {
 
                                         {/* VNPay Bank Selection */}
                                         {formData.paymentMethod === 'vnpay' && (
-                                            <div className="space-y-4 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                                            <div className="space-y-4 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-300 dark:border-green-800">
                                                 <h3 className="text-lg font-semibold flex items-center text-green-700 dark:text-green-400">
                                                     <Building2 className="mr-2 h-5 w-5" />
-                                                    Chọn ngân hàng (tùy chọn)
+                                                    Payment via VNPay
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    Bạn có thể chọn ngân hàng hoặc để VNPay tự động chọn
+                                                    You will be redirected to the VNPay payment gateway to complete your transaction.
                                                 </p>
-                                                <Select
-                                                    value={selectedBank}
-                                                    onValueChange={setSelectedBank}
-                                                >
-                                                    <SelectTrigger className="w-full h-12 bg-white dark:bg-gray-800">
-                                                        <SelectValue placeholder="Chọn ngân hàng (để trống nếu muốn chọn sau)" />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="max-h-[300px]">
-                                                        <SelectItem value="VNPAYQR">
-                                                            -- Để VNPay tự chọn (QR Code) --
-                                                        </SelectItem>
-                                                        {vnpayBanks.map((bank) => (
-                                                            <SelectItem key={bank.code} value={bank.code}>
-                                                                {bank.name} ({bank.code})
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
                                                 <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                                                     <Shield className="h-4 w-4" />
-                                                    <span>Giao dịch được bảo mật bởi VNPay</span>
+                                                    <span>Transactions are secured by VNPay</span>
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* MoMo Info */}
                                         {formData.paymentMethod === 'momo' && (
-                                            <div className="space-y-4 p-6 bg-pink-50 dark:bg-pink-900/20 rounded-xl border border-pink-200 dark:border-pink-800">
+                                            <div className="space-y-4 p-6 bg-pink-50 dark:bg-pink-900/20 rounded-xl border border-pink-300 dark:border-pink-800">
                                                 <h3 className="text-lg font-semibold flex items-center text-pink-700 dark:text-pink-400">
                                                     <Smartphone className="mr-2 h-5 w-5" />
-                                                    Thanh toán qua MoMo
+                                                    Payment via MoMo
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    Bạn sẽ được chuyển đến trang thanh toán MoMo để hoàn tất giao dịch.
+                                                    You will be redirected to the MoMo payment gateway to complete your transaction.
                                                 </p>
                                                 <div className="flex items-center gap-2 text-sm text-pink-600 dark:text-pink-400">
                                                     <Shield className="h-4 w-4" />
-                                                    <span>Giao dịch được bảo mật bởi MoMo</span>
+                                                    <span>Transactions are secured by MoMo</span>
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* Error Message */}
-                                        {error && (
-                                            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-                                                <p className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</p>
-                                            </div>
-                                        )}
+                                        <div className="flex justify-between gap-4 pt-6 border-t border-gray-400 border-dashed">
+                                            <Button
+                                                variant={'outline'}
+                                                size="lg"
+                                                onClick={() => setStep('info')}
+                                            >
+                                                <ArrowLeft className="mr-0 sm:mr-2 h-5 w-5" />
+                                                <span className='hidden sm:inline'>Back to Info</span>
+                                            </Button>
 
-                                        <div className="flex justify-end pt-6 border-t border-gray-400 border-dashed">
                                             <Button
                                                 type="submit"
                                                 size="lg"
@@ -773,14 +517,13 @@ const CheckoutPage: React.FC = () => {
                                                 {isLoading ? (
                                                     <>
                                                         <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-3"></div>
-                                                        Đang xử lý...
+                                                        Processing...
                                                     </>
                                                 ) : (
                                                     <>
                                                         <Shield className="mr-3 h-5 w-5" />
-                                                        {formData.paymentMethod === 'vnpay' ? 'Thanh toán với VNPay' :
-                                                            formData.paymentMethod === 'momo' ? 'Thanh toán với MoMo' :
-                                                                'Hoàn tất thanh toán'}
+                                                        {formData.paymentMethod === 'vnpay' ? 'Pay with VNPay' :
+                                                            'Pay with MoMo'}
                                                     </>
                                                 )}
                                             </Button>
@@ -793,7 +536,7 @@ const CheckoutPage: React.FC = () => {
 
                     {/* Order Summary */}
                     <div className="lg:col-span-1">
-                        <Card className="sticky top-16.5 backdrop-blur-sm border-2 border-muted-foreground shadow-2xl">
+                        <Card className="sticky top-16.5 backdrop-blur-sm border-2 border-muted-foreground shadow-2xl animate-in fade-in slide-in-from-right duration-700">
                             <CardHeader>
                                 <CardTitle className="text-2xl flex items-center">
                                     <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mr-3">
@@ -807,13 +550,17 @@ const CheckoutPage: React.FC = () => {
                                 {/* VPS Items */}
                                 <div className="space-y-4">
                                     {cartItems.map((item, index) => (
-                                        <div key={index} className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-300 dark:to-purple-300 rounded-2xl p-6 border border-blue-200">
+                                        <div
+                                            key={index}
+                                            className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-300 dark:to-purple-300 rounded-2xl p-6 border border-blue-200 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer animate-in fade-in slide-in-from-bottom"
+                                            style={{ animationDelay: `${index * 100}ms`, animationDuration: '500ms' }}
+                                        >
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between gap-3">
-                                                    <h3 className="font-bold text-lg text-black">{item.planName}</h3>
+                                                    <h3 className="font-bold text-lg text-black">{item.vps_plan.name}</h3>
 
                                                     <Badge variant="secondary" className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-green-200">
-                                                        {item.durationMonths} month(s)
+                                                        {item.duration_months} month(s)
                                                     </Badge>
                                                 </div>
 
@@ -823,7 +570,7 @@ const CheckoutPage: React.FC = () => {
 
                                                     <div className="mt-4">
                                                         <div className="text-lg sm:text-2xl font-bold text-purple-700">
-                                                            {formatPrice(item.price)}
+                                                            {formatPrice(item.total_price)}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -838,15 +585,17 @@ const CheckoutPage: React.FC = () => {
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-muted-foreground">
                                         <span>Subtotal</span>
-                                        <span>{formatPrice(calculateTotal())}</span>
+                                        <span>{formatPrice(calculateSubtotal())}</span>
                                     </div>
+                                    {appliedPromo && (
+                                        <div className="flex justify-between text-green-600 font-medium">
+                                            <span>Discount ({appliedPromo.promotion.code})</span>
+                                            <span>-{formatPrice(calculateDiscount())}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-muted-foreground">
                                         <span>Setup Fee</span>
                                         <span className="text-green-600 font-medium">FREE</span>
-                                    </div>
-                                    <div className="flex justify-between text-muted-foreground">
-                                        <span>First Month Discount</span>
-                                        <span className="text-green-600 font-medium">-{formatPrice(0)}</span>
                                     </div>
                                 </div>
 

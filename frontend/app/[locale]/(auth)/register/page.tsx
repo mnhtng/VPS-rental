@@ -53,6 +53,16 @@ const RegisterPage = () => {
             return
         }
 
+        if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            toast.error('Please enter a valid email address');
+            return;
+        }
+
+        if (formData.phone.length < 10) {
+            toast.error('Please enter a valid phone number');
+            return;
+        }
+
         if (formData.password.length < 6) {
             toast.error('Password must be at least 6 characters long');
             setIsLoading(false);

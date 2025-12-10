@@ -6,6 +6,7 @@ from pydantic import (
     BaseModel,
     Field,
     ConfigDict,
+    ValidationInfo,
     field_validator,
 )
 from enum import Enum
@@ -240,6 +241,174 @@ class PaymentTransactionUpdate(BaseModel):
         if v not in valid_currencies:
             raise ValueError("Invalid currency")
         return v
+
+
+class PaymentRequest(BaseModel):
+    """Schema for creating a payment request to payment gateway"""
+
+    order_number: str = Field(..., description="Order number for reference")
+    amount: float = Field(..., description="Amount in VND")
+    phone: str = Field(..., description="Customer phone number")
+    address: str = Field(..., description="Customer address")
+    return_url: Optional[str] = Field(None, description="Return URL after payment")
+
+    @field_validator("order_number", "phone", "address")
+    @classmethod
+    def validate_required_str_fields(cls, v: str, info: ValidationInfo) -> str:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
+        if not v:
+            raise ValueError(f"{field_name} must not be empty")
+
+        v = v.strip()
+        if len(v) == 0:
+            raise ValueError(f"{field_name} must not be empty")
+        return v
+
+    @field_validator("return_url", mode="before")
+    @classmethod
+    def validate_optional_str_field(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        v = v.strip()
+        return None if len(v) == 0 else v
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v: float) -> float:
+        if not v:
+            raise ValueError("Amount must not be empty")
+        if v < 0:
+            raise ValueError("Amount must be a positive value")
+        return v
+
+
+class PaymentResponse(BaseModel):
+    """Schema for payment response from gateway"""
+
+    success: bool = Field(
+        ..., description="Indicates if the payment initiation was successful"
+    )
+    payment_url: Optional[str] = Field(
+        None, description="URL to redirect user for payment completion"
+    )
+    deeplink: Optional[str] = Field(
+        None, description="Deeplink for mobile payment apps"
+    )
+    transaction_id: Optional[str] = Field(
+        None, description="Transaction ID from payment gateway"
+    )
+    payment_id: Optional[str] = Field(
+        None, description="Payment ID from payment gateway"
+    )
+    error: Optional[str] = Field(
+        None, description="Error message if payment initiation failed"
+    )
+
+    @field_validator(
+        "payment_url",
+        "deeplink",
+        "transaction_id",
+        "payment_id",
+        "error",
+        mode="before",
+    )
+    @classmethod
+    def validate_optional_str_fields(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        v = v.strip()
+        return None if len(v) == 0 else v
+
+
+class PaymentStatusResponse(BaseModel):
+    """Schema for payment status response"""
+
+    payment_id: str = Field(..., description="Payment ID from payment gateway")
+    transaction_id: Optional[str] = Field(
+        None, description="Transaction ID from payment gateway"
+    )
+    payment_method: str = Field(..., description="Payment method")
+    amount: float = Field(..., description="Payment amount")
+    currency: str = Field(..., description="Currency code")
+    status: str = Field(..., description="Payment status")
+    order_id: Optional[str] = Field(None, description="Order ID")
+    order_number: Optional[str] = Field(None, description="Order number")
+    order_status: Optional[str] = Field(None, description="Order status")
+    created_at: str = Field(..., description="Creation timestamp")
+    updated_at: str = Field(..., description="Last update timestamp")
+
+    @field_validator(
+        "transaction_id",
+        "order_id",
+        "order_number",
+        "order_status",
+        mode="before",
+    )
+    @classmethod
+    def validate_optional_str_fields(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        v = v.strip()
+        return None if len(v) == 0 else v
+
+    @field_validator(
+        "payment_id",
+        "payment_method",
+        "currency",
+        "status",
+        "created_at",
+        "updated_at",
+    )
+    @classmethod
+    def validate_required_str_fields(cls, v: str, info: ValidationInfo) -> str:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
+        if not v:
+            raise ValueError(f"{field_name} must not be empty")
+
+        v = v.strip()
+        if len(v) == 0:
+            raise ValueError(f"{field_name} must not be empty")
+        return v
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v: float) -> float:
+        if not v:
+            raise ValueError("Amount must not be empty")
+        if v < 0:
+            raise ValueError("Amount must be a positive value")
+        return v
+
+
+class CallbackResponse(BaseModel):
+    """Schema for payment gateway callback verification response"""
+
+    valid: bool = Field(..., description="Indicates if the callback is valid")
+    success: Optional[bool] = Field(
+        None, description="Indicates if the callback was successful"
+    )
+    transaction_id: Optional[str] = Field(
+        None, description="Transaction ID from payment gateway"
+    )
+    message: Optional[str] = Field(None, description="Message from payment gateway")
+    error: Optional[str] = Field(
+        None, description="Error message if callback verification failed"
+    )
+    data: Optional[dict] = Field(None, description="Additional data from payment gateway")
+
+    @field_validator("transaction_id", "message", "error", mode="before")
+    @classmethod
+    def validate_optional_str_fields(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        v = v.strip()
+        return None if len(v) == 0 else v
 
 
 class PaymentTransactionPublic(PaymentTransactionBase):

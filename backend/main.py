@@ -8,8 +8,9 @@ from backend.db import init_db
 from backend.routes import (
     auth_router,
     users_router,
+    vps_router,
+    vps_admin_router,
     proxmox_router,
-    proxmox_iaas_router,
     vps_plans_router,
     cart_router,
     promotion_router,
@@ -73,8 +74,9 @@ api_prefix = settings.API_PREFIX
 
 app.include_router(auth_router, prefix=api_prefix)
 app.include_router(users_router, prefix=api_prefix)
+app.include_router(vps_router, prefix=api_prefix)
+app.include_router(vps_admin_router, prefix=api_prefix)
 app.include_router(proxmox_router, prefix=api_prefix)
-app.include_router(proxmox_iaas_router, prefix=api_prefix)
 app.include_router(vps_plans_router, prefix=api_prefix)
 app.include_router(cart_router, prefix=api_prefix)
 app.include_router(promotion_router, prefix=api_prefix)

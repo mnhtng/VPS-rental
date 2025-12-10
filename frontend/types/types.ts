@@ -12,6 +12,39 @@ export interface User {
     updated_at?: string;
 }
 
+export interface Login {
+    email: string;
+    password: string;
+}
+
+export interface Register {
+    name: string;
+    email: string;
+    password: string;
+    phone: string | null;
+}
+
+export interface Profile {
+    name: string;
+    email: string;
+    phone?: string
+    address?: string;
+    joinedDate?: string;
+    avatar?: string;
+    role?: 'USER' | 'ADMIN';
+}
+
+export interface ProfileUpdate {
+    name?: string;
+    phone?: string
+    address?: string;
+}
+
+export interface PasswordChange {
+    current_password: string;
+    new_password: string;
+}
+
 export interface VPSPlan {
     id: string;
     name: string;
@@ -55,11 +88,22 @@ export interface CartItem {
     duration_months: number;
     unit_price: number;
     total_price: number;
+    discount_code?: string;
     created_at: string;
     updated_at: string;
     user: User;
     vps_plan: VPSPlan;
     template: VMTemplate;
+}
+
+export interface AddToCartPayload {
+    planID: string;
+    hostname: string;
+    os: string;
+    templateOS: string;
+    templateVersion: string;
+    durationMonths: number;
+    totalPrice: number;
 }
 
 export interface OrderItem {
@@ -71,20 +115,57 @@ export interface OrderItem {
     total_price: number;
 }
 
-export interface Order {
-    id: string;
-    user_id?: string; // For admin compatibility
-    plan_id?: string; // For admin compatibility
-    order_number?: string;
-    status: 'pending' | 'processing' | 'active' | 'suspended' | 'cancelled';
-    total?: number; // For admin compatibility
-    total_amount?: number;
-    payment_method?: 'qr_code' | 'momo' | 'vnpay' | 'QR Code' | 'MoMo' | 'VNPay';
-    billing_address?: string;
-    notes?: string;
+export interface OrderPaymentsResponse {
+    order_id: string;
+    order_number: string;
+    order_status: string;
+    payments: Array<{
+        id: string;
+        transaction_id: string | null;
+        payment_method: string;
+        amount: number;
+        currency: string;
+        status: string;
+        created_at: string;
+    }>;
+}
+
+export interface CheckoutFormData {
+    phone: string;
+    address: string;
+    paymentMethod: 'momo' | 'vnpay';
+}
+
+export interface PaymentResponse {
+    success: boolean;
+    payment_url?: string;
+    deeplink?: string;
+    transaction_id?: string;
+    payment_id?: string;
+    error?: string;
+}
+
+export interface PaymentStatusResponse {
+    payment_id: string;
+    transaction_id: string | null;
+    payment_method: string;
+    amount: number;
+    currency: string;
+    status: 'pending' | 'completed' | 'failed';
+    order_id: string | null;
+    order_number: string | null;
+    order_status: string | null;
     created_at: string;
-    updated_at?: string;
-    order_items: OrderItem[];
+    updated_at: string;
+}
+
+export interface PaymentResult {
+    status: 'loading' | 'success' | 'failed';
+    message: string;
+    transactionId?: string;
+    momoTransId?: string;
+    amount?: string;
+    orderNumber?: string;
 }
 
 export interface VPSInstance {
@@ -98,17 +179,6 @@ export interface VPSInstance {
     disk_usage: number;
     created_at: string;
     updated_at: string;
-}
-
-export interface Payment {
-    id: string;
-    payment_method: 'qr_code' | 'momo' | 'vnpay';
-    amount: number;
-    status: 'pending' | 'completed' | 'failed' | 'refunded';
-    transaction_id?: string;
-    qr_code_data?: string;
-    payment_url?: string;
-    created_at: string;
 }
 
 export interface SupportMessage {
@@ -165,77 +235,13 @@ export interface UserPromotion {
     used_at: string;
 }
 
-export interface ValidatePromotionResponse {
+export interface ValidatePromotion {
     valid: boolean;
     promotion: Promotion;
     discount_amount: number;
     discount_type: 'percentage' | 'fixed_amount';
     discount_value: number;
     final_amount: number;
-}
-
-export interface DashboardStats {
-    total_users: number;
-    active_orders: number;
-    total_revenue: number;
-    pending_tickets: number;
-    monthly_growth: number;
-}
-
-export interface SalesReport {
-    total_orders: number;
-    total_revenue: number;
-    active_vps: number;
-    new_users: number;
-    period: string;
-}
-
-// Form Types
-export interface RegisterForm {
-    email: string;
-    password: string;
-    full_name: string;
-    phone?: string;
-}
-
-export interface LoginForm {
-    email: string;
-    password: string;
-}
-
-export interface Profile {
-    name: string;
-    email: string;
-    phone?: string
-    address?: string;
-    joinedDate?: string;
-    avatar?: string;
-    role?: 'USER' | 'ADMIN';
-}
-
-export interface ProfileUpdate {
-    name?: string;
-    phone?: string
-    address?: string;
-}
-
-export interface PasswordChange {
-    current_password: string;
-    new_password: string;
-}
-
-export interface OrderCreateForm {
-    items: CartItem[];
-    payment_method: 'qr_code' | 'momo' | 'vnpay';
-    billing_address?: string;
-    notes?: string;
-}
-
-export interface SupportTicketForm {
-    subject: string;
-    description: string;
-    category: string;
-    priority: string;
 }
 
 export interface ChatMessage {
@@ -245,14 +251,118 @@ export interface ChatMessage {
     timestamp: Date;
 }
 
-//! API Request Types
+//! Email and PDF Types
+export interface VPSItem {
+    name: string;
+    hostname: string;
+    os: string;
+    duration_months?: number;
+    cpu: number;
+    ram: number;
+    storage: number;
+    storage_type: string;
+    network_speed: number;
+    price?: number;
+    total_price?: number;
+}
 
-//! API Response Types
-export interface ApiResponse<T> {
-    success: boolean;
-    message: string;
-    data: T | null;
-    error: {
+export interface EmailLayoutProps {
+    preview?: string;
+    children: React.ReactNode;
+}
+
+export interface EmailResetPasswordTemplateProps {
+    name: string;
+    resetUrl: string;
+}
+
+export interface EmailVerificationTemplateProps {
+    name: string;
+    verificationUrl: string;
+}
+
+export interface OrderConfirmationEmailData {
+    customerName: string;
+    customerEmail: string;
+    customerPhone?: string;
+    customerAddress?: string;
+    orderNumber: string;
+    orderDate: string;
+    vpsItems: VPSItem[];
+    subtotal: number;
+    discount: number;
+    total: number;
+    paymentMethod: string;
+    transactionId?: string;
+}
+
+export interface EmailOrderConfirmationProps {
+    customerName: string;
+    customerEmail: string;
+    orderNumber: string;
+    orderDate: string;
+    vpsItems: VPSItem[];
+    subtotal: number;
+    discount: number;
+    total: number;
+    paymentMethod: string;
+    transactionId?: string;
+}
+
+export interface VPSWelcomeEmailData {
+    customerName: string;
+    customerEmail: string;
+    orderNumber: string;
+    orderDate: string;
+    vps: VPSItem;
+    credentials: VPSCredentials;
+}
+
+export interface EmailVPSWelcomeProps {
+    customerName: string;
+    orderNumber: string;
+    vps: VPSItem;
+    credentials: VPSCredentials;
+}
+
+// PDF Invoice
+export interface InvoicePDFProps {
+    customerName: string;
+    customerEmail: string;
+    customerPhone?: string;
+    customerAddress?: string;
+    orderNumber: string;
+    orderDate: string;
+    vpsItems: VPSItem[];
+    subtotal: number;
+    discount: number;
+    total: number;
+    paymentMethod: string;
+    transactionId?: string;
+}
+
+// PDF VPS Welcome
+export interface VPSCredentials {
+    ipAddress: string;
+    username: string;
+    password: string;
+    sshPort: number;
+}
+
+export interface VPSWelcomePDFProps {
+    customerName: string;
+    orderNumber: string;
+    orderDate: string;
+    vps: VPSItem;
+    credentials: VPSCredentials;
+}
+
+//! API Types
+export interface ApiResponse {
+    message?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data?: any;
+    error?: {
         code: string | number;
         detail: string;
     } | null;
@@ -261,11 +371,4 @@ export interface ApiResponse<T> {
         path: string;
         requestID?: string; // UUID/random string
     }
-}
-
-export interface PaginatedResponse<T> {
-    items: T[];
-    total: number;
-    page: number;
-    per_page: number;
 }

@@ -1,285 +1,229 @@
-import { useCallback } from 'react';
+import { apiPattern } from '@/utils/pattern';
+import { ApiResponse, OrderPaymentsResponse, PaymentStatusResponse, PaymentResponse } from '@/types/types';
+import { sendOrderConfirmationEmail, sendPasswordResetEmail, sendVerificationMail, sendVPSWelcomeEmail } from '@/lib/email/resend';
 
-// Types
-interface PaymentResponse {
-    success: boolean;
-    payment_url?: string;
-    qr_code_url?: string;
-    deeplink?: string;
-    transaction_id?: string;
-    payment_id?: string;
-    error?: string;
-}
-
-interface PaymentStatusResponse {
-    payment_id: string;
-    transaction_id: string | null;
-    payment_method: string;
-    amount: number;
-    currency: string;
-    status: 'pending' | 'completed' | 'failed';
-    order_id: string | null;
-    order_number: string | null;
-    order_status: string | null;
-    created_at: string;
-    updated_at: string;
-}
-
-interface OrderPaymentsResponse {
-    order_id: string;
-    order_number: string;
-    order_status: string;
-    payments: Array<{
-        id: string;
-        transaction_id: string | null;
-        payment_method: string;
-        amount: number;
-        currency: string;
-        status: string;
-        created_at: string;
-    }>;
-}
-
-interface VNPayBank {
-    code: string;
-    name: string;
-}
-
-interface ApiResult<T> {
-    data: T | null;
-    error: {
-        code: string;
-        details: string;
-    } | null;
-    message: string;
-}
-
-export function usePayment() {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-    /**
-     * Make authenticated API request using cookies
-     */
-    const fetchWithAuth = useCallback(async (
-        url: string,
-        options: RequestInit = {}
-    ): Promise<Response> => {
-        const headers: HeadersInit = {
-            'Content-Type': 'application/json',
-            ...options.headers,
-        };
-
-        const response = await fetch(url, {
-            ...options,
-            headers,
-            credentials: 'include',  // Use cookies for auth
-        });
-
-        return response;
-    }, []);
-
-    /**
-     * Create MoMo payment
-     */
-    const createMoMoPayment = useCallback(async (
-        orderId: string,
-        returnUrl?: string
-    ): Promise<ApiResult<PaymentResponse>> => {
+const usePayment = () => {
+    const proceedToCheckout = async (
+        promotionCode: string | null = null
+    ): Promise<ApiResponse> => {
         try {
-            const response = await fetchWithAuth(`${API_URL}/payments/momo/create`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/checkout-proceed`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    order_id: orderId,
-                    return_url: returnUrl,
+                    promotion_code: promotionCode,
                 }),
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
                 return {
-                    data: null,
+                    message: 'Proceed to checkout failed',
                     error: {
-                        code: 'MOMO_PAYMENT_ERROR',
-                        details: errorData.detail || 'Failed to create MoMo payment',
+                        code: 'CHECKOUT_PROCEED_FAILED',
+                        detail: result.detail,
                     },
-                    message: 'Failed to create MoMo payment',
                 };
             }
 
-            const data: PaymentResponse = await response.json();
             return {
-                data,
-                error: null,
-                message: 'MoMo payment created successfully',
+                message: result.message,
             };
         } catch (error) {
             return {
-                data: null,
+                message: 'Proceed to checkout failed',
                 error: {
-                    code: 'NETWORK_ERROR',
-                    details: error instanceof Error ? error.message : 'Network error',
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'CHECKOUT_PROCEED_FAILED',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while proceeding to checkout',
                 },
-                message: 'Failed to connect to payment service',
             };
         }
-    }, [fetchWithAuth, API_URL]);
+    };
 
-    /**
-     * Create Demo VNPay payment (for testing without real order)
-     */
-    const createDemoVNPayPayment = useCallback(async (
+    const createVNPayPayment = async (
         orderNumber: string,
         amount: number,
+        phone: string,
+        address: string,
         returnUrl?: string,
-        bankCode?: string
-    ): Promise<ApiResult<PaymentResponse>> => {
+    ): Promise<ApiResponse> => {
         try {
-            const response = await fetch(`${API_URL}/payments/demo/vnpay`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/vnpay/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     order_number: orderNumber,
                     amount: amount,
+                    phone: phone,
+                    address: address,
                     return_url: returnUrl,
-                    bank_code: bankCode,
                 }),
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
                 return {
-                    data: null,
+                    message: 'Create VNPay payment failed',
                     error: {
                         code: 'VNPAY_PAYMENT_ERROR',
-                        details: errorData.detail || 'Failed to create demo VNPay payment',
+                        detail: result.detail,
                     },
-                    message: 'Failed to create demo VNPay payment',
                 };
             }
 
-            const data: PaymentResponse = await response.json();
             return {
-                data,
-                error: null,
-                message: 'Demo VNPay payment created successfully',
+                message: 'Create VNPay payment successful',
+                data: result as PaymentResponse,
             };
         } catch (error) {
             return {
-                data: null,
+                message: 'Create VNPay payment failed',
                 error: {
-                    code: 'NETWORK_ERROR',
-                    details: error instanceof Error ? error.message : 'Network error',
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'VNPAY_PAYMENT_ERROR',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while creating VNPay payment',
                 },
-                message: 'Failed to connect to payment service',
             };
         }
-    }, [API_URL]);
+    };
 
-    /**
-     * Create Demo MoMo payment (for testing without real order)
-     */
-    const createDemoMoMoPayment = useCallback(async (
+    const createMoMoPayment = async (
         orderNumber: string,
         amount: number,
+        phone: string,
+        address: string,
         returnUrl?: string
-    ): Promise<ApiResult<PaymentResponse>> => {
+    ): Promise<ApiResponse> => {
         try {
-            const response = await fetch(`${API_URL}/payments/demo/momo`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/momo/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     order_number: orderNumber,
                     amount: amount,
+                    phone: phone,
+                    address: address,
                     return_url: returnUrl,
                 }),
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
                 return {
-                    data: null,
+                    message: 'Create MoMo payment failed',
                     error: {
                         code: 'MOMO_PAYMENT_ERROR',
-                        details: errorData.detail || 'Failed to create demo MoMo payment',
+                        detail: result.detail,
                     },
-                    message: 'Failed to create demo MoMo payment',
                 };
             }
 
-            const data: PaymentResponse = await response.json();
             return {
-                data,
-                error: null,
-                message: 'Demo MoMo payment created successfully',
+                message: 'Create MoMo payment successful',
+                data: result as PaymentResponse,
             };
         } catch (error) {
             return {
-                data: null,
+                message: 'Create MoMo payment failed',
                 error: {
-                    code: 'NETWORK_ERROR',
-                    details: error instanceof Error ? error.message : 'Network error',
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'MOMO_PAYMENT_ERROR',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while creating MoMo payment',
                 },
-                message: 'Failed to connect to payment service',
             };
         }
-    }, [API_URL]);
+    };
 
-    /**
-     * Create VNPay payment
-     */
-    const createVNPayPayment = useCallback(async (
-        orderId: string,
-        returnUrl?: string,
-        bankCode?: string
-    ): Promise<ApiResult<PaymentResponse>> => {
+    const verifyPayment = async (method: 'momo' | 'vnpay', query: string) => {
         try {
-            const response = await fetchWithAuth(`${API_URL}/payments/vnpay/create`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    order_id: orderId,
-                    return_url: returnUrl,
-                    bank_code: bankCode,
-                }),
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/${method}/return?${query}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
                 return {
-                    data: null,
+                    message: 'Payment verification failed',
                     error: {
-                        code: 'VNPAY_PAYMENT_ERROR',
-                        details: errorData.detail || 'Failed to create VNPay payment',
+                        code: 'PAYMENT_VERIFICATION_ERROR',
+                        detail: result.detail,
                     },
-                    message: 'Failed to create VNPay payment',
                 };
             }
 
-            const data: PaymentResponse = await response.json();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const subtotal = result.data.order.order_items.reduce((total: number, item: any) => total + item.total_price, 0);
+            const discount = subtotal - result.data.order.price;
+            const total = result.data.order.price;
+
+            await sendOrderConfirmationEmail({
+                customerName: result.data.order.user.name,
+                customerEmail: result.data.order.user.email,
+                customerPhone: result.data.order.billing_phone,
+                customerAddress: result.data.order.billing_address,
+                orderNumber: result.data.order.order_number,
+                orderDate: new Date(result.data.order.created_at).toLocaleString('vi-VN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                }),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                vpsItems: result.data.order.order_items.map((item: any) => {
+                    return {
+                        name: item.vps_plan.name,
+                        hostname: item.hostname,
+                        os: item.os,
+                        duration_months: item.duration_months,
+                        cpu: item.vps_plan.vcpu,
+                        ram: item.vps_plan.ram_gb,
+                        storage: item.vps_plan.storage_gb,
+                        storage_type: item.vps_plan.storage_type,
+                        network_speed: item.vps_plan.bandwidth_mbps,
+                        price: item.unit_price,
+                        total_price: item.total_price,
+                    };
+                }),
+                subtotal,
+                discount,
+                total,
+                paymentMethod: result.data.payment.payment_method,
+                transactionId: result.data.transaction_id,
+            });
+
             return {
-                data,
-                error: null,
-                message: 'VNPay payment created successfully',
+                message: 'Payment verified successfully',
+                data: result,
             };
-        } catch (error) {
+        } catch {
             return {
-                data: null,
+                message: 'Payment verification failed',
                 error: {
-                    code: 'NETWORK_ERROR',
-                    details: error instanceof Error ? error.message : 'Network error',
+                    code: 'PAYMENT_VERIFICATION_ERROR',
+                    detail: 'An unexpected error occurred while verifying payment',
                 },
-                message: 'Failed to connect to payment service',
             };
         }
-    }, [fetchWithAuth, API_URL]);
+    }
 
     /**
      * Get payment status
      */
-    const getPaymentStatus = useCallback(async (
+    const getPaymentStatus = async (
         paymentId: string
-    ): Promise<ApiResult<PaymentStatusResponse>> => {
+    ): Promise<ApiResponse> => {
         try {
-            const response = await fetchWithAuth(`${API_URL}/payments/${paymentId}`);
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/${paymentId}`);
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -287,7 +231,7 @@ export function usePayment() {
                     data: null,
                     error: {
                         code: 'PAYMENT_STATUS_ERROR',
-                        details: errorData.detail || 'Failed to get payment status',
+                        detail: errorData.detail || 'Failed to get payment status',
                     },
                     message: 'Failed to get payment status',
                 };
@@ -304,21 +248,21 @@ export function usePayment() {
                 data: null,
                 error: {
                     code: 'NETWORK_ERROR',
-                    details: error instanceof Error ? error.message : 'Network error',
+                    detail: error instanceof Error ? error.message : 'Network error',
                 },
                 message: 'Failed to connect to payment service',
             };
         }
-    }, [fetchWithAuth, API_URL]);
+    };
 
     /**
      * Get order payments
      */
-    const getOrderPayments = useCallback(async (
+    const getOrderPayments = async (
         orderId: string
-    ): Promise<ApiResult<OrderPaymentsResponse>> => {
+    ): Promise<ApiResponse> => {
         try {
-            const response = await fetchWithAuth(`${API_URL}/payments/order/${orderId}`);
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/order/${orderId}`);
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -326,7 +270,7 @@ export function usePayment() {
                     data: null,
                     error: {
                         code: 'ORDER_PAYMENTS_ERROR',
-                        details: errorData.detail || 'Failed to get order payments',
+                        detail: errorData.detail || 'Failed to get order payments',
                     },
                     message: 'Failed to get order payments',
                 };
@@ -343,53 +287,17 @@ export function usePayment() {
                 data: null,
                 error: {
                     code: 'NETWORK_ERROR',
-                    details: error instanceof Error ? error.message : 'Network error',
+                    detail: error instanceof Error ? error.message : 'Network error',
                 },
                 message: 'Failed to connect to payment service',
             };
         }
-    }, [fetchWithAuth, API_URL]);
-
-    /**
-     * Get VNPay bank list
-     */
-    const getVNPayBanks = useCallback(async (): Promise<ApiResult<VNPayBank[]>> => {
-        try {
-            const response = await fetch(`${API_URL}/payments/vnpay/banks`);
-
-            if (!response.ok) {
-                return {
-                    data: null,
-                    error: {
-                        code: 'BANKS_FETCH_ERROR',
-                        details: 'Failed to fetch bank list',
-                    },
-                    message: 'Failed to fetch bank list',
-                };
-            }
-
-            const data = await response.json();
-            return {
-                data: data.banks,
-                error: null,
-                message: 'Banks retrieved successfully',
-            };
-        } catch (error) {
-            return {
-                data: null,
-                error: {
-                    code: 'NETWORK_ERROR',
-                    details: error instanceof Error ? error.message : 'Network error',
-                },
-                message: 'Failed to connect to payment service',
-            };
-        }
-    }, [API_URL]);
+    };
 
     /**
      * Handle payment redirect (open payment URL in new tab or redirect)
      */
-    const redirectToPayment = useCallback((
+    const redirectToPayment = (
         paymentUrl: string,
         openInNewTab: boolean = false
     ) => {
@@ -398,47 +306,12 @@ export function usePayment() {
         } else {
             window.location.href = paymentUrl;
         }
-    }, []);
-
-    /**
-     * Process MoMo payment - create and redirect
-     */
-    const processMoMoPayment = useCallback(async (
-        orderId: string,
-        returnUrl?: string,
-        openInNewTab: boolean = false
-    ): Promise<ApiResult<PaymentResponse>> => {
-        const result = await createMoMoPayment(orderId, returnUrl);
-
-        if (result.data?.success && result.data.payment_url) {
-            redirectToPayment(result.data.payment_url, openInNewTab);
-        }
-
-        return result;
-    }, [createMoMoPayment, redirectToPayment]);
-
-    /**
-     * Process VNPay payment - create and redirect
-     */
-    const processVNPayPayment = useCallback(async (
-        orderId: string,
-        returnUrl?: string,
-        bankCode?: string,
-        openInNewTab: boolean = false
-    ): Promise<ApiResult<PaymentResponse>> => {
-        const result = await createVNPayPayment(orderId, returnUrl, bankCode);
-
-        if (result.data?.success && result.data.payment_url) {
-            redirectToPayment(result.data.payment_url, openInNewTab);
-        }
-
-        return result;
-    }, [createVNPayPayment, redirectToPayment]);
+    };
 
     /**
      * Poll payment status until completed or failed
      */
-    const pollPaymentStatus = useCallback(async (
+    const pollPaymentStatus = async (
         paymentId: string,
         onStatusChange?: (status: PaymentStatusResponse) => void,
         intervalMs: number = 3000,
@@ -470,65 +343,117 @@ export function usePayment() {
 
             checkStatus();
         });
-    }, [getPaymentStatus]);
+    };
 
-    /**
-     * Process Demo VNPay payment - create and redirect
-     */
-    const processDemoVNPayPayment = useCallback(async (
+    const processPayment = async (
         orderNumber: string,
         amount: number,
+        phone: string,
+        address: string,
         returnUrl?: string,
-        bankCode?: string,
+        method: 'vnpay' | 'momo' = 'vnpay',
         openInNewTab: boolean = false
-    ): Promise<ApiResult<PaymentResponse>> => {
-        const result = await createDemoVNPayPayment(orderNumber, amount, returnUrl, bankCode);
+    ): Promise<ApiResponse> => {
+        const result = method === 'vnpay'
+            ? await createVNPayPayment(orderNumber, amount, phone, address, returnUrl)
+            : await createMoMoPayment(orderNumber, amount, phone, address, returnUrl);
 
         if (result.data?.success && result.data.payment_url) {
             redirectToPayment(result.data.payment_url, openInNewTab);
         }
 
-        return result;
-    }, [createDemoVNPayPayment, redirectToPayment]);
+        return {
+            message: result.message,
+            data: result.data,
+        };
+    };
 
-    /**
-     * Process Demo MoMo payment - create and redirect
-     */
-    const processDemoMoMoPayment = useCallback(async (
-        orderNumber: string,
-        amount: number,
-        returnUrl?: string,
-        openInNewTab: boolean = false
-    ): Promise<ApiResult<PaymentResponse>> => {
-        const result = await createDemoMoMoPayment(orderNumber, amount, returnUrl);
+    const setupVps = async (orderNumber: string): Promise<ApiResponse> => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/vps/setup`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    order_number: orderNumber,
+                }),
+            });
 
-        if (result.data?.success && result.data.payment_url) {
-            redirectToPayment(result.data.payment_url, openInNewTab);
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: 'VPS setup failed',
+                    error: {
+                        code: 'VPS_SETUP_ERROR',
+                        detail: result.detail,
+                    }
+                };
+            }
+
+            // Send VPS welcome email for each provisioned VPS
+            for (const vps of result.vps_list || []) {
+                try {
+                    await sendVPSWelcomeEmail({
+                        customerName: result.customer_name,
+                        customerEmail: result.customer_email,
+                        orderNumber: result.order_number,
+                        orderDate: result.order_date,
+                        vps: {
+                            name: vps.vps_info.name,
+                            hostname: vps.hostname,
+                            os: vps.vps_info.os,
+                            cpu: vps.vps_info.cpu,
+                            ram: vps.vps_info.ram,
+                            storage: vps.vps_info.storage,
+                            storage_type: vps.vps_info.storage_type,
+                            network_speed: vps.vps_info.network_speed,
+                        },
+                        credentials: {
+                            ipAddress: vps.credentials.ip_address,
+                            username: vps.credentials.username,
+                            password: vps.credentials.password,
+                            sshPort: vps.credentials.ssh_port,
+                        },
+                    });
+                } catch {
+                    return {
+                        message: 'VPS setup succeeded but failed to send welcome email',
+                        error: {
+                            code: 'WELCOME_EMAIL_ERROR',
+                            detail: 'Failed to send VPS welcome email',
+                        }
+                    };
+                }
+            }
+
+            return {
+                message: result.message || 'VPS setup successful',
+                data: result,
+            };
+        } catch (error) {
+            return {
+                message: 'VPS setup failed',
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'VPS_SETUP_ERROR',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while setting up VPS',
+                }
+            };
         }
-
-        return result;
-    }, [createDemoMoMoPayment, redirectToPayment]);
+    };
 
     return {
-        // MoMo
+        proceedToCheckout,
         createMoMoPayment,
-        processMoMoPayment,
-
-        // VNPay
         createVNPayPayment,
-        processVNPayPayment,
-        getVNPayBanks,
-
-        // Demo/Test payments (no real order required)
-        createDemoVNPayPayment,
-        createDemoMoMoPayment,
-        processDemoVNPayPayment,
-        processDemoMoMoPayment,
-
-        // Common
+        processPayment,
+        verifyPayment,
         getPaymentStatus,
         getOrderPayments,
         redirectToPayment,
         pollPaymentStatus,
+        setupVps,
     };
 }
+
+export default usePayment;

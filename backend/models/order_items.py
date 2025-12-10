@@ -28,6 +28,7 @@ class OrderItem(SQLModel, table=True):
         vps_plan_id: Identifier for the VPS plan.
         template_id: Identifier for the VM template.
         hostname: Hostname for the VPS.
+        os: OS for the VPS.
         duration_months: Duration in months for the VPS rental.
         unit_price: Unit price of the VPS plan at the time of order.
         total_price: Total price calculated as unit_price * duration_months.

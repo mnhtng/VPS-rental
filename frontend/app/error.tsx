@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { getClientLocale } from '@/utils/locale';
 
 export default function Error({
@@ -11,6 +11,7 @@ export default function Error({
     reset?: () => void;
 }) {
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         const getPreferredLocale = getClientLocale();
@@ -18,8 +19,8 @@ export default function Error({
 
         const statusCode = error?.message && !isNaN(Number(error.message)) ? Number(error.message) : 500;
 
-        router.replace(`/${locale}/error?status=${statusCode}`);
-    }, [router, error]);
+        router.replace(`/${locale}/error?status=${statusCode}&callback=${encodeURIComponent(pathname)}`);
+    }, [router, error, pathname]);
 
     return null;
 }

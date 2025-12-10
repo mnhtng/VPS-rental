@@ -26,9 +26,11 @@ class Cart(SQLModel, table=True):
         vps_plan_id: Identifier for the VPS plan added to the cart.
         template_id: Identifier for the VM template to be used.
         hostname: Hostname for the VPS.
+        os: OS for the VPS.
         duration_months: Duration in months for the VPS rental.
         unit_price: Unit price of the VPS plan at the time of adding to cart.
         total_price: Total price calculated as unit_price * duration_months.
+        discount_code: Optional discount code applied to the cart.
         created_at: Timestamp when the cart was created.
         updated_at: Timestamp when the cart was last updated.
 
@@ -87,6 +89,10 @@ class Cart(SQLModel, table=True):
         max_digits=10,
         decimal_places=2,
     )
+    discount_code: Optional[str] = Field(
+        nullable=True,
+        max_length=50,
+    )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
@@ -128,6 +134,7 @@ class Cart(SQLModel, table=True):
             "duration_months": self.duration_months,
             "unit_price": float(self.unit_price),
             "total_price": float(self.total_price),
+            "discount_code": self.discount_code,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }

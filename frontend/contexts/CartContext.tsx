@@ -46,7 +46,8 @@ export const CartProvider = ({
         } finally {
             setIsLoading(false)
         }
-    }, [getCartItemsAmount, session?.user, status])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session?.user])
 
     const incrementCart = useCallback(() => {
         setCartItemsAmount(prev => prev + 1)

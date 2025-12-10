@@ -28,7 +28,7 @@ import {
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import debounce from "@/utils/performanceUtil/debounce"
-import { normalizeString } from "@/utils/normalization"
+import { normalizeString } from "@/utils/string"
 import { UserDataType } from "@/types/data-table-types"
 
 interface Validation {

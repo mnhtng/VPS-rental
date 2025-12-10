@@ -102,7 +102,7 @@ def get_proxmox_from_node(
 
 
 def get_proxmox_from_vm(
-    vm_id: int = Path(..., description="VM ID"),
+    vm_id: UUID = Path(..., description="VM ID"),
     session: Session = Depends(get_session),
 ) -> ProxmoxWithVM:
     """

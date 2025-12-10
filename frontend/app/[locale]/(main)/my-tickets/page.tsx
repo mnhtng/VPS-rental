@@ -51,7 +51,10 @@ const mockTickets: SupportTicket[] = [
         id: 'TKT-001',
         subject: 'Cannot access VPS after payment',
         description: 'I have completed payment but still cannot access my VPS instance.',
-        phone: '+84 912 345 678',
+        contact: {
+            email: 'user1@example.com',
+            phone: '+84 912 345 678'
+        },
         status: 'in-progress',
         priority: 'high',
         category: 'Technical',
@@ -63,7 +66,10 @@ const mockTickets: SupportTicket[] = [
         id: 'TKT-002',
         subject: 'Request for plan upgrade',
         description: 'I would like to upgrade from Basic plan to Premium plan.',
-        phone: '+84 987 654 321',
+        contact: {
+            email: 'user2@example.com',
+            phone: '+84 987 654 321'
+        },
         status: 'open',
         priority: 'medium',
         category: 'Billing',
@@ -75,7 +81,10 @@ const mockTickets: SupportTicket[] = [
         id: 'TKT-003',
         subject: 'Server performance issue',
         description: 'My VPS is running very slow, please check.',
-        phone: '+84 901 234 567',
+        contact: {
+            email: 'user3@example.com',
+            phone: '+84 901 234 567'
+        },
         status: 'resolved',
         priority: 'high',
         category: 'Technical',
@@ -87,7 +96,10 @@ const mockTickets: SupportTicket[] = [
         id: 'TKT-004',
         subject: 'Question about backup policy',
         description: 'How often are automatic backups performed?',
-        phone: '+84 909 876 543',
+        contact: {
+            email: 'user4@example.com',
+            phone: '+84 909 876 543'
+        },
         status: 'closed',
         priority: 'low',
         category: 'General',
@@ -160,7 +172,14 @@ const MyTicketsPage = () => {
     const handleCreateTicket = () => {
         const ticket: SupportTicket = {
             id: `TKT-${String(tickets.length + 1).padStart(3, '0')}`,
-            ...newTicket,
+            subject: newTicket.subject,
+            description: newTicket.description,
+            contact: {
+                email: '', // Email will be auto-filled from user session
+                phone: newTicket.phone
+            },
+            category: newTicket.category,
+            priority: newTicket.priority,
             status: 'open',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -483,7 +502,7 @@ const MyTicketsPage = () => {
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
                                         <span className="text-muted-foreground">Phone Number:</span>
-                                        <p className="font-medium">{selectedTicket.phone}</p>
+                                        <p className="font-medium">{selectedTicket.contact.phone}</p>
                                     </div>
                                     <div>
                                         <span className="text-muted-foreground">Category:</span>

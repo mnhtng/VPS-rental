@@ -11,12 +11,7 @@ Standardized Return Formats
 - For error cases -> Raise exceptions/return {"success": False, "error": str}
 """
 
-from .payment import (
-    QRCodeService,
-    MoMoService,
-    VNPayService,
-)
-from .payment_service import PaymentService
+from .payment import PaymentService
 from .proxmox import (
     CommonProxmoxService,
     ProxmoxAccessService,
@@ -32,11 +27,12 @@ from .promotion import PromotionService
 from .auth import AuthService
 
 __all__ = [
+    # Auth Service
+    "AuthService",
     # Payment Service
-    "QRCodeService",
-    "MoMoService",
-    "VNPayService",
     "PaymentService",
+    # Promotion Service
+    "PromotionService",
     # Proxmox Service
     "CommonProxmoxService",
     "ProxmoxAccessService",
@@ -46,8 +42,4 @@ __all__ = [
     "ProxmoxPoolService",
     "ProxmoxTemplateService",
     "ProxmoxVMService",
-    # Promotion Service
-    "PromotionService",
-    # Auth Service
-    "AuthService",
 ]
