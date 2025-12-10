@@ -106,13 +106,43 @@ export interface AddToCartPayload {
     totalPrice: number;
 }
 
-export interface OrderItem {
+// Order for My Orders
+export interface OrderItemConfiguration {
+    plan_name: string;
+    vcpu: number;
+    ram_gb: number;
+    storage_gb: number;
+    storage_type: string;
+    bandwidth_mbps: number;
+    template_os: string;
+}
+
+export interface OrderItemDetail {
     id: string;
-    vps_plan_id: string;
-    vps_plan: VPSPlan;
-    quantity: number;
+    hostname: string;
+    os: string;
+    duration_months: number;
     unit_price: number;
     total_price: number;
+    configuration: OrderItemConfiguration;
+    vps_plan?: VPSPlan;
+    template?: VMTemplate;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Order {
+    id: string;
+    order_number: string;
+    price: number;
+    status: 'pending' | 'paid' | 'cancelled';
+    payment_status?: 'pending' | 'completed' | 'failed';
+    billing_address?: string;
+    billing_phone?: string;
+    note?: string;
+    created_at: string;
+    updated_at: string;
+    order_items: OrderItemDetail[];
 }
 
 export interface OrderPaymentsResponse {

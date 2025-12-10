@@ -16,6 +16,7 @@ from backend.routes import (
     promotion_router,
     payment_router,
     vnc_websocket_router,
+    orders_router,
 )
 
 
@@ -74,18 +75,19 @@ api_prefix = settings.API_PREFIX
 
 app.include_router(auth_router, prefix=api_prefix)
 app.include_router(users_router, prefix=api_prefix)
-app.include_router(vps_router, prefix=api_prefix)
-app.include_router(vps_admin_router, prefix=api_prefix)
-app.include_router(proxmox_router, prefix=api_prefix)
 app.include_router(vps_plans_router, prefix=api_prefix)
 app.include_router(cart_router, prefix=api_prefix)
-app.include_router(promotion_router, prefix=api_prefix)
+app.include_router(orders_router, prefix=api_prefix)
 app.include_router(payment_router, prefix=api_prefix)
+app.include_router(promotion_router, prefix=api_prefix)
+app.include_router(vps_router, prefix=api_prefix)
+app.include_router(vps_admin_router, prefix=api_prefix)
 app.include_router(vnc_websocket_router, prefix=api_prefix)
+app.include_router(proxmox_router, prefix=api_prefix)
 
 
 @app.get(f"{api_prefix}/")
-def read_root():
+def health_check():
     return {"message": "Welcome to the VPS Rental API!"}
 
 

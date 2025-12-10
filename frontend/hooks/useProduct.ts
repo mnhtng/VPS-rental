@@ -4,9 +4,12 @@ import { VPSPlan, CartItem, AddToCartPayload, ApiResponse } from "@/types/types"
 const useProduct = () => {
     const getPlans = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/plans`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`, {
                 method: 'GET',
                 signal,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             })
 
             const result = await response.json()
@@ -24,7 +27,17 @@ const useProduct = () => {
             return {
                 data: result as VPSPlan[] || [],
             }
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                return {
+                    message: "Request aborted",
+                    error: {
+                        code: "ABORTED",
+                        detail: "The request was aborted",
+                    }
+                }
+            }
+
             return {
                 message: "Get plans failed",
                 error: {
@@ -37,9 +50,12 @@ const useProduct = () => {
 
     const getPlanItem = async (planId: string, signal?: AbortSignal): Promise<ApiResponse> => {
         try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/plans/${planId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans/${planId}`, {
                 method: 'GET',
                 signal,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             })
 
             const result = await response.json()
@@ -53,10 +69,21 @@ const useProduct = () => {
                     }
                 }
             }
+
             return {
                 data: result as VPSPlan,
             }
-        } catch {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                return {
+                    message: "Request aborted",
+                    error: {
+                        code: "ABORTED",
+                        detail: "The request was aborted",
+                    }
+                }
+            }
+
             return {
                 message: "Get plan failed",
                 error: {

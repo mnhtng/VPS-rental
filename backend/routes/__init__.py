@@ -15,6 +15,7 @@ from .cart import router as cart_router
 from .promotion import router as promotion_router
 from .payment import router as payment_router
 from .vnc_websocket import router as vnc_websocket_router
+from .orders import router as orders_router
 
 __all__ = [
     "auth_router",
@@ -27,4 +28,6 @@ __all__ = [
     "promotion_router",
     "payment_router",
     "vnc_websocket_router",
+    "orders_router",
 ]
+

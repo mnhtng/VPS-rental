@@ -10,7 +10,7 @@ import {
     XCircle,
     Mail,
     ArrowRight,
-    RefreshCw,
+    Loader,
     AlertTriangle
 } from 'lucide-react';
 import { BeamsBackground } from '@/components/ui/beam-background';
@@ -153,7 +153,7 @@ const EmailVerifiedPage = () => {
                     <Card className="text-center p-8">
                         <CardContent className="space-y-4">
                             <div className="flex justify-center">
-                                <RefreshCw className="h-12 w-12 text-blue-600 animate-spin" />
+                                <Loader className="h-12 w-12 text-blue-600 animate-spin" />
                             </div>
                             <h2 className="text-xl font-semibold">Verifying email...</h2>
                             <p className="text-muted-foreground">Please wait a moment</p>
@@ -279,7 +279,7 @@ const EmailVerifiedPage = () => {
                                 >
                                     <Link href={`/${locale}/register`}>
                                         Register Again
-                                        <RefreshCw className="ml-2 h-4 w-4" />
+                                        <Loader className="ml-2 h-4 w-4" />
                                     </Link>
                                 </Button>
                             ) : (

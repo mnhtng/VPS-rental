@@ -17,7 +17,7 @@ import {
   Settings,
   ArrowRight,
   Scale,
-  RefreshCw
+  Loader
 } from 'lucide-react';
 import HeroSection from '@/components/custom/hero/HeroSection';
 import { formatPrice } from '@/utils/currency';
@@ -95,6 +95,7 @@ const HomePage = () => {
     return () => {
       controller.abort();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const features = [
@@ -267,7 +268,7 @@ const HomePage = () => {
                       <Link href={`/${locale}/plans/${plan.id}`} className="flex items-center justify-center">
                         {selectedPlanId === plan.id ? (
                           <>
-                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader className="mr-2 h-4 w-4 animate-spin" />
                             {t('popular_plans.select_plan')}
                           </>
                         ) : (

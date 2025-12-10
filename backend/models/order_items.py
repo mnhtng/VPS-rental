@@ -34,6 +34,7 @@ class OrderItem(SQLModel, table=True):
         total_price: Total price calculated as unit_price * duration_months.
         configuration: Configuration details for the VPS in JSON format.
             VD: {
+                "plan_name": "BASIC-1",
                 "vcpu": 2,
                 "ram_gb": 4,
                 "storage_gb": 80,
@@ -46,7 +47,7 @@ class OrderItem(SQLModel, table=True):
 
         order: Relationship to the Order model (1-to-N).
         vps_plan: Relationship to the VPSPlan model (1-to-N).
-        vm_template: Relationship to the VMTemplate model (1-to-N).
+        template: Relationship to the VMTemplate model (1-to-N).
         vps_instance: Relationship to the VPSInstance model (1-to-1).
     """
 

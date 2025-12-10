@@ -5,10 +5,6 @@ export const formatPrice = (price: number): string => {
     }).format(price);
 };
 
-export const formatPriceNumber = (price: number): string => {
-    return new Intl.NumberFormat('vi-VN').format(price);
-};
-
 export const convertUSDToVND = (usdPrice: number, exchangeRate: number = 24000): number => {
     return Math.round(usdPrice * exchangeRate);
 };

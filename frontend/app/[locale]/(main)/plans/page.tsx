@@ -23,11 +23,11 @@ import {
     Eye,
     Gauge,
     ArrowRight,
-    RefreshCw
+    Loader
 } from 'lucide-react';
 import { VPSPlan } from '@/types/types';
 import { useTranslations } from 'next-intl';
-import { formatPrice, convertUSDToVND, formatPriceNumber } from '@/utils/currency';
+import { formatPrice, convertUSDToVND } from '@/utils/currency';
 import { toast } from 'sonner';
 import useProduct from '@/hooks/useProduct';
 import {
@@ -113,6 +113,7 @@ const PlansPage = () => {
         return () => {
             controller.abort();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -327,8 +328,8 @@ const PlansPage = () => {
                                                 </div>
 
                                                 <div className="flex justify-between text-xs px-2 mt-2">
-                                                    <span>{formatPriceNumber(minPrice)}</span>
-                                                    <span>{formatPriceNumber(maxPrice)}</span>
+                                                    <span>{formatPrice(minPrice)}</span>
+                                                    <span>{formatPrice(maxPrice)}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -469,7 +470,7 @@ const PlansPage = () => {
                                     >
                                         {selectedPlanId === plan.id ? (
                                             <>
-                                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                                <Loader className="mr-2 h-4 w-4 animate-spin" />
                                                 Loading Details...
                                             </>
                                         ) : (

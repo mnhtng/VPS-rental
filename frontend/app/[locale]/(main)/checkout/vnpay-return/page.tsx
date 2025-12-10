@@ -7,13 +7,15 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2, Server, AlertTriangle } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import usePayment from '@/hooks/usePayment';
+import useVPS from '@/hooks/useVPS';
 import { PaymentResult } from '@/types/types';
 
 const VNPayReturnPage = () => {
     const locale = useLocale();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { verifyPayment, setupVps } = usePayment();
+    const { verifyPayment } = usePayment();
+    const { setupVps } = useVPS();
 
     const [result, setResult] = useState<PaymentResult>({
         status: 'loading',

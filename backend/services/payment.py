@@ -62,10 +62,18 @@ class PaymentService:
         if order:
             return order
 
+        statement = select(Cart).where(Cart.user_id == user_id)
+        cart_items = self.session.exec(statement).all()
+
         order = Order(
             user_id=user_id,
             order_number=order_number,
             price=Decimal(str(amount)),
+            discount_code=(
+                cart_items[0].discount_code
+                if cart_items and cart_items[0].discount_code
+                else None
+            ),
             billing_phone=phone,
             billing_address=address,
             status="pending",
@@ -73,9 +81,6 @@ class PaymentService:
 
         self.session.add(order)
         self.session.flush()
-
-        statement = select(Cart).where(Cart.user_id == user_id)
-        cart_items = self.session.exec(statement).all()
 
         order_items = []
         for item in cart_items:
@@ -111,6 +116,7 @@ class PaymentService:
                 unit_price=item.unit_price,
                 total_price=item.total_price,
                 configuration={
+                    "plan_name": plan.plan_name,
                     "vcpu": plan.vcpu,
                     "ram_gb": plan.ram_gb,
                     "storage_gb": plan.storage_gb,
@@ -132,6 +138,7 @@ class PaymentService:
         order: Order,
         return_url: Optional[str] = None,
         notify_url: Optional[str] = None,
+        repay: Optional[bool] = False,
     ) -> Dict[str, Any]:
         """
         Create MoMo payment request.
@@ -213,19 +220,27 @@ class PaymentService:
             result = response.json()
 
             if result.get("resultCode") == 0:
-                # Create payment transaction record
-                payment = PaymentTransaction(
-                    order_id=order.id,
-                    transaction_id=momo_order_id,
-                    payment_method="momo",
-                    amount=Decimal(str(amount)),
-                    currency="VND",
-                    status="pending",
-                    gateway_response={"request_id": request_id, "response": result},
-                )
-                self.session.add(payment)
-                self.session.commit()
-                self.session.refresh(payment)
+                if repay == True:
+                    payment = self.session.exec(
+                        select(PaymentTransaction).where(
+                            PaymentTransaction.order_id == order.id,
+                            PaymentTransaction.transaction_id == momo_order_id,
+                        )
+                    ).first()
+                else:
+                    # Create payment transaction record
+                    payment = PaymentTransaction(
+                        order_id=order.id,
+                        transaction_id=momo_order_id,
+                        payment_method="momo",
+                        amount=Decimal(str(amount)),
+                        currency="VND",
+                        status="pending",
+                        gateway_response={"request_id": request_id, "response": result},
+                    )
+                    self.session.add(payment)
+                    self.session.commit()
+                    self.session.refresh(payment)
 
                 return {
                     "success": True,
@@ -333,11 +348,7 @@ class PaymentService:
                     self.session.add(order)
 
                 # Update user promotion used for this order if applicable
-                cart_items = self.session.exec(
-                    select(Cart).where(Cart.user_id == order.user_id)
-                ).all()
-
-                promotion_code = cart_items[0].discount_code if cart_items else None
+                promotion_code = order.discount_code if order else None
                 if promotion_code:
                     promotion = self.session.exec(
                         select(Promotion).where(
@@ -355,6 +366,10 @@ class PaymentService:
                         self.session.add(user_promotion)
 
                 # Remove user's cart after successful payment
+                cart_items = self.session.exec(
+                    select(Cart).where(Cart.user_id == order.user_id)
+                ).all()
+
                 for item in cart_items:
                     self.session.delete(item)
             else:  # Failed
@@ -381,7 +396,7 @@ class PaymentService:
                     "cart": cart_items,
                     "order": order,
                     "payment": payment,
-                }
+                },
             }
         except Exception as e:
             self.session.rollback()
@@ -396,6 +411,7 @@ class PaymentService:
         order: Order,
         client_ip: str = "127.0.0.1",
         return_url: Optional[str] = None,
+        repay: Optional[bool] = False,
     ) -> Dict[str, Any]:
         """
         Create VNPay payment request.
@@ -462,20 +478,26 @@ class PaymentService:
             payment_url = f"{settings.VNPAY_URL}?{urllib.parse.urlencode(vnp_params)}"
 
             # Create payment transaction record
-            payment = PaymentTransaction(
-                order_id=order.id,
-                transaction_id=txn_ref,
-                payment_method="vnpay",
-                amount=Decimal(str(order.price)),
-                currency="VND",
-                status="pending",
-                gateway_response={"request_params": vnp_params},
-            )
-            self.session.add(payment)
-            self.session.commit()
-            self.session.refresh(payment)
-
-            logger.info(f">>> Created VNPay payment for order {order.order_number}")
+            if repay == True:
+                payment = self.session.exec(
+                    select(PaymentTransaction).where(
+                        PaymentTransaction.order_id == order.id,
+                        PaymentTransaction.transaction_id == txn_ref,
+                    )
+                ).first()
+            else:
+                payment = PaymentTransaction(
+                    order_id=order.id,
+                    transaction_id=txn_ref,
+                    payment_method="vnpay",
+                    amount=Decimal(str(order.price)),
+                    currency="VND",
+                    status="pending",
+                    gateway_response={"request_params": vnp_params},
+                )
+                self.session.add(payment)
+                self.session.commit()
+                self.session.refresh(payment)
 
             return {
                 "success": True,
@@ -561,11 +583,7 @@ class PaymentService:
                         self.session.add(order)
 
                     # Update user promotion used for this order if applicable
-                    cart_items = self.session.exec(
-                        select(Cart).where(Cart.user_id == order.user_id)
-                    ).all()
-
-                    promotion_code = cart_items[0].discount_code if cart_items else None
+                    promotion_code = order.discount_code if order else None
                     if promotion_code:
                         promotion = self.session.exec(
                             select(Promotion).where(
@@ -583,6 +601,10 @@ class PaymentService:
                             self.session.add(user_promotion)
 
                     # Remove user's cart after successful payment
+                    cart_items = self.session.exec(
+                        select(Cart).where(Cart.user_id == order.user_id)
+                    ).all()
+
                     for item in cart_items:
                         self.session.delete(item)
                 else:
@@ -611,7 +633,7 @@ class PaymentService:
                     "cart": cart_items,
                     "order": order,
                     "payment": payment,
-                }
+                },
             }
         except Exception as e:
             self.session.rollback()

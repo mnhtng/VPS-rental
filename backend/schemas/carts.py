@@ -9,7 +9,6 @@ from pydantic import (
     ValidationInfo,
     field_validator,
 )
-from backend.models import VPSPlan
 
 if TYPE_CHECKING:
     from .users import UserPublic

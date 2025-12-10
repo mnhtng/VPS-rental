@@ -30,7 +30,7 @@ import {
     Package,
     Monitor,
     BrushCleaning,
-    RefreshCw
+    Loader
 } from 'lucide-react';
 import { CartItem, Promotion, ValidatePromotion } from '@/types/types';
 import { Label } from '@radix-ui/react-label';
@@ -120,6 +120,7 @@ const CartPage = () => {
         return () => {
             controller.abort();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleClearCart = async () => {
@@ -588,7 +589,7 @@ const CartPage = () => {
                                 >
                                     {isProceedCheckoutLoading ? (
                                         <>
-                                            <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                                            <Loader className="mr-2 h-5 w-5 animate-spin" />
                                             <span className="text-sm md:text-md xl:text-lg">Proceed to Checkout</span>
                                         </>
                                     ) : (

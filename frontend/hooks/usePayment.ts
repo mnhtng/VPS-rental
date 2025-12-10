@@ -368,12 +368,63 @@ const usePayment = () => {
         };
     };
 
-    const setupVps = async (orderNumber: string): Promise<ApiResponse> => {
+    const checkCanRepay = async (orderId: string): Promise<ApiResponse> => {
         try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/vps/setup`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/order/${orderId}/can-repay`, {
+                method: 'GET',
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: 'Check repay status failed',
+                    error: {
+                        code: 'CHECK_REPAY_FAILED',
+                        detail: result.detail,
+                    },
+                };
+            }
+
+            return {
+                message: 'Check repay status successful',
+                data: result,
+            };
+        } catch (error) {
+            return {
+                message: 'Check repay status failed',
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'CHECK_REPAY_FAILED',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while checking repay status',
+                },
+            };
+        }
+    };
+
+    const repayOrder = async (
+        orderNumber: string,
+        amount: number,
+        phone: string,
+        address: string,
+        returnUrl?: string,
+        method: 'vnpay' | 'momo' = 'vnpay',
+        openInNewTab: boolean = false
+    ): Promise<ApiResponse> => {
+        try {
+            const endpoint = method === 'vnpay'
+                ? `${process.env.NEXT_PUBLIC_API_URL}/payments/vnpay/repay`
+                : `${process.env.NEXT_PUBLIC_API_URL}/payments/momo/repay`;
+
+            const response = await apiPattern(endpoint, {
                 method: 'POST',
                 body: JSON.stringify({
                     order_number: orderNumber,
+                    amount: amount,
+                    phone: phone,
+                    address: address,
+                    return_url: returnUrl,
                 }),
             });
 
@@ -381,63 +432,31 @@ const usePayment = () => {
 
             if (!response.ok) {
                 return {
-                    message: 'VPS setup failed',
+                    message: 'Repay order failed',
                     error: {
-                        code: 'VPS_SETUP_ERROR',
+                        code: 'REPAY_ORDER_FAILED',
                         detail: result.detail,
-                    }
+                    },
                 };
             }
 
-            // Send VPS welcome email for each provisioned VPS
-            for (const vps of result.vps_list || []) {
-                try {
-                    await sendVPSWelcomeEmail({
-                        customerName: result.customer_name,
-                        customerEmail: result.customer_email,
-                        orderNumber: result.order_number,
-                        orderDate: result.order_date,
-                        vps: {
-                            name: vps.vps_info.name,
-                            hostname: vps.hostname,
-                            os: vps.vps_info.os,
-                            cpu: vps.vps_info.cpu,
-                            ram: vps.vps_info.ram,
-                            storage: vps.vps_info.storage,
-                            storage_type: vps.vps_info.storage_type,
-                            network_speed: vps.vps_info.network_speed,
-                        },
-                        credentials: {
-                            ipAddress: vps.credentials.ip_address,
-                            username: vps.credentials.username,
-                            password: vps.credentials.password,
-                            sshPort: vps.credentials.ssh_port,
-                        },
-                    });
-                } catch {
-                    return {
-                        message: 'VPS setup succeeded but failed to send welcome email',
-                        error: {
-                            code: 'WELCOME_EMAIL_ERROR',
-                            detail: 'Failed to send VPS welcome email',
-                        }
-                    };
-                }
+            if (result?.success && result?.payment_url) {
+                redirectToPayment(result.payment_url, openInNewTab);
             }
 
             return {
-                message: result.message || 'VPS setup successful',
-                data: result,
+                message: 'Repay order successful',
+                data: result as PaymentResponse,
             };
         } catch (error) {
             return {
-                message: 'VPS setup failed',
+                message: 'Repay order failed',
                 error: {
-                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'VPS_SETUP_ERROR',
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'REPAY_ORDER_FAILED',
                     detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
                         ? 'No access token available'
-                        : 'An unexpected error occurred while setting up VPS',
-                }
+                        : 'An unexpected error occurred while repaying order',
+                },
             };
         }
     };
@@ -452,7 +471,8 @@ const usePayment = () => {
         getOrderPayments,
         redirectToPayment,
         pollPaymentStatus,
-        setupVps,
+        checkCanRepay,
+        repayOrder,
     };
 }
 

@@ -79,6 +79,76 @@ async def proceed_to_checkout(
         )
 
 
+@router.get(
+    "/order/{order_id}/can-repay",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    summary="Check if order can be repaid",
+    description="Check if a pending order can be repaid (no VPS instances created)",
+)
+async def check_order_can_repay(
+    order_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Check if a pending order can be repaid.
+    An order can be repaid if:
+    - It belongs to the current user
+    - It has status 'pending'
+    - None of its order items have VPS instances created
+
+    Args:
+        order_id (uuid.UUID): Order ID to check.
+        session (Session): Database session.
+        current_user (User): Current authenticated user.
+
+    Returns:
+        Dict[str, Any]: Result with can_repay flag and reason if not.
+    """
+    try:
+        order = session.get(Order, order_id)
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found",
+            )
+
+        if order.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to access this order",
+            )
+
+        if order.status != "pending":
+            return {
+                "can_repay": False,
+                "reason": "Order is not in a payable state",
+            }
+
+        # Check if any order item has a VPS instance
+        for order_item in order.order_items:
+            if order_item.vps_instance is not None:
+                return {
+                    "can_repay": False,
+                    "reason": "VPS service has already been provided",
+                }
+
+        return {
+            "can_repay": True,
+            "order_number": order.order_number,
+            "amount": float(order.price),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Error checking order repay status: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error checking order repay status",
+        )
+
+
 # MoMo Endpoints
 @router.post(
     "/momo/create",
@@ -134,7 +204,7 @@ async def create_momo_payment(
         if order_initialized.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order is not in pending payment status",
+                detail="Order is not in a payable state",
             )
 
         result = payment_service.create_momo_payment(
@@ -157,6 +227,85 @@ async def create_momo_payment(
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating demo MoMo payment",
+        )
+
+
+@router.post(
+    "/momo/repay",
+    response_model=PaymentResponse,
+    summary="Repay pending order with MoMo",
+    description="Create a MoMo payment for an existing pending order",
+)
+async def repay_momo_payment(
+    payment_request: PaymentRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Repay a pending order with MoMo.
+    This endpoint is used for orders that were created but payment was not completed.
+
+    Args:
+        payment_request (PaymentRequest): Payment request data with existing order_number
+        session (Session): Database session
+        current_user (User): Currently authenticated user
+
+    Returns:
+        PaymentResponse: Response containing payment details or error information
+    """
+    try:
+        # Find existing order by order_number
+        statement = select(Order).where(Order.order_number == payment_request.order_number)
+        order = session.exec(statement).first()
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found",
+            )
+
+        if order.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to pay for this order",
+            )
+
+        if order.status != "pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Order is not in a payable state",
+            )
+
+        # Check if any VPS instance exists for this order
+        for order_item in order.order_items:
+            if order_item.vps_instance is not None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="VPS service has already been provided",
+                )
+
+        payment_service = PaymentService(session)
+        result = payment_service.create_momo_payment(
+            order=order,
+            return_url=payment_request.return_url,
+            repay=True,
+        )
+
+        if not result["success"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=result.get("error", "Failed to create payment"),
+            )
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error creating MoMo repayment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error creating MoMo repayment",
         )
 
 
@@ -326,7 +475,7 @@ async def create_vnpay_payment(
         if order_initialized.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order is not in pending payment status",
+                detail="Order is not in a payable state",
             )
 
         # Get client IP
@@ -356,6 +505,94 @@ async def create_vnpay_payment(
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating demo VNPay payment",
+        )
+
+
+@router.post(
+    "/vnpay/repay",
+    response_model=PaymentResponse,
+    summary="Repay pending order with VNPay",
+    description="Create a VNPay payment for an existing pending order",
+)
+async def repay_vnpay_payment(
+    payment_request: PaymentRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Repay a pending order with VNPay.
+    This endpoint is used for orders that were created but payment was not completed.
+
+    Args:
+        payment_request (PaymentRequest): Payment request data with existing order_number
+        request (Request): HTTP request object
+        session (Session): Database session
+        current_user (User): Currently authenticated user
+
+    Returns:
+        PaymentResponse: Response containing payment details or error information
+    """
+    try:
+        # Find existing order by order_number
+        statement = select(Order).where(Order.order_number == payment_request.order_number)
+        order = session.exec(statement).first()
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found",
+            )
+
+        if order.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to pay for this order",
+            )
+
+        if order.status != "pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Order is not in a payable state",
+            )
+
+        # Check if any VPS instance exists for this order
+        for order_item in order.order_items:
+            if order_item.vps_instance is not None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="VPS service has already been provided",
+                )
+
+        # Get client IP
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            client_ip = forwarded.split(",")[0].strip()
+
+        payment_service = PaymentService(session)
+        result = payment_service.create_vnpay_payment(
+            order=order,
+            client_ip=client_ip,
+            return_url=payment_request.return_url,
+            repay=True,
+        )
+
+        if not result["success"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=result.get("error", "Failed to create payment"),
+            )
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error creating VNPay repayment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error creating VNPay repayment",
         )
 
 

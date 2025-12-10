@@ -30,6 +30,9 @@ class OrderBase(BaseModel):
 
     order_number: str = Field(..., description="Unique order number")
     price: float = Field(..., description="Total price of the order")
+    discount_code: Optional[str] = Field(
+        None, description="Optional discount code applied to the order"
+    )
     billing_address: Optional[str] = Field(None, description="Billing address")
     billing_phone: Optional[str] = Field(None, description="Billing phone number")
     status: OrderStatus = Field(
@@ -78,14 +81,22 @@ class OrderBase(BaseModel):
             raise ValueError("Phone number must not exceed 20 digits")
         return v
 
-    @field_validator("billing_address", "note", mode="before")
+    @field_validator("discount_code", "billing_address", "note", mode="before")
     @classmethod
-    def validate_optional_strings(cls, v: Optional[str]) -> Optional[str]:
+    def validate_optional_strings(
+        cls, v: Optional[str], info: ValidationInfo
+    ) -> Optional[str]:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
         if v is None:
             return v
 
         v = v.strip()
-        return None if len(v) == 0 else v
+        if len(v) == 0:
+            return None
+        if info.field_name == "discount_code" and len(v) > 50:
+            raise ValueError(f"{field_name} must not exceed 50 characters")
+        return v
 
     @field_validator("status", mode="before")
     @classmethod
@@ -118,12 +129,17 @@ class OrderUpdate(BaseModel):
 
     order_number: Optional[str] = Field(None, description="Unique order number")
     price: Optional[float] = Field(None, description="Total price of the order")
+    discount_code: Optional[str] = Field(
+        None, description="Optional discount code applied to the order"
+    )
     billing_address: Optional[str] = Field(None, description="Billing address")
     billing_phone: Optional[str] = Field(None, description="Billing phone number")
     status: Optional[OrderStatus] = Field(None, description="Status of the order")
     note: Optional[str] = Field(None, description="Order note")
 
-    @field_validator("order_number", "billing_address", "billing_phone", "note")
+    @field_validator(
+        "order_number", "discount_code", "billing_address", "billing_phone", "note"
+    )
     @classmethod
     def validate_optional_strings(
         cls, v: Optional[str], info: ValidationInfo
@@ -138,6 +154,8 @@ class OrderUpdate(BaseModel):
             return None
 
         if info.field_name == "order_number" and len(v) > 50:
+            raise ValueError(f"{field_name} must not exceed 50 characters")
+        if info.field_name == "discount_code" and len(v) > 50:
             raise ValueError(f"{field_name} must not exceed 50 characters")
         if info.field_name == "billing_phone":
             phone_pattern = r"^[\d]+$"
@@ -183,6 +201,9 @@ class OrderResponse(OrderPublic):
     user: Optional[UserPublic] = Field(None, description="Associated user information")
     order_items: Optional[list[OrderItemPublic]] = Field(
         None, description="List of order items associated with the order"
+    )
+    payment_status: Optional[str] = Field(
+        default="pending", description="Payment status (pending, completed, failed)"
     )
 
     model_config = ConfigDict(from_attributes=True)

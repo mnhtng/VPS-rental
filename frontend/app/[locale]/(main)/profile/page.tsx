@@ -22,7 +22,7 @@ import {
     Edit,
     Save,
     X,
-    RefreshCw
+    Loader
 } from 'lucide-react';
 import { Profile } from '@/types/types';
 import ProfilePlaceholder from '@/components/custom/placeholder/profile';
@@ -82,6 +82,7 @@ const ProfilePage = () => {
         return () => {
             controller.abort();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleSave = async () => {
@@ -399,7 +400,7 @@ const ProfilePage = () => {
                                     >
                                         {isSaving ? (
                                             <>
-                                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                                <Loader className="mr-2 h-4 w-4 animate-spin" />
                                                 Saving...
                                             </>
                                         ) : (
@@ -468,7 +469,7 @@ const ProfilePage = () => {
                                 >
                                     {isChangingPassword ? (
                                         <>
-                                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                            <Loader className="mr-2 h-4 w-4 animate-spin" />
                                             Updating...
                                         </>
                                     ) : (

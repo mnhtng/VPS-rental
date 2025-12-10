@@ -51,6 +51,7 @@ import {
     Search,
     Settings2,
     Trash2,
+    Loader
 } from "lucide-react"
 
 import { Button } from '@/components/ui/button'
@@ -494,7 +495,7 @@ export function DataTable<T extends BaseDataItem>({
                             title={rowsAction.isLoading ? "Please wait..." : "Delete item"}
                         >
                             {rowsAction.isLoading && rowsAction.selectedRows.includes(row.original.id.toString()) ? (
-                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                <Loader className="h-4 w-4 animate-spin" />
                             ) : (
                                 <Trash2 className="h-4 w-4" />
                             )}
@@ -724,7 +725,7 @@ export function DataTable<T extends BaseDataItem>({
                             >
                                 {rowsAction.isLoading ? (
                                     <>
-                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
                                         Deleting...
                                     </>
                                 ) : (
@@ -771,7 +772,7 @@ export function DataTable<T extends BaseDataItem>({
                             >
                                 {rowsAction.isLoading ? (
                                     <>
-                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
                                         Deleting {rowsAction.selectedRows.length} item(s)...
                                     </>
                                 ) : (
@@ -982,7 +983,7 @@ export function DataTable<T extends BaseDataItem>({
                                                                             >
                                                                                 {rowsAction.isLoading ? (
                                                                                     <>
-                                                                                        <RefreshCw className="h-4 w-4 animate-spin" />
+                                                                                        <Loader className="h-4 w-4 animate-spin" />
                                                                                         Processing...
                                                                                     </>
                                                                                 ) : (

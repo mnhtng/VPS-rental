@@ -19,7 +19,7 @@ import {
     Mail,
     Lock,
     LogIn,
-    RefreshCw
+    Loader
 } from 'lucide-react';
 import { BeamsBackground } from '@/components/ui/beam-background';
 import { GitHub, Google } from '@/components/custom/icon/brand';
@@ -227,7 +227,7 @@ const LoginPage = () => {
                             >
                                 {isLoading ? (
                                     <>
-                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
                                         Signing in...
                                     </>
                                 ) : (

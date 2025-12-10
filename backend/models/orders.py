@@ -27,6 +27,7 @@ class Order(SQLModel, table=True):
         user_id: Identifier for the user who placed the order.
         order_number: Unique order number.
         price: Total price of the order.
+        discount_code: Optional discount code applied to the order.
         billing_address: Billing address for the order.
         billing_phone: Billing phone number.
         status: Status of the order (e.g., pending, paid, cancelled).
@@ -71,6 +72,10 @@ class Order(SQLModel, table=True):
         nullable=False,
         max_digits=10,
         decimal_places=2,
+    )
+    discount_code: Optional[str] = Field(
+        nullable=True,
+        max_length=50,
     )
     billing_address: Optional[str] = Field(
         default=None,
@@ -136,6 +141,7 @@ class Order(SQLModel, table=True):
             "user_id": str(self.user_id) if self.user_id else None,
             "order_number": self.order_number,
             "price": str(self.price),
+            "discount_code": self.discount_code,
             "billing_address": self.billing_address,
             "billing_phone": self.billing_phone,
             "status": self.status,

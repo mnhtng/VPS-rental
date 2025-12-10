@@ -1,3 +1,5 @@
+import { useLocale } from "next-intl";
+
 export const normalizeString = (str: string): string => {
     return str
         .toLowerCase()
@@ -20,3 +22,15 @@ export const generateOrderNumber = () => {
     const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
     return `VPS-${timestamp}-${randomStr}`;
 }
+
+export const formatDateTime = (datetime: Date): string => {
+    const locale = useLocale();
+    return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    }).format(datetime);
+};

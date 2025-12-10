@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Clock, RefreshCw, CheckCircle } from 'lucide-react';
+import { Mail, Clock, Loader, CheckCircle } from 'lucide-react';
 import { BeamsBackground } from '@/components/ui/beam-background';
 import { toast } from 'sonner';
 import useAuth from '@/hooks/useAuth';
@@ -113,7 +113,7 @@ const PendingVerificationPage = () => {
                             >
                                 {isResending ? (
                                     <>
-                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
                                         Sending...
                                     </>
                                 ) : (

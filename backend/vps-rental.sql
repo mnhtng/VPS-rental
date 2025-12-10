@@ -375,8 +375,9 @@ CREATE TABLE "orders" (
     "user_id" UUID,
     "order_number" VARCHAR(50) NOT NULL, -- VPS-YYYYMMDD-XXXX
     "price" DECIMAL(10,2) NOT NULL,
+	"discount_code" VARCHAR(50),
     "billing_address" TEXT,
-    "billing_phone" VARCHAR(20),
+    "billing_phone" VARCHAR(20),	
     "status" VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, paid, cancelled
     "note" TEXT,
     "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
