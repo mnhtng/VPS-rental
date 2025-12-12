@@ -255,7 +255,9 @@ async def repay_momo_payment(
     """
     try:
         # Find existing order by order_number
-        statement = select(Order).where(Order.order_number == payment_request.order_number)
+        statement = select(Order).where(
+            Order.order_number == payment_request.order_number
+        )
         order = session.exec(statement).first()
 
         if not order:
@@ -535,7 +537,9 @@ async def repay_vnpay_payment(
     """
     try:
         # Find existing order by order_number
-        statement = select(Order).where(Order.order_number == payment_request.order_number)
+        statement = select(Order).where(
+            Order.order_number == payment_request.order_number
+        )
         order = session.exec(statement).first()
 
         if not order:

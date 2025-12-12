@@ -455,13 +455,19 @@ def start_vm(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/vms/{vm_id}/clone")
+@router.post(
+    "/vms/{vm_id}/clone",
+    summary="Clone a VM",
+    description="Clone a VM from an existing VM.",
+)
 def clone_vm(vm_id: int, proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """Clone a VM"""
     proxmox, vm, node, cluster = proxmox_data
 
     try:
-        result = ProxmoxVMService.create_vm(proxmox, node.name, vm.vmid, vm_id)
+        result = ProxmoxVMService.create_vm(
+            proxmox, node.name, vm.vmid, vm_id, "cloned-vm"
+        )
         return result
     except Exception as e:
         raise HTTPException(

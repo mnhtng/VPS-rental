@@ -3561,6 +3561,7 @@ class ProxmoxVMService:
         node: str,
         vmid: int,
         template_id: int,
+        name: str,
     ) -> Dict[str, Any]:
         """
         Create a new VM or clone from template
@@ -3578,7 +3579,7 @@ class ProxmoxVMService:
             task = (
                 proxmox.nodes(node)
                 .qemu(template_id)
-                .clone.post(newid=vmid, node=node, vmid=template_id)
+                .clone.post(newid=vmid, node=node, vmid=template_id, name=name)
             )
             return {
                 "success": True,

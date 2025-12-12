@@ -160,17 +160,17 @@ const usePayment = () => {
             }
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const subtotal = result.data.order.order_items.reduce((total: number, item: any) => total + item.total_price, 0);
-            const discount = subtotal - result.data.order.price;
-            const total = result.data.order.price;
+            const subtotal = result?.data?.cart.reduce((total: number, item: any) => total + item.total_price, 0);
+            const discount = subtotal - result?.data?.order?.price;
+            const total = result?.data?.order?.price;
 
             await sendOrderConfirmationEmail({
-                customerName: result.data.order.user.name,
-                customerEmail: result.data.order.user.email,
-                customerPhone: result.data.order.billing_phone,
-                customerAddress: result.data.order.billing_address,
-                orderNumber: result.data.order.order_number,
-                orderDate: new Date(result.data.order.created_at).toLocaleString('vi-VN', {
+                customerName: result?.data?.user?.name,
+                customerEmail: result?.data?.user?.email,
+                customerPhone: result?.data?.order?.billing_phone,
+                customerAddress: result?.data?.order?.billing_address,
+                orderNumber: result?.data?.order?.order_number,
+                orderDate: new Date(result?.data?.order?.created_at).toLocaleString('vi-VN', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -179,26 +179,26 @@ const usePayment = () => {
                     second: '2-digit',
                 }),
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                vpsItems: result.data.order.order_items.map((item: any) => {
+                vpsItems: result?.data?.plans.map((item: any, index: number) => {
                     return {
-                        name: item.vps_plan.name,
-                        hostname: item.hostname,
-                        os: item.os,
-                        duration_months: item.duration_months,
-                        cpu: item.vps_plan.vcpu,
-                        ram: item.vps_plan.ram_gb,
-                        storage: item.vps_plan.storage_gb,
-                        storage_type: item.vps_plan.storage_type,
-                        network_speed: item.vps_plan.bandwidth_mbps,
-                        price: item.unit_price,
-                        total_price: item.total_price,
+                        name: item?.name,
+                        hostname: result?.data?.cart[index]?.hostname,
+                        os: result?.data?.cart[index]?.os,
+                        duration_months: result?.data?.cart[index]?.duration_months,
+                        cpu: item?.vcpu,
+                        ram: item?.ram_gb,
+                        storage: item?.storage_gb,
+                        storage_type: item?.storage_type,
+                        network_speed: item?.bandwidth_mbps,
+                        price: result?.data?.cart[index]?.unit_price,
+                        total_price: result?.data?.cart[index]?.total_price,
                     };
                 }),
                 subtotal,
                 discount,
                 total,
-                paymentMethod: result.data.payment.payment_method,
-                transactionId: result.data.transaction_id,
+                paymentMethod: result?.data?.payment?.payment_method,
+                transactionId: result?.data?.transaction_id,
             });
 
             return {

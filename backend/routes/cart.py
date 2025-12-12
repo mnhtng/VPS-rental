@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 import logging
 
 from backend.db import get_session
-from backend.models import Cart, VMTemplate, VPSPlan
+from backend.models import Cart, VMTemplate, VPSPlan, ProxmoxVM
 from backend.schemas import (
     CartAdd,
     CartResponse,
@@ -123,6 +123,7 @@ async def add_to_cart(
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
 
     Raises:
+        HTTPException: 400 if the VPS with the same hostname already exists.
         HTTPException: 401 if not authenticated.
         HTTPException: 404 if the VPS plan or VM template is not found.
         HTTPException: 500 if there is a server error.
@@ -153,8 +154,33 @@ async def add_to_cart(
                 detail="No matching VM template found for the selected VPS plan and OS",
             )
 
+        statement = select(ProxmoxVM).where(
+            ProxmoxVM.template_id == template.id,
+            ProxmoxVM.hostname == cart_data.hostname,
+            ProxmoxVM.hostname == cart_data.hostname,
+        )
+        exist_vm = session.exec(statement).first()
+
+        if exist_vm:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="VPS with the same hostname already exists",
+            )
+
         statement = select(Cart).where(Cart.user_id == current_user.id)
         cart = session.exec(statement).first()
+
+        if cart:
+            statement = select(Cart).where(
+                Cart.hostname == cart_data.hostname, Cart.os == cart_data.os
+            )
+            existing_cart_item = session.exec(statement).first()
+
+            if existing_cart_item:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Item with the same hostname already in cart",
+                )
 
         cart = Cart(
             user_id=current_user.id,

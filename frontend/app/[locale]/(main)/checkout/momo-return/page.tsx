@@ -76,7 +76,6 @@ const MoMoReturnPage = () => {
                     }));
                     setSetupVpsCompleted(true);
                 }
-
             } else {
                 let errorMessage = 'Payment failed';
 

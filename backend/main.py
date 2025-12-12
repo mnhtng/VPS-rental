@@ -53,8 +53,8 @@ proxmox_origins = [
     f"https://{settings.PROXMOX_HOST}:{settings.PROXMOX_PORT}",
     f"wss://{settings.PROXMOX_HOST}:{settings.PROXMOX_PORT}",
     f"https://{settings.PROXMOX_HOST}",
-    "https://10.10.1.12:8006",
-    "wss://10.10.1.12:8006",
+    "https://10.10.1.2:8006",
+    "wss://10.10.1.2:8006",
 ]
 origins.extend(proxmox_origins)
 

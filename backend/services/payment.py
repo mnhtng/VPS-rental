@@ -20,6 +20,7 @@ from backend.models import (
     VMTemplate,
     UserPromotion,
     Promotion,
+    User,
 )
 
 
@@ -116,7 +117,7 @@ class PaymentService:
                 unit_price=item.unit_price,
                 total_price=item.total_price,
                 configuration={
-                    "plan_name": plan.plan_name,
+                    "plan_name": plan.name,
                     "vcpu": plan.vcpu,
                     "ram_gb": plan.ram_gb,
                     "storage_gb": plan.storage_gb,
@@ -384,6 +385,14 @@ class PaymentService:
 
             self.session.add(payment)
             self.session.commit()
+            self.session.refresh(order)
+            self.session.refresh(payment)
+
+            user = self.session.get(User, order.user_id)
+            vps_plans = []
+            for item in cart_items:
+                vps_plan = self.session.get(VPSPlan, item.vps_plan_id)
+                vps_plans.append(vps_plan)
 
             return {
                 "valid": True,
@@ -393,6 +402,8 @@ class PaymentService:
                 "amount": data.get("amount"),
                 "message": data.get("message"),
                 "data": {
+                    "user": user,
+                    "plans": vps_plans,
                     "cart": cart_items,
                     "order": order,
                     "payment": payment,
@@ -620,6 +631,14 @@ class PaymentService:
 
                 self.session.add(payment)
                 self.session.commit()
+                self.session.refresh(order)
+                self.session.refresh(payment)
+
+                user = self.session.get(User, order.user_id)
+                vps_plans = []
+                for item in cart_items:
+                    vps_plan = self.session.get(VPSPlan, item.vps_plan_id)
+                    vps_plans.append(vps_plan)
 
             return {
                 "valid": True,
@@ -630,6 +649,8 @@ class PaymentService:
                 "response_code": response_code,
                 "message": self._get_vnpay_response_message(response_code),
                 "data": {
+                    "user": user,
+                    "plans": vps_plans,
                     "cart": cart_items,
                     "order": order,
                     "payment": payment,

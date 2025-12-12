@@ -75,7 +75,6 @@ const VNPayReturnPage = () => {
                     }));
                     setSetupVpsCompleted(true);
                 }
-
             } else {
                 let errorMessage = 'Payment failed';
 
