@@ -3483,7 +3483,11 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).config.put(**config)
+            task = (
+                proxmox.nodes(node)
+                .qemu(vmid)
+                .config.put(node=node, vmid=vmid, **config)
+            )
             return {
                 "success": True,
                 "task": task,

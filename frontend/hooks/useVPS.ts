@@ -2,7 +2,60 @@ import { apiPattern } from "@/utils/pattern";
 import { ApiResponse } from "@/types/types";
 import { sendVPSWelcomeEmail } from "@/lib/email/resend";
 
+export interface VPSInstance {
+    id: string;
+    status: string;
+    expires_at: string;
+    auto_renew: boolean;
+    created_at: string;
+    plan_name?: string;
+    vmid?: number;
+    hostname?: string;
+    ip_address?: string;
+    vcpu?: number;
+    ram_gb?: number;
+    storage_gb?: number;
+    storage_type?: string;
+    bandwidth_mbps?: number;
+    power_status?: string;
+}
+
 const useVPS = () => {
+    const getMyVps = async (): Promise<ApiResponse> => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/vps/my-vps`, {
+                method: 'GET',
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: 'Failed to fetch VPS list',
+                    error: {
+                        code: 'VPS_FETCH_ERROR',
+                        detail: result.detail,
+                    }
+                };
+            }
+
+            return {
+                message: 'VPS list fetched successfully',
+                data: result,
+            };
+        } catch (error) {
+            return {
+                message: 'Failed to fetch VPS list',
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'VPS_FETCH_ERROR',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while fetching VPS list',
+                }
+            };
+        }
+    };
+
     const setupVps = async (orderNumber: string): Promise<ApiResponse> => {
         try {
             const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/vps/setup`, {
@@ -78,6 +131,7 @@ const useVPS = () => {
     };
 
     return {
+        getMyVps,
         setupVps,
     }
 }

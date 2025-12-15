@@ -58,7 +58,7 @@ const RegisterPage = () => {
             return;
         }
 
-        if (formData.phone.length < 10) {
+        if (formData.phone && formData.phone.length < 10) {
             toast.error('Please enter a valid phone number');
             return;
         }

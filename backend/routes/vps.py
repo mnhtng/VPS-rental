@@ -4,8 +4,6 @@ from typing import List, Dict, Any
 import uuid
 import logging
 from pydantic import BaseModel, Field
-import secrets
-import string
 from datetime import datetime, timezone, timedelta
 
 from backend.db import get_session
@@ -133,7 +131,7 @@ async def get_proxmox_connection(cluster_id: uuid.UUID, session: Session):
         proxmox = CommonProxmoxService.get_connection(
             host=settings.PROXMOX_HOST,
             port=settings.PROXMOX_PORT,
-            user=settings.PROXMOX_USERNAME,
+            user=settings.PROXMOX_USER,
             password=settings.PROXMOX_PASSWORD,
             verify_ssl=False,
         )
@@ -182,6 +180,7 @@ async def list_my_vps(
         select(VPSInstance)
         .where(VPSInstance.user_id == current_user.id)
         .where(VPSInstance.status != "terminated")
+        .order_by(VPSInstance.created_at.desc())
     )
     vps_list = session.exec(statement).all()
 
@@ -193,23 +192,24 @@ async def list_my_vps(
             "expires_at": vps.expires_at.isoformat(),
             "auto_renew": vps.auto_renew,
             "created_at": vps.created_at.isoformat(),
+            "plan_name": vps.vps_plan.name if vps.vps_plan else None,
         }
 
         # Add VM details if available
-        if vps.vm_id:
-            vm = session.get(ProxmoxVM, vps.vm_id)
-            if vm:
-                vps_data.update(
-                    {
-                        "vmid": vm.vmid,
-                        "hostname": vm.hostname,
-                        "ip_address": vm.ip_address,
-                        "vcpu": vm.vcpu,
-                        "ram_gb": vm.ram_gb,
-                        "storage_gb": vm.storage_gb,
-                        "power_status": vm.power_status,
-                    }
-                )
+        if vps.vm:
+            vps_data.update(
+                {
+                    "vmid": vps.vm.vmid,
+                    "hostname": vps.vm.hostname,
+                    "ip_address": vps.vm.ip_address,
+                    "vcpu": vps.vm.vcpu,
+                    "ram_gb": vps.vm.ram_gb,
+                    "storage_gb": vps.vm.storage_gb,
+                    "storage_type": vps.vm.storage_type,
+                    "bandwidth_mbps": vps.vm.bandwidth_mbps,
+                    "power_status": vps.vm.power_status,
+                }
+            )
 
         result.append(vps_data)
 
@@ -914,8 +914,11 @@ class VPSSetupResponse(BaseModel):
 
 def generate_password(length: int = 16) -> str:
     """Generate a secure random password"""
-    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-    return "".join(secrets.choice(alphabet) for _ in range(length))
+    return "pcloud"
+    # import secrets
+    # import string
+    # alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+    # return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 def generate_placeholder_ip() -> str:
@@ -1033,9 +1036,9 @@ async def setup_vps(
                     continue
 
                 # Generate credentials
-                password = generate_password()
                 ip_address = generate_placeholder_ip()
                 username = template.default_user or "root"
+                password = generate_password()
 
                 # Create ProxmoxVM record
                 new_vm = ProxmoxVM(

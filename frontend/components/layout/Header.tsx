@@ -34,7 +34,8 @@ import {
     Home,
     KeyRound,
     UserRoundPlus,
-    Loader
+    Loader,
+    Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
@@ -150,7 +151,7 @@ export const Header = () => {
 
                                 {/* Preferences */}
                                 <ThemeSwitcher />
-                                <LanguageBadge activeTab={setActive} />
+                                <LanguageBadge />
 
                                 <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
 
@@ -209,11 +210,20 @@ export const Header = () => {
                                             <DropdownMenuSeparator />
 
                                             <DropdownMenuItem asChild>
-                                                <Link href={`/${locale}/admin`} className="flex items-center">
-                                                    <Shield className="mr-2 h-4 w-4" />
-                                                    {t('admin')}
+                                                <Link href={`/${locale}/client-dashboard`} className="flex items-center">
+                                                    <Cloud className="mr-2 h-4 w-4" />
+                                                    {t('manage_vps')}
                                                 </Link>
                                             </DropdownMenuItem>
+
+                                            {session.user.role === 'ADMIN' && (
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/${locale}/admin`} className="flex items-center">
+                                                        <Shield className="mr-2 h-4 w-4" />
+                                                        {t('admin')}
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            )}
                                         </>
 
                                         <DropdownMenuSeparator />
@@ -237,7 +247,7 @@ export const Header = () => {
                         ) : (
                             <div className="hidden lg:flex items-center space-x-2">
                                 <ThemeSwitcher />
-                                <LanguageBadge activeTab={setActive} />
+                                <LanguageBadge />
 
                                 <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
 
@@ -275,7 +285,7 @@ export const Header = () => {
 
                                     <div className="flex items-center justify-between gap-2">
                                         <ThemeSwitcher />
-                                        <LanguageBadge activeTab={setActive} />
+                                        <LanguageBadge />
                                     </div>
                                 </SheetHeader>
 

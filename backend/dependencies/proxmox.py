@@ -1,17 +1,12 @@
-"""
-Proxmox Dependency Injection
-Provides FastAPI dependencies for automatic Proxmox connection management
-"""
-
 from typing import Tuple, Optional
 from uuid import UUID
 from fastapi import Depends, HTTPException, Path
-from sqlmodel import Session
+from sqlmodel import Session, select
 from proxmoxer import ProxmoxAPI
 
 from backend.db import get_session
 from backend.core import settings
-from backend.models import ProxmoxCluster, ProxmoxNode, ProxmoxVM
+from backend.models import ProxmoxCluster, ProxmoxNode, ProxmoxVM, VMTemplate
 from backend.services.proxmox import CommonProxmoxService
 
 
@@ -19,7 +14,7 @@ from backend.services.proxmox import CommonProxmoxService
 ProxmoxConnection = ProxmoxAPI
 ProxmoxWithCluster = Tuple[ProxmoxAPI, ProxmoxCluster]
 ProxmoxWithNode = Tuple[ProxmoxAPI, ProxmoxNode, ProxmoxCluster]
-ProxmoxWithVM = Tuple[ProxmoxAPI, ProxmoxVM, ProxmoxNode, ProxmoxCluster]
+ProxmoxWithVM = Tuple[ProxmoxAPI, ProxmoxVM, VMTemplate, ProxmoxNode, ProxmoxCluster]
 
 
 def get_default_proxmox() -> ProxmoxAPI:
@@ -51,7 +46,10 @@ def get_proxmox_from_cluster(
     """
     cluster = session.get(ProxmoxCluster, cluster_id)
     if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Cluster not found",
+        )
 
     proxmox = CommonProxmoxService.get_connection(
         host=cluster.api_host,
@@ -79,11 +77,17 @@ def get_proxmox_from_node(
     """
     node = session.get(ProxmoxNode, node_id)
     if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Node not found",
+        )
 
     cluster = session.get(ProxmoxCluster, node.cluster_id)
     if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Cluster not found",
+        )
 
     proxmox = CommonProxmoxService.get_connection(
         host=cluster.api_host,
@@ -102,24 +106,42 @@ def get_proxmox_from_node(
 
 
 def get_proxmox_from_vm(
-    vm_id: UUID = Path(..., description="VM ID"),
+    vm_id: int = Path(..., description="VM ID"),
     session: Session = Depends(get_session),
 ) -> ProxmoxWithVM:
     """
     Get Proxmox connection from VM ID.
-    Returns: (proxmox_connection, vm, node, cluster)
+    Returns: (proxmox_connection, vm, template, node, cluster)
     """
-    vm = session.get(ProxmoxVM, vm_id)
+    vm = session.exec(
+        select(ProxmoxVM).where(ProxmoxVM.vmid == vm_id)
+    ).first()
     if not vm:
-        raise HTTPException(status_code=404, detail="VM not found")
+        raise HTTPException(
+            status_code=404,
+            detail="VM not found",
+        )
+
+    template = session.get(VMTemplate, vm.template_id)
+    if not template:
+        raise HTTPException(
+            status_code=404,
+            detail="Template not found",
+        )
 
     node = session.get(ProxmoxNode, vm.node_id)
     if not node:
-        raise HTTPException(status_code=404, detail="Node not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Node not found",
+        )
 
     cluster = session.get(ProxmoxCluster, vm.cluster_id)
     if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Cluster not found",
+        )
 
     proxmox = CommonProxmoxService.get_connection(
         host=cluster.api_host,
@@ -129,4 +151,4 @@ def get_proxmox_from_vm(
         verify_ssl=cluster.verify_ssl,
     )
 
-    return proxmox, vm, node, cluster
+    return proxmox, vm, template, node, cluster

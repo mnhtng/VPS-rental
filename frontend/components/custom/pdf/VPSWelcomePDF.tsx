@@ -155,18 +155,6 @@ const VPSWelcomePDF = ({
                     <Text style={styles.guideTitle}>1. KẾT NỐI VPS QUA SSH (ÁP DỤNG VỚI VPS CÓ OS LINUX)</Text>
 
                     <View style={styles.guideContent}>
-                        <Text style={styles.guideSubtitle}>Windows:</Text>
-                        <Text style={styles.guideText}>
-                            • Tải và cài đặt PuTTY hoặc Windows Terminal
-                        </Text>
-                        <Text style={styles.guideText}>
-                            • Nhập Host: {credentials.ipAddress}, Port: {credentials.sshPort}
-                        </Text>
-                        <Text style={styles.guideText}>
-                            • Click Open, nhập username và password
-                        </Text>
-
-                        <Text style={styles.guideSubtitle}>macOS / Linux:</Text>
                         <Text style={styles.guideText}>
                             • Mở Terminal
                         </Text>
@@ -181,9 +169,26 @@ const VPSWelcomePDF = ({
                     </View>
                 </View>
 
-                {/* Guide Section 2: Basic Commands */}
+                {/* Guide Section 2: Connect via Remote Desktop (Windows) */}
                 <View style={styles.guideSection}>
-                    <Text style={styles.guideTitle}>2. CÁC LỆNH CƠ BẢN</Text>
+                    <Text style={styles.guideTitle}>2. KẾT NỐI VPS QUA REMOTE DESKTOP (ÁP DỤNG VỚI VPS CÓ OS WINDOWS)</Text>
+
+                    <View style={styles.guideContent}>
+                        <Text style={styles.guideText}>
+                            • Nhấn Windows + R, gõ mstsc và nhấn Enter
+                        </Text>
+                        <Text style={styles.guideText}>
+                            • Nhập Computer: {credentials.ipAddress}
+                        </Text>
+                        <Text style={styles.guideText}>
+                            • Click Connect, nhập username và password
+                        </Text>
+                    </View>
+                </View>
+
+                {/* Guide Section 3: Basic Commands */}
+                <View style={styles.guideSection}>
+                    <Text style={styles.guideTitle}>3. CÁC LỆNH CƠ BẢN (LINUX)</Text>
 
                     <View style={styles.commandsGrid}>
                         <View style={styles.commandItem}>
@@ -209,9 +214,9 @@ const VPSWelcomePDF = ({
                     </View>
                 </View>
 
-                {/* Guide Section 3: Security */}
+                {/* Guide Section 4: Security */}
                 <View style={styles.guideSection}>
-                    <Text style={styles.guideTitle}>3. BẢO MẬT VPS</Text>
+                    <Text style={styles.guideTitle}>4. BẢO MẬT VPS</Text>
 
                     <View style={styles.securityTips}>
                         <View style={styles.tipItem}>

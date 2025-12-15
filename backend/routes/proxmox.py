@@ -1,6 +1,6 @@
 from platform import node
 import uuid
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, HTTPException, Path, status, Depends, Query
 from typing import Optional
 from sqlmodel import Session, select
 from datetime import datetime, timezone
@@ -99,13 +99,16 @@ class SnapshotActionRequest(BaseModel):
     snapname: str = Field(..., description="Snapshot name")
 
 
-class VMConfigUpdateRequest(BaseModel):
+class VMConfigRequest(BaseModel):
     """Request model for updating VM configuration"""
 
-    node_name: str = Field(..., description="Node name")
+    name: Optional[str] = Field(None, description="VM name")
     cores: Optional[int] = Field(None, description="Number of CPU cores")
     memory: Optional[int] = Field(None, description="RAM in MB")
     description: Optional[str] = Field(None, description="VM description")
+    ciuser: Optional[str] = Field(None, description="Username for VM access")
+    cipassword: Optional[str] = Field(None, description="Password for VM access")
+    ipconfig0: Optional[str] = Field(None, description="IP configuration for VM")
 
 
 class DiskResizeRequest(BaseModel):
@@ -119,8 +122,6 @@ class DiskResizeRequest(BaseModel):
 # ============================================================================
 # Cluster Management Endpoints
 # ============================================================================
-
-
 @router.post("/clusters/test-connection")
 def test_connection(
     request: ConnectionTestRequest, session: Session = Depends(get_session)
@@ -145,6 +146,15 @@ def list_clusters(session: Session = Depends(get_session)):
     """List all registered Proxmox clusters"""
     clusters = session.exec(select(ProxmoxCluster)).all()
     return [cluster.to_dict() for cluster in clusters]
+
+
+@router.get("/clusters/{cluster_id}")
+def get_cluster(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
+    """Get cluster details by ID"""
+    cluster = session.get(ProxmoxCluster, cluster_id)
+    if not cluster:
+        raise HTTPException(status_code=404, detail="Cluster not found")
+    return cluster.to_dict()
 
 
 @router.post("/clusters")
@@ -184,15 +194,6 @@ def create_cluster(
     session.commit()
     session.refresh(cluster)
 
-    return cluster.to_dict()
-
-
-@router.get("/clusters/{cluster_id}")
-def get_cluster(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
-    """Get cluster details by ID"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(status_code=404, detail="Cluster not found")
     return cluster.to_dict()
 
 
@@ -246,72 +247,9 @@ def get_cluster_version(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/clusters/{cluster_id}/sync")
-def sync_cluster_resources(
-    proxmox_data: ProxmoxWithCluster = Depends(get_proxmox_from_cluster),
-    session: Session = Depends(get_session),
-):
-    """Sync nodes and storages from Proxmox to database"""
-    proxmox, cluster = proxmox_data
-
-    try:
-
-        # Sync nodes
-        nodes_data = CommonProxmoxService.get_nodes(proxmox)
-        synced_nodes = []
-
-        for node_data in nodes_data:
-            node_name = node_data.get("node")
-
-            # Check if node exists
-            existing_node = session.exec(
-                select(ProxmoxNode).where(
-                    ProxmoxNode.cluster_id == cluster_id,
-                    ProxmoxNode.name == node_name,
-                )
-            ).first()
-
-            node_status = ProxmoxNodeService.get_node_status(proxmox, node_name)
-
-            if existing_node:
-                # Update existing node
-                existing_node.status = node_data.get("status", "online")
-                existing_node.cpu_cores = node_status.get("cpuinfo", {}).get("cpus")
-                existing_node.total_memory_gb = node_status.get("memory", {}).get(
-                    "total", 0
-                ) // (1024 * 1024 * 1024)
-                existing_node.updated_at = datetime.now(timezone.utc)
-                session.add(existing_node)
-                synced_nodes.append(existing_node.name)
-            else:
-                # Create new node
-                new_node = ProxmoxNode(
-                    cluster_id=cluster_id,
-                    name=node_name,
-                    ip_address=node_data.get("ip", "127.0.0.1"),
-                    status=node_data.get("status", "online"),
-                    cpu_cores=node_status.get("cpuinfo", {}).get("cpus"),
-                    total_memory_gb=node_status.get("memory", {}).get("total", 0)
-                    // (1024 * 1024 * 1024),
-                )
-                session.add(new_node)
-                synced_nodes.append(new_node.name)
-
-        session.commit()
-
-        return {
-            "message": "Cluster resources synced successfully",
-            "synced_nodes": synced_nodes,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 # ============================================================================
 # Node Management Endpoints
 # ============================================================================
-
-
 @router.get("/clusters/{cluster_id}/nodes")
 def list_nodes(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
     """List all nodes in a cluster"""
@@ -338,7 +276,7 @@ def get_node_live_status(
     proxmox, node, cluster = proxmox_data
 
     try:
-        return CommonProxmoxService.get_node_status(proxmox, node.name)
+        return ProxmoxNodeService.get_node_status(proxmox, node.name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -346,8 +284,6 @@ def get_node_live_status(
 # ============================================================================
 # Storage Management Endpoints
 # ============================================================================
-
-
 @router.get("/nodes/{node_id}/storages")
 def list_storages(node_id: uuid.UUID, session: Session = Depends(get_session)):
     """List storages for a node"""
@@ -363,7 +299,7 @@ def list_live_storages(proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_
     proxmox, node, cluster = proxmox_data
 
     try:
-        return CommonProxmoxService.get_storages(proxmox, node.name)
+        return ProxmoxStorageService.get_storages(proxmox, node.name)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -373,8 +309,6 @@ def list_live_storages(proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_
 # ============================================================================
 # VM Management Endpoints
 # ============================================================================
-
-
 @router.get("/clusters/{cluster_id}/vms")
 def list_cluster_vms(cluster_id: uuid.UUID, session: Session = Depends(get_session)):
     """List all VMs in a cluster"""
@@ -384,20 +318,13 @@ def list_cluster_vms(cluster_id: uuid.UUID, session: Session = Depends(get_sessi
     return [vm.to_dict() for vm in vms]
 
 
-@router.get("/nodes/{node_id}/vms")
-def list_node_vms(node_id: uuid.UUID, session: Session = Depends(get_session)):
-    """List all VMs on a node"""
-    vms = session.exec(select(ProxmoxVM).where(ProxmoxVM.node_id == node_id)).all()
-    return [vm.to_dict() for vm in vms]
-
-
 @router.get("/nodes/{node_id}/vms/live")
 def list_live_vms(proxmox_data: ProxmoxWithNode = Depends(get_proxmox_from_node)):
     """Get live VM list from Proxmox"""
     proxmox, node, cluster = proxmox_data
 
     try:
-        return CommonProxmoxService.get_vms(proxmox, node.name)
+        return ProxmoxVMService.get_vms(proxmox, node.name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -417,7 +344,7 @@ def get_vm_live_status(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm
     proxmox, vm, node, cluster = proxmox_data
 
     try:
-        return CommonProxmoxService.get_vm_status(proxmox, node.name, vm.vmid)
+        return ProxmoxVMService.get_vm_status(proxmox, node.name, vm.vmid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -425,10 +352,67 @@ def get_vm_live_status(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm
 @router.get("/vms/{vm_id}/config")
 def get_vm_config(proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """Get VM configuration from Proxmox"""
-    proxmox, vm, node, cluster = proxmox_data
+    proxmox, vm, node = proxmox_data
 
     try:
-        return CommonProxmoxService.get_vm_config(proxmox, node.name, vm.vmid)
+        return ProxmoxVMService.get_vm_config(proxmox, node.name, vm.vmid)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/vms/{vm_id}/config")
+def set_vm_config(
+    vm_id: int,
+    config_data: VMConfigRequest,
+    # proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
+    session: Session = Depends(get_session),
+):
+    """Set VM configuration"""
+    # proxmox, vm, node = proxmox_data
+    proxmox = CommonProxmoxService.get_connection(
+        host=settings.PROXMOX_HOST,
+        port=settings.PROXMOX_PORT,
+        user=settings.PROXMOX_USER,
+        password=settings.PROXMOX_PASSWORD,
+        verify_ssl=False,
+    )
+
+    try:
+        result = ProxmoxVMService.update_vm_config(
+            proxmox, "pve", vm_id, **config_data.model_dump(exclude_unset=True)
+        )
+
+        # config_dict = config_data.model_dump(exclude_unset=True)
+        # for key, value in config_dict.items():
+        #     if key in {"cores", "memory"}:
+        #         if key == "cores":
+        #             vm.vcpu = value
+        #         elif key == "memory":
+        #             vm.ram_gb = value // 1024  # Convert MB to GB
+        #     else:
+        #         setattr(vm, key, value)
+
+        # session.add(vm)
+        # session.commit()
+
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/vms/{vm_id}/ip")
+def get_vm_ip(vm_id: int = Path(..., description="VM ID")):
+    """Get VM IP address from Proxmox"""
+    proxmox = CommonProxmoxService.get_connection(
+        host=settings.PROXMOX_HOST,
+        port=settings.PROXMOX_PORT,
+        user=settings.PROXMOX_USER,
+        password=settings.PROXMOX_PASSWORD,
+        verify_ssl=False,
+    )
+
+    try:
+        return proxmox.nodes("pve").qemu(vm_id).agent("network-get-interfaces").get()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -462,11 +446,11 @@ def start_vm(
 )
 def clone_vm(vm_id: int, proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm)):
     """Clone a VM"""
-    proxmox, vm, node, cluster = proxmox_data
+    proxmox, vm, template, node, cluster = proxmox_data
 
     try:
         result = ProxmoxVMService.create_vm(
-            proxmox, node.name, vm.vmid, vm_id, "cloned-vm"
+            proxmox, node.name, vm_id, template.template_vmid, "cloned-vm"
         )
         return result
     except Exception as e:
@@ -582,44 +566,6 @@ def delete_vm(
     try:
         result = ProxmoxVMService.delete_vm(proxmox, "pve", vm_id)
         return {"message": "VM deleted successfully", "task": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.put("/vms/{vm_id}/config")
-def update_vm_configuration(
-    config: VMConfigUpdateRequest,
-    proxmox_data: ProxmoxWithVM = Depends(get_proxmox_from_vm),
-    session: Session = Depends(get_session),
-):
-    """Update VM configuration"""
-    proxmox, vm, node, cluster = proxmox_data
-
-    try:
-
-        # Build config update
-        update_config = {}
-        if config.cores:
-            update_config["cores"] = config.cores
-        if config.memory:
-            update_config["memory"] = config.memory
-        if config.description:
-            update_config["description"] = config.description
-
-        result = CommonProxmoxService.update_vm_config(
-            proxmox, node.name, vm.vmid, **update_config
-        )
-
-        # Update database
-        if config.cores:
-            vm.vcpu = config.cores
-        if config.memory:
-            vm.ram_gb = config.memory // 1024
-        vm.updated_at = datetime.now(timezone.utc)
-        session.add(vm)
-        session.commit()
-
-        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -47,27 +47,27 @@ async def get_user_orders(
         orders = session.exec(statement).all()
 
         result = []
-        for order in orders:
-            order_dict = {
-                "id": order.id,
-                "order_number": order.order_number,
-                "price": float(order.price),
-                "billing_address": order.billing_address,
-                "billing_phone": order.billing_phone,
-                "status": order.status,
-                "note": order.note,
-                "created_at": order.created_at,
-                "updated_at": order.updated_at,
-                "order_items": order.order_items,
-                "payment_status": (
-                    order.payment_transaction.status
-                    if order.payment_transaction
-                    else "pending"
-                ),
-            }
-            result.append(order_dict)
+        if orders:
+            for order in orders:
+                order_dict = {
+                    "id": order.id,
+                    "order_number": order.order_number,
+                    "price": float(order.price),
+                    "billing_address": order.billing_address,
+                    "billing_phone": order.billing_phone,
+                    "status": order.status,
+                    "note": order.note,
+                    "created_at": order.created_at,
+                    "updated_at": order.updated_at,
+                    "order_items": order.order_items,
+                    "payment_status": (
+                        order.payment_transaction.status
+                        if order.payment_transaction
+                        else "pending"
+                    ),
+                }
+                result.append(order_dict)
 
-        print(">>> 🎄 orders plan: ", result[0]["order_items"][0].vps_plan)
         return result
     except HTTPException:
         raise

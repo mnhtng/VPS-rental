@@ -1,5 +1,5 @@
 import { apiPattern } from '@/utils/pattern';
-import { ApiResponse, OrderPaymentsResponse, PaymentStatusResponse, PaymentResponse } from '@/types/types';
+import { ApiResponse, OrderPaymentsResponse, PaymentStatusResponse, PaymentResponse, OrderConfirmationEmailData } from '@/types/types';
 import { sendOrderConfirmationEmail, sendPasswordResetEmail, sendVerificationMail, sendVPSWelcomeEmail } from '@/lib/email/resend';
 
 const usePayment = () => {
@@ -198,8 +198,8 @@ const usePayment = () => {
                 discount,
                 total,
                 paymentMethod: result?.data?.payment?.payment_method,
-                transactionId: result?.data?.transaction_id,
-            });
+                transactionId: result?.transaction_id,
+            } as OrderConfirmationEmailData);
 
             return {
                 message: 'Payment verified successfully',

@@ -29,6 +29,20 @@
             "title": "Đăng ký - PCloud",
             "description": "Tạo tài khoản PCloud và bắt đầu hành trình VPS hosting của bạn với máy chủ đám mây đáng tin cậy cùng hỗ trợ chuyên gia.",
             "keywords": "đăng ký VPS, đăng ký hosting, tạo tài khoản, tài khoản VPS hosting"
+        },
+        "vps_detail": {
+            "title": "{hostname} - Quản lý VPS | PCloud",
+            "title_fallback": "Quản lý VPS - PCloud",
+            "description": "Quản lý VPS {hostname} của bạn với {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type}. Hệ điều hành {os}.",
+            "description_fallback": "Quản lý máy chủ VPS của bạn với PCloud. Theo dõi hiệu suất, cấu hình cài đặt và truy cập console máy chủ.",
+            "keywords": "quản lý VPS, bảng điều khiển máy chủ, VPS console, giám sát máy chủ"
+        },
+        "plan_item": {
+            "title": "{name} - Gói VPS | PCloud",
+            "title_fallback": "Gói VPS - PCloud",
+            "description": "Sở hữu gói {name} với {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type}, {bandwidth}TB băng thông. Chỉ từ {price}đ/tháng. Hoàn hảo cho website và ứng dụng.",
+            "description_fallback": "Xem chi tiết các gói VPS hosting với tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ 24/7.",
+            "keywords": "chi tiết gói VPS, cấu hình máy chủ đám mây, tính năng VPS, thông số VPS, gói hosting"
         }
     },
     "header": {
@@ -38,6 +52,7 @@
         "profile": "Hồ sơ",
         "my_orders": "Đơn hàng của tôi",
         "support_tickets": "Yêu cầu hỗ trợ",
+        "manage_vps": "Quản lý VPS",
         "admin": "Quản trị",
         "login": "Đăng nhập",
         "register": "Đăng ký",

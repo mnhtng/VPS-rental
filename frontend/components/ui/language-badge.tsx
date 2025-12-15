@@ -19,11 +19,7 @@ const languages = (t: (key: string) => string) => {
     ]
 };
 
-export function LanguageBadge({
-    activeTab
-}: {
-    activeTab: (tab: string) => void;
-}) {
+export function LanguageBadge() {
     const locale = useLocale();
     const t = useTranslations('language');
 
@@ -43,7 +39,6 @@ export function LanguageBadge({
                 : pathname;
 
             const newPath = `/${newLocale}${pathWithoutLocale}`;
-            activeTab(newPath);
             router.replace(newPath);
         });
     };

@@ -6,41 +6,48 @@ const defaultUrl = process.env.VERCEL_URL
     : "http://localhost:3000";
 
 /**
- * Generate metadata for individual pages
+ * Generate metadata for static pages
  */
 export async function generatePageMetadata({
     locale,
     page,
-    path = ''
+    path = '',
+    robots = true,
+    twitterCard = 'summary_large_image',
+    image = "/logo.png",
+
 }: {
     locale: string;
     page: string;
     path?: string;
+    robots?: boolean;
+    twitterCard?: 'summary' | 'summary_large_image';
+    image?: string;
 }): Promise<Metadata> {
-    const pageT = await getTranslations({ locale, namespace: `metadata.${page}` });
+    const t = await getTranslations({ locale, namespace: `metadata.${page}` });
 
-    const title = pageT('title');
-    const description = pageT('description');
-    const keywords = pageT('keywords');
+    const title = t('title');
+    const description = t('description');
+    const keywords = t('keywords');
     const url = `${defaultUrl}/${locale}${path}`;
 
     return {
         metadataBase: new URL(defaultUrl),
-        title: title,
-        description: description,
-        keywords: keywords,
+        title,
+        description,
+        keywords,
         openGraph: {
-            title: title,
-            description: description,
-            url: url,
+            title,
+            description,
+            url,
             siteName: 'PCloud',
-            locale: locale,
+            locale: locale === 'vi' ? 'vi_VN' : 'en_US',
             type: 'website',
         },
         twitter: {
-            card: 'summary_large_image',
-            title: title,
-            description: description,
+            card: twitterCard,
+            title,
+            description,
         },
         alternates: {
             canonical: url,
@@ -50,13 +57,92 @@ export async function generatePageMetadata({
             },
         },
         robots: {
-            index: true,
-            follow: true,
+            index: robots,
+            follow: robots,
         },
         icons: {
-            icon: "/logo.png",
-            shortcut: "/logo.png",
-            apple: "/logo.png",
+            icon: image,
+            shortcut: image,
+            apple: image,
+        },
+    };
+}
+
+/**
+ * Generate metadata for dynamic pages with data fetching
+ */
+export async function generateDynamicPageMetadata({
+    locale,
+    page,
+    path = '',
+    data = null,
+    robots = true,
+    twitterCard = 'summary_large_image',
+    image = "/logo.png",
+}: {
+    locale: string;
+    page: string;
+    path?: string;
+    data?: Record<string, string | number> | null;
+    robots?: boolean;
+    twitterCard?: 'summary' | 'summary_large_image';
+    image?: string;
+}): Promise<Metadata> {
+    const t = await getTranslations({ locale, namespace: `metadata.${page}` });
+    const url = `${defaultUrl}/${locale}${path}`;
+
+    if (!data) {
+        return {
+            metadataBase: new URL(defaultUrl),
+            title: t('title_fallback'),
+            description: t('description_fallback'),
+            robots: {
+                index: robots,
+                follow: robots,
+            },
+            icons: {
+                icon: image,
+                shortcut: image,
+                apple: image,
+            },
+        };
+    }
+
+    const title = t('title', data);
+    const description = t('description', data);
+
+    return {
+        metadataBase: new URL(defaultUrl),
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            url,
+            siteName: 'PCloud',
+            locale: locale === 'vi' ? 'vi_VN' : 'en_US',
+            type: 'website',
+        },
+        twitter: {
+            card: twitterCard,
+            title,
+            description,
+        },
+        alternates: {
+            canonical: url,
+            languages: {
+                'en': `${defaultUrl}/en${path}`,
+                'vi': `${defaultUrl}/vi${path}`,
+            },
+        },
+        robots: {
+            index: robots,
+            follow: robots,
+        },
+        icons: {
+            icon: image,
+            shortcut: image,
+            apple: image,
         },
     };
 }

@@ -21,8 +21,10 @@
             "keywords": "VPS plans, VPS pricing, cloud server plans, SSD VPS, NVMe VPS, hosting plans"
         },
         "plan_item": {
-            "title": "VPS Plan - PCloud",
-            "description": "View details of a specific VPS plan and its features.",
+            "title": "{name} - VPS Plan | PCloud",
+            "title_fallback": "VPS Plan - PCloud",
+            "description": "Get {name} VPS with {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type} storage, {bandwidth}TB bandwidth. Starting at ${price}/month. Perfect for websites and applications.",
+            "description_fallback": "View details of our VPS hosting plans with dedicated resources, SSD/NVMe storage, and 24/7 support.",
             "keywords": "VPS plan details, cloud server specs, VPS features, server configuration, VPS specifications, hosting plan details"
         },
         "support": {
@@ -71,6 +73,38 @@
                 "description": "Access the admin dashboard to manage users, VPS plans, and site settings for your PCloud hosting services.",
                 "keywords": "VPS admin, hosting management, user management, server administration"
             }
+        },
+        "client-dashboard": {
+            "title": "Client Dashboard - PCloud",
+            "description": "Manage your VPS hosting services, billing, and account settings from the client dashboard.",
+            "keywords": "VPS client dashboard, hosting management, account settings, billing management"
+        },
+        "vps": {
+            "title": "My VPS Servers - PCloud",
+            "description": "View and manage your VPS servers, monitor performance, and configure settings from your PCloud account.",
+            "keywords": "VPS management, server monitoring, VPS control panel, server settings"
+        },
+        "vps_detail": {
+            "title": "{hostname} - VPS Management | PCloud",
+            "title_fallback": "VPS Management - PCloud",
+            "description": "Manage your VPS {hostname} with {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type}. Running {os}.",
+            "description_fallback": "Manage your VPS server with PCloud. Monitor performance, configure settings, and access your server console.",
+            "keywords": "VPS management, server control panel, VPS console, server monitoring"
+        },
+        "billing": {
+            "title": "Billing & Invoices - PCloud",
+            "description": "Manage your billing information, view invoices, and track payments for your VPS hosting services.",
+            "keywords": "VPS billing, invoice management, payment tracking, hosting billing"
+        },
+        "settings": {
+            "title": "Settings - PCloud",
+            "description": "Manage your VPS account settings, personal information, and password from your PCloud profile.",
+            "keywords": "VPS account settings, personal information, password change, hosting account"
+        },
+        "client-support": {
+            "title": "Support - PCloud",
+            "description": "Access support resources, submit tickets, and get help for your VPS hosting services from the client support center.",
+            "keywords": "VPS client support, technical help, support tickets, hosting assistance"
         }
     },
     "header": {
@@ -80,6 +114,7 @@
         "profile": "Profile",
         "my_orders": "My Orders",
         "my_tickets": "My Tickets",
+        "manage_vps": "Manage VPS",
         "admin": "Admin",
         "login": "Login",
         "register": "Sign Up",

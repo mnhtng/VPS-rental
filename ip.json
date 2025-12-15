@@ -1,0 +1,56 @@
+{
+  "result": [
+    {
+      "statistics": {
+        "tx-packets": 80,
+        "rx-packets": 80,
+        "tx-errs": 0,
+        "rx-errs": 0,
+        "tx-dropped": 0,
+        "rx-dropped": 0,
+        "rx-bytes": 5920,
+        "tx-bytes": 5920
+      },
+      "hardware-address": "00:00:00:00:00:00",
+      "name": "lo",
+      "ip-addresses": [
+        {
+          "prefix": 8,
+          "ip-address": "127.0.0.1",
+          "ip-address-type": "ipv4"
+        },
+        {
+          "ip-address-type": "ipv6",
+          "prefix": 128,
+          "ip-address": "::1"
+        }
+      ]
+    },
+    {
+      "statistics": {
+        "rx-packets": 77,
+        "tx-packets": 7,
+        "tx-errs": 0,
+        "rx-errs": 0,
+        "tx-dropped": 0,
+        "rx-dropped": 0,
+        "tx-bytes": 851,
+        "rx-bytes": 5661
+      },
+      "hardware-address": "bc:24:11:54:74:76",
+      "ip-addresses": [
+        {
+          "ip-address": "192.168.1.238",
+          "prefix": 24,
+          "ip-address-type": "ipv4"
+        },
+        {
+          "prefix": 64,
+          "ip-address": "fe80::be24:11ff:fe54:7476",
+          "ip-address-type": "ipv6"
+        }
+      ],
+      "name": "ens18"
+    }
+  ]
+}
