@@ -26,7 +26,7 @@ class VMTemplateBase(BaseModel):
     os_type: Optional[str] = Field(None, description="Operating system type")
     os_version: Optional[str] = Field(None, description="Operating system version")
     default_user: Optional[str] = Field(
-        default="root", description="Default username for the template"
+        default="pcloud", description="Default username for the template"
     )
     cloud_init_enabled: Optional[bool] = Field(
         default=False, description="Whether cloud-init is enabled for the template"
@@ -108,8 +108,6 @@ class VMTemplateBase(BaseModel):
     def cross_field_rules(self):
         if self.cloud_init_enabled is True and not self.default_user:
             raise ValueError("Default user is required when cloud-init is enabled")
-        if self.os_type == "windows" and (self.ram_gb is not None and self.ram_gb < 4):
-            raise ValueError("Windows templates require at least 4GB RAM")
         return self
 
 
@@ -196,8 +194,6 @@ class VMTemplateUpdate(BaseModel):
     def cross_field_rules(self):
         if self.cloud_init_enabled is True and not self.default_user:
             raise ValueError("Default user is required when cloud-init is enabled")
-        if self.os_type == "windows" and (self.ram_gb is not None and self.ram_gb < 4):
-            raise ValueError("Windows templates require at least 4GB RAM")
         return self
 
 

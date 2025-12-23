@@ -1,333 +1,446 @@
-# from fastapi import APIRouter, Depends, HTTPException, status, Query
-# from sqlmodel import Session, select
-# from typing import List, Dict, Any
-# from models.database import (
-#     SupportTicket, SupportMessage, FAQ, User, get_session
-# )
-# from schemas.api import (
-#     SupportTicketCreate, SupportTicketResponse,
-#     SupportMessageCreate, SupportMessageResponse,
-#     FAQResponse, FAQCreate
-# )
-# from core.auth import get_current_active_user, get_admin_user
+from datetime import datetime, timezone
+import logging
+import uuid
+from typing import List, Optional
 
-# router = APIRouter(prefix="/api/support", tags=["Support"])
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlmodel import Session, select
 
-# # Support Tickets
-# @router.post("/tickets", response_model=SupportTicketResponse)
-# async def create_support_ticket(
-#     ticket_data: SupportTicketCreate,
-#     current_user: User = Depends(get_current_active_user),
-#     session: Session = Depends(get_session)
-# ):
-#     """Create a new support ticket"""
-#     ticket = SupportTicket(
-#         user_id=current_user.id,
-#         subject=ticket_data.subject,
-#         description=ticket_data.description,
-#         category=ticket_data.category,
-#         priority=ticket_data.priority
-#     )
+from backend.db import get_session
+from backend.models import User, SupportTicket, SupportTicketReply
+from backend.schemas import (
+    SupportTicketUpdate,
+    SupportTicketReplyResponse,
+    CreateTicketRequest,
+    AddReplyRequest,
+    UpdateTicketStatusRequest,
+    TicketStatisticsResponse,
+    SupportTicketResponse,
+)
+from backend.utils import get_current_user, get_admin_user
 
-#     session.add(ticket)
-#     session.commit()
-#     session.refresh(ticket)
 
-#     return get_ticket_with_messages(ticket.id, session)
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/support", tags=["Support"])
 
-# @router.get("/tickets", response_model=List[SupportTicketResponse])
-# async def get_user_tickets(
-#     current_user: User = Depends(get_current_active_user),
-#     session: Session = Depends(get_session),
-#     skip: int = Query(0, ge=0),
-#     limit: int = Query(50, ge=1, le=100)
-# ):
-#     """Get current user's support tickets"""
-#     statement = (
-#         select(SupportTicket)
-#         .where(SupportTicket.user_id == current_user.id)
-#         .order_by(SupportTicket.created_at.desc())
-#         .offset(skip)
-#         .limit(limit)
-#     )
-#     tickets = session.exec(statement).all()
 
-#     return [get_ticket_with_messages(ticket.id, session) for ticket in tickets]
+@router.get(
+    "/tickets",
+    response_model=List[SupportTicketResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get user's tickets",
+    description="Get all support tickets for the authenticated user",
+)
+async def get_user_tickets(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    priority_filter: Optional[str] = Query(None, alias="priority"),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get all tickets for the current user.
 
-# @router.get("/tickets/{ticket_id}", response_model=SupportTicketResponse)
-# async def get_support_ticket(
-#     ticket_id: int,
-#     current_user: User = Depends(get_current_active_user),
-#     session: Session = Depends(get_session)
-# ):
-#     """Get a specific support ticket"""
-#     ticket = session.get(SupportTicket, ticket_id)
-#     if not ticket:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Support ticket not found"
-#         )
+    Args:
+        status_filter: Filter by status
+        priority_filter: Filter by priority
+        session: Database session
+        current_user: The authenticated user
 
-#     # Check ticket ownership or admin
-#     if ticket.user_id != current_user.id and current_user.role != "admin":
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Not authorized to view this ticket"
-#         )
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 500 if fetching tickets fails
 
-#     return get_ticket_with_messages(ticket_id, session)
+    Returns:
+        List of tickets
+    """
+    try:
+        statement = select(SupportTicket).where(
+            SupportTicket.user_id == current_user.id
+        )
 
-# @router.post("/tickets/{ticket_id}/messages", response_model=SupportMessageResponse)
-# async def add_ticket_message(
-#     ticket_id: int,
-#     message_data: SupportMessageCreate,
-#     current_user: User = Depends(get_current_active_user),
-#     session: Session = Depends(get_session)
-# ):
-#     """Add a message to a support ticket"""
-#     ticket = session.get(SupportTicket, ticket_id)
-#     if not ticket:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Support ticket not found"
-#         )
+        if status_filter and status_filter != "all":
+            statement = statement.where(SupportTicket.status == status_filter)
+        if priority_filter and priority_filter != "all":
+            statement = statement.where(SupportTicket.priority == priority_filter)
 
-#     # Check ticket ownership or admin
-#     if ticket.user_id != current_user.id and current_user.role != "admin":
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Not authorized to add messages to this ticket"
-#         )
+        statement = statement.order_by(SupportTicket.created_at.desc())
 
-#     message = SupportMessage(
-#         ticket_id=ticket_id,
-#         sender_id=current_user.id,
-#         message=message_data.message,
-#         is_staff_reply=(current_user.role == "admin")
-#     )
+        tickets = session.exec(statement).all()
 
-#     session.add(message)
+        return tickets
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Error fetching user tickets: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch user tickets",
+        )
 
-#     # Update ticket status if it was resolved and user is replying
-#     if ticket.status == "resolved" and current_user.role != "admin":
-#         ticket.status = "open"
-#         session.add(ticket)
 
-#     session.commit()
-#     session.refresh(message)
+@router.get(
+    "/tickets/statistics",
+    response_model=TicketStatisticsResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get ticket statistics",
+    description="Get ticket statistics for the authenticated user",
+)
+async def get_ticket_statistics(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get ticket statistics for the current user.
 
-#     return message
+    Args:
+        session: Database session
+        current_user: The authenticated user
 
-# @router.put("/tickets/{ticket_id}/close")
-# async def close_ticket(
-#     ticket_id: int,
-#     current_user: User = Depends(get_current_active_user),
-#     session: Session = Depends(get_session)
-# ):
-#     """Close a support ticket"""
-#     ticket = session.get(SupportTicket, ticket_id)
-#     if not ticket:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Support ticket not found"
-#         )
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 500 if fetching tickets fails
 
-#     # Check ticket ownership or admin
-#     if ticket.user_id != current_user.id and current_user.role != "admin":
-#         raise HTTPException(
-#             status_code=status.HTTP_403_FORBIDDEN,
-#             detail="Not authorized to close this ticket"
-#         )
+    Returns:
+        Ticket statistics
+    """
+    try:
+        statement = select(SupportTicket).where(
+            SupportTicket.user_id == current_user.id
+        )
+        tickets = session.exec(statement).all()
 
-#     ticket.status = "closed"
-#     session.add(ticket)
-#     session.commit()
+        stats = {
+            "total": len(tickets),
+            "open": len([t for t in tickets if t.status == "open"]),
+            "in_progress": len([t for t in tickets if t.status == "in_progress"]),
+            "resolved": len([t for t in tickets if t.status == "resolved"]),
+            "closed": len([t for t in tickets if t.status == "closed"]),
+        }
 
-#     return {"message": "Ticket closed successfully"}
+        return stats
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Error fetching ticket statistics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve statistics",
+        )
 
-# # Admin ticket management
-# @router.get("/admin/tickets", response_model=List[SupportTicketResponse])
-# async def get_all_tickets(
-#     admin_user: User = Depends(get_admin_user),
-#     session: Session = Depends(get_session),
-#     status: str = Query(None),
-#     priority: str = Query(None),
-#     category: str = Query(None),
-#     skip: int = Query(0, ge=0),
-#     limit: int = Query(50, ge=1, le=100)
-# ):
-#     """Get all support tickets (Admin only)"""
-#     statement = select(SupportTicket).order_by(SupportTicket.created_at.desc())
 
-#     if status:
-#         statement = statement.where(SupportTicket.status == status)
-#     if priority:
-#         statement = statement.where(SupportTicket.priority == priority)
-#     if category:
-#         statement = statement.where(SupportTicket.category == category)
+@router.post(
+    "/tickets",
+    response_model=SupportTicketResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new support ticket",
+    description="Create a new support ticket for the authenticated user",
+)
+async def create_ticket(
+    ticket_data: CreateTicketRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Create a new support ticket.
 
-#     statement = statement.offset(skip).limit(limit)
-#     tickets = session.exec(statement).all()
+    Args:
+        ticket_data: The ticket creation data
+        session: Database session
+        current_user: The authenticated user
 
-#     return [get_ticket_with_messages(ticket.id, session) for ticket in tickets]
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 500 if ticket creation fails
 
-# @router.put("/admin/tickets/{ticket_id}/status")
-# async def update_ticket_status(
-#     ticket_id: int,
-#     status: str,
-#     admin_user: User = Depends(get_admin_user),
-#     session: Session = Depends(get_session)
-# ):
-#     """Update ticket status (Admin only)"""
-#     ticket = session.get(SupportTicket, ticket_id)
-#     if not ticket:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Support ticket not found"
-#         )
+    Returns:
+        The created ticket
+    """
+    try:
+        ticket = SupportTicket(
+            user_id=current_user.id,
+            subject=ticket_data.subject,
+            description=ticket_data.description,
+            category=ticket_data.category,
+            priority=ticket_data.priority,
+            email=current_user.email,
+            phone=ticket_data.phone,
+        )
 
-#     valid_statuses = ["open", "in_progress", "resolved", "closed"]
-#     if status not in valid_statuses:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
-#         )
+        session.add(ticket)
+        session.commit()
+        session.refresh(ticket)
 
-#     ticket.status = status
-#     session.add(ticket)
-#     session.commit()
+        return ticket
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error creating support ticket: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create support ticket",
+        )
 
-#     return {"message": "Ticket status updated successfully"}
 
-# # FAQ Management
-# @router.get("/faq", response_model=List[FAQResponse])
-# async def get_faqs(
-#     session: Session = Depends(get_session),
-#     category: str = Query(None)
-# ):
-#     """Get all FAQs"""
-#     statement = select(FAQ).where(FAQ.is_active == True).order_by(FAQ.order_index, FAQ.id)
+@router.put(
+    "/tickets/{ticket_id}",
+    response_model=SupportTicketResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update a ticket",
+    description="Update an existing support ticket",
+)
+async def update_ticket(
+    ticket_id: uuid.UUID,
+    ticket_data: SupportTicketUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Update an existing ticket.
 
-#     if category:
-#         statement = statement.where(FAQ.category == category)
+    Args:
+        ticket_id: The ticket UUID
+        ticket_data: The update data
+        session: Database session
+        current_user: The authenticated user
 
-#     faqs = session.exec(statement).all()
-#     return faqs
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 404 if ticket not found
+        HTTPException: 500 if ticket update fails
 
-# @router.post("/admin/faq", response_model=FAQResponse)
-# async def create_faq(
-#     faq_data: FAQCreate,
-#     admin_user: User = Depends(get_admin_user),
-#     session: Session = Depends(get_session)
-# ):
-#     """Create a new FAQ (Admin only)"""
-#     faq = FAQ(**faq_data.model_dump())
-#     session.add(faq)
-#     session.commit()
-#     session.refresh(faq)
-#     return faq
+    Returns:
+        The updated ticket
+    """
+    try:
+        ticket = session.get(SupportTicket, ticket_id)
 
-# @router.put("/admin/faq/{faq_id}", response_model=FAQResponse)
-# async def update_faq(
-#     faq_id: int,
-#     faq_data: FAQCreate,
-#     admin_user: User = Depends(get_admin_user),
-#     session: Session = Depends(get_session)
-# ):
-#     """Update an FAQ (Admin only)"""
-#     faq = session.get(FAQ, faq_id)
-#     if not faq:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="FAQ not found"
-#         )
+        if not ticket:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Ticket not found",
+            )
 
-#     update_data = faq_data.model_dump()
-#     for field, value in update_data.items():
-#         setattr(faq, field, value)
+        update_data = ticket_data.model_dump(exclude_unset=True, exclude_none=True)
+        for field, value in update_data.items():
+            setattr(ticket, field, value)
 
-#     session.add(faq)
-#     session.commit()
-#     session.refresh(faq)
-#     return faq
+        session.add(ticket)
+        session.commit()
+        session.refresh(ticket)
 
-# @router.delete("/admin/faq/{faq_id}")
-# async def delete_faq(
-#     faq_id: int,
-#     admin_user: User = Depends(get_admin_user),
-#     session: Session = Depends(get_session)
-# ):
-#     """Delete an FAQ (Admin only)"""
-#     faq = session.get(FAQ, faq_id)
-#     if not faq:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="FAQ not found"
-#         )
+        return ticket
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error updating ticket {ticket_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update ticket",
+        )
 
-#     session.delete(faq)
-#     session.commit()
-#     return {"message": "FAQ deleted successfully"}
 
-# # Chatbot endpoint
-# @router.post("/chatbot")
-# async def chatbot_query(
-#     query: str,
-#     session: Session = Depends(get_session)
-# ):
-#     """Simple chatbot for answering VPS-related questions"""
-#     query_lower = query.lower()
+@router.post(
+    "/tickets/{ticket_id}/replies",
+    response_model=SupportTicketResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add reply to ticket",
+    description="Add a reply to an existing support ticket",
+)
+async def add_reply_to_ticket(
+    ticket_id: uuid.UUID,
+    reply_data: AddReplyRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Add a reply to an existing ticket.
 
-#     # Simple rule-based responses
-#     responses = {
-#         "pricing": "Our VPS plans start from $5/month for 1 CPU, 1GB RAM, and 20GB SSD storage. Visit our plans page for detailed pricing.",
-#         "specs": "We offer VPS with 1-16 CPU cores, 1-64GB RAM, SSD/NVMe storage from 20GB-1TB, and flexible bandwidth options.",
-#         "payment": "We accept payments via QR code bank transfer, MoMo wallet, and VNPay. All payments are secure and processed instantly.",
-#         "support": "Our support team is available 24/7. You can create a support ticket or chat with us for immediate assistance.",
-#         "setup": "VPS setup is automated and typically takes 5-10 minutes after payment confirmation. You'll receive login details via email.",
-#         "refund": "We offer a 30-day money-back guarantee for all new customers. Contact support for refund requests.",
-#         "uptime": "We guarantee 99.9% uptime with our enterprise-grade infrastructure and 24/7 monitoring.",
-#         "backup": "Daily automated backups are included with all plans. You can also create manual backups anytime.",
-#         "scaling": "You can upgrade your VPS resources anytime through your control panel. Scaling is instant with zero downtime.",
-#         "security": "All VPS include DDoS protection, firewall configuration, and SSL certificates. We also provide security monitoring."
-#     }
+    Args:
+        ticket_id: The ticket UUID
+        reply_data: The reply data
+        session: Database session
+        current_user: The authenticated user
 
-#     # Find matching response
-#     for keyword, response in responses.items():
-#         if keyword in query_lower:
-#             return {"response": response}
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 404 if ticket not found
+        HTTPException: 500 if adding reply fails
 
-#     # Default response
-#     return {
-#         "response": "I'm here to help with VPS-related questions. You can ask about pricing, specifications, payment methods, setup process, or technical support. For complex queries, please create a support ticket."
-#     }
+    Returns:
+        The created reply
+    """
+    try:
+        ticket = session.get(SupportTicket, ticket_id)
 
-# def get_ticket_with_messages(ticket_id: int, session: Session) -> SupportTicketResponse:
-#     """Helper function to get ticket with all messages"""
-#     ticket = session.get(SupportTicket, ticket_id)
-#     if not ticket:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Support ticket not found"
-#         )
+        if not ticket:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Ticket not found",
+            )
 
-#     # Get messages
-#     statement = select(SupportMessage).where(SupportMessage.ticket_id == ticket_id).order_by(SupportMessage.created_at)
-#     messages = session.exec(statement).all()
+        reply = SupportTicketReply(
+            ticket_id=ticket_id,
+            message={
+                "content": {
+                    "text": reply_data.message,
+                    "format": "markdown",
+                },
+                "sender": {
+                    "role": current_user.role,
+                    "id": str(current_user.id),
+                    "name": current_user.name,
+                },
+                "attachments": [],
+            },
+        )
 
-#     return SupportTicketResponse(
-#         id=ticket.id,
-#         subject=ticket.subject,
-#         description=ticket.description,
-#         status=ticket.status,
-#         priority=ticket.priority,
-#         category=ticket.category,
-#         created_at=ticket.created_at,
-#         updated_at=ticket.updated_at,
-#         messages=[SupportMessageResponse(
-#             id=msg.id,
-#             message=msg.message,
-#             is_staff_reply=msg.is_staff_reply,
-#             created_at=msg.created_at
-#         ) for msg in messages]
-#     )
+        session.add(reply)
+        ticket.updated_at = datetime.now(timezone.utc)
+        session.add(ticket)
+        session.commit()
+        session.refresh(reply)
+        session.refresh(ticket)
+
+        return ticket
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error adding reply to ticket {ticket_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to add reply",
+        )
+
+
+# ========================================================================
+# Admin Routes
+# ========================================================================
+
+
+@router.put(
+    "/admin/tickets/{ticket_id}/status",
+    response_model=SupportTicketResponse,
+    status_code=status.HTTP_200_OK,
+    summary="[Admin] Update ticket status",
+    description="Update the status of any ticket (admin only)",
+)
+async def admin_update_ticket_status(
+    ticket_id: uuid.UUID,
+    status_data: UpdateTicketStatusRequest,
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    Update ticket status (admin only).
+
+    Args:
+        ticket_id: The ticket UUID
+        status_data: The new status
+        session: Database session
+        admin_user: The authenticated admin user
+
+    Returns:
+        The updated ticket
+    """
+    try:
+        ticket = session.get(SupportTicket, ticket_id)
+
+        if not ticket:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Ticket not found",
+            )
+
+        ticket.status = status_data.status
+        ticket.updated_at = datetime.now(timezone.utc)
+        session.add(ticket)
+        session.commit()
+        session.refresh(ticket)
+
+        return ticket
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error updating ticket status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update ticket status",
+        )
+
+
+@router.post(
+    "/admin/tickets/{ticket_id}/replies",
+    response_model=SupportTicketReplyResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="[Admin] Add reply to ticket",
+    description="Add an admin reply to any support ticket",
+)
+async def admin_add_reply_to_ticket(
+    ticket_id: uuid.UUID,
+    reply_data: AddReplyRequest,
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    Add an admin reply to any ticket.
+
+    Args:
+        ticket_id: The ticket UUID
+        reply_data: The reply data
+        session: Database session
+        admin_user: The authenticated admin user
+
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 403 if not admin
+        HTTPException: 404 if ticket not found
+        HTTPException: 500 if adding reply fails
+
+    Returns:
+        The created reply
+    """
+    try:
+        ticket = session.get(SupportTicket, ticket_id)
+
+        if not ticket:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Ticket not found",
+            )
+
+        reply = SupportTicketReply(
+            ticket_id=ticket_id,
+            message={
+                "content": {
+                    "text": reply_data.message,
+                    "format": "markdown",
+                },
+                "sender": {
+                    "role": admin_user.role,
+                    "id": str(admin_user.id),
+                    "name": admin_user.name,
+                },
+                "attachments": [],
+            },
+        )
+
+        session.add(reply)
+        ticket.updated_at = datetime.now(timezone.utc)
+        session.add(ticket)
+        session.commit()
+        session.refresh(reply)
+
+        return reply
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error adding reply to ticket {ticket_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to add reply",
+        )

@@ -1,13 +1,22 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 const MyOrderPlaceholder = () => {
     return (
         <div className="min-h-screen max-w-7xl mx-auto py-8 px-4">
             {/* Header Skeleton */}
-            <div className="mb-8">
-                <Skeleton className="h-9 w-48 mb-2" />
-                <Skeleton className="h-5 w-72" />
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <Skeleton className="h-9 w-48 mb-2" />
+                    <Skeleton className="h-5 w-72" />
+                </div>
+
+                <Button variant="outline" size="lg" disabled>
+                    <RefreshCw className='h-4 w-4 mr-2 animate-spin' />
+                    Refresh
+                </Button>
             </div>
 
             {/* Search and Filter Skeleton */}

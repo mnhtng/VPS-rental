@@ -1,6 +1,6 @@
 import { apiPattern } from '@/utils/pattern';
 import { ApiResponse, OrderPaymentsResponse, PaymentStatusResponse, PaymentResponse, OrderConfirmationEmailData } from '@/types/types';
-import { sendOrderConfirmationEmail, sendPasswordResetEmail, sendVerificationMail, sendVPSWelcomeEmail } from '@/lib/email/resend';
+import { sendOrderConfirmationEmail } from '@/lib/email/resend';
 
 const usePayment = () => {
     const proceedToCheckout = async (
@@ -159,10 +159,11 @@ const usePayment = () => {
                 };
             }
 
+            const cartItems = result?.data?.cart || [];
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const subtotal = result?.data?.cart.reduce((total: number, item: any) => total + item.total_price, 0);
-            const discount = subtotal - result?.data?.order?.price;
-            const total = result?.data?.order?.price;
+            const subtotal = cartItems.reduce((total: number, item: any) => total + (item.total_price || 0), 0);
+            const total = result?.data?.order?.price || 0;
+            const discount = subtotal > total ? subtotal - total : 0;
 
             await sendOrderConfirmationEmail({
                 customerName: result?.data?.user?.name,
@@ -180,18 +181,19 @@ const usePayment = () => {
                 }),
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 vpsItems: result?.data?.plans.map((item: any, index: number) => {
+                    const cartItem = cartItems[index] || {};
                     return {
                         name: item?.name,
-                        hostname: result?.data?.cart[index]?.hostname,
-                        os: result?.data?.cart[index]?.os,
-                        duration_months: result?.data?.cart[index]?.duration_months,
+                        hostname: cartItem.hostname,
+                        os: cartItem.os,
+                        duration_months: cartItem.duration_months,
                         cpu: item?.vcpu,
                         ram: item?.ram_gb,
                         storage: item?.storage_gb,
                         storage_type: item?.storage_type,
                         network_speed: item?.bandwidth_mbps,
-                        price: result?.data?.cart[index]?.unit_price,
-                        total_price: result?.data?.cart[index]?.total_price,
+                        price: cartItem.unit_price,
+                        total_price: cartItem.total_price,
                     };
                 }),
                 subtotal,
@@ -217,84 +219,6 @@ const usePayment = () => {
     }
 
     /**
-     * Get payment status
-     */
-    const getPaymentStatus = async (
-        paymentId: string
-    ): Promise<ApiResponse> => {
-        try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/${paymentId}`);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                return {
-                    data: null,
-                    error: {
-                        code: 'PAYMENT_STATUS_ERROR',
-                        detail: errorData.detail || 'Failed to get payment status',
-                    },
-                    message: 'Failed to get payment status',
-                };
-            }
-
-            const data: PaymentStatusResponse = await response.json();
-            return {
-                data,
-                error: null,
-                message: 'Payment status retrieved successfully',
-            };
-        } catch (error) {
-            return {
-                data: null,
-                error: {
-                    code: 'NETWORK_ERROR',
-                    detail: error instanceof Error ? error.message : 'Network error',
-                },
-                message: 'Failed to connect to payment service',
-            };
-        }
-    };
-
-    /**
-     * Get order payments
-     */
-    const getOrderPayments = async (
-        orderId: string
-    ): Promise<ApiResponse> => {
-        try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/order/${orderId}`);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                return {
-                    data: null,
-                    error: {
-                        code: 'ORDER_PAYMENTS_ERROR',
-                        detail: errorData.detail || 'Failed to get order payments',
-                    },
-                    message: 'Failed to get order payments',
-                };
-            }
-
-            const data: OrderPaymentsResponse = await response.json();
-            return {
-                data,
-                error: null,
-                message: 'Order payments retrieved successfully',
-            };
-        } catch (error) {
-            return {
-                data: null,
-                error: {
-                    code: 'NETWORK_ERROR',
-                    detail: error instanceof Error ? error.message : 'Network error',
-                },
-                message: 'Failed to connect to payment service',
-            };
-        }
-    };
-
-    /**
      * Handle payment redirect (open payment URL in new tab or redirect)
      */
     const redirectToPayment = (
@@ -306,43 +230,6 @@ const usePayment = () => {
         } else {
             window.location.href = paymentUrl;
         }
-    };
-
-    /**
-     * Poll payment status until completed or failed
-     */
-    const pollPaymentStatus = async (
-        paymentId: string,
-        onStatusChange?: (status: PaymentStatusResponse) => void,
-        intervalMs: number = 3000,
-        maxAttempts: number = 60
-    ): Promise<PaymentStatusResponse | null> => {
-        let attempts = 0;
-
-        return new Promise((resolve) => {
-            const checkStatus = async () => {
-                attempts++;
-                const result = await getPaymentStatus(paymentId);
-
-                if (result.data) {
-                    onStatusChange?.(result.data);
-
-                    if (result.data.status === 'completed' || result.data.status === 'failed') {
-                        resolve(result.data);
-                        return;
-                    }
-                }
-
-                if (attempts >= maxAttempts) {
-                    resolve(result.data);
-                    return;
-                }
-
-                setTimeout(checkStatus, intervalMs);
-            };
-
-            checkStatus();
-        });
     };
 
     const processPayment = async (
@@ -461,18 +348,208 @@ const usePayment = () => {
         }
     };
 
+    const checkRenewalCanRepay = async (orderId: string): Promise<ApiResponse> => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/payments/order/${orderId}/renewal-can-repay`, {
+                method: 'GET',
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: 'Check renewal repay status failed',
+                    error: {
+                        code: 'CHECK_RENEWAL_REPAY_FAILED',
+                        detail: result.detail,
+                    },
+                };
+            }
+
+            return {
+                message: 'Check renewal repay status successful',
+                data: result,
+            };
+        } catch (error) {
+            return {
+                message: 'Check renewal repay status failed',
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'CHECK_RENEWAL_REPAY_FAILED',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while checking renewal repay status',
+                },
+            };
+        }
+    };
+
+    const repayRenewalOrder = async (
+        orderNumber: string,
+        amount: number,
+        phone: string,
+        address: string,
+        returnUrl?: string,
+        method: 'vnpay' | 'momo' = 'vnpay',
+        openInNewTab: boolean = false
+    ): Promise<ApiResponse> => {
+        try {
+            const endpoint = method === 'vnpay'
+                ? `${process.env.NEXT_PUBLIC_API_URL}/payments/vnpay/renewals/repay`
+                : `${process.env.NEXT_PUBLIC_API_URL}/payments/momo/renewals/repay`;
+
+            const response = await apiPattern(endpoint, {
+                method: 'POST',
+                body: JSON.stringify({
+                    order_number: orderNumber,
+                    amount: amount,
+                    phone: phone,
+                    address: address,
+                    return_url: returnUrl,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: 'Repay renewal order failed',
+                    error: {
+                        code: 'REPAY_RENEWAL_ORDER_FAILED',
+                        detail: result.detail,
+                    },
+                };
+            }
+
+            if (result?.success && result?.payment_url) {
+                redirectToPayment(result.payment_url, openInNewTab);
+            }
+
+            return {
+                message: 'Repay renewal order successful',
+                data: result as PaymentResponse,
+            };
+        } catch (error) {
+            return {
+                message: 'Repay renewal order failed',
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'REPAY_RENEWAL_ORDER_FAILED',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while repaying renewal order',
+                },
+            };
+        }
+    };
+
+    const renewVps = async (
+        vpsId: string,
+        durationMonths: number,
+        amount: number,
+        phone: string,
+        address: string,
+        returnUrl?: string,
+        method: 'vnpay' | 'momo' = 'vnpay',
+        openInNewTab: boolean = false
+    ): Promise<ApiResponse> => {
+        try {
+            const endpoint = method === 'vnpay'
+                ? `${process.env.NEXT_PUBLIC_API_URL}/payments/vnpay/renewals`
+                : `${process.env.NEXT_PUBLIC_API_URL}/payments/momo/renewals`;
+
+            const response = await apiPattern(endpoint, {
+                method: 'POST',
+                body: JSON.stringify({
+                    vps_id: vpsId,
+                    duration_months: durationMonths,
+                    amount,
+                    phone,
+                    address,
+                    return_url: returnUrl,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: 'Renewal payment failed',
+                    error: {
+                        code: 'RENEWAL_PAYMENT_FAILED',
+                        detail: result.detail,
+                    },
+                };
+            }
+
+            if (result?.success && result?.payment_url) {
+                redirectToPayment(result.payment_url, openInNewTab);
+            }
+
+            return {
+                message: 'Renewal payment created successfully',
+                data: result as PaymentResponse,
+            };
+        } catch (error) {
+            return {
+                message: 'Renewal payment failed',
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'RENEWAL_PAYMENT_FAILED',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? 'No access token available'
+                        : 'An unexpected error occurred while creating renewal payment',
+                },
+            };
+        }
+    };
+
+    const verifyRenewalPayment = async (method: 'momo' | 'vnpay', query: string) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/${method}/renewals/return?${query}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: 'Renewal payment verification failed',
+                    error: {
+                        code: 'RENEWAL_VERIFICATION_ERROR',
+                        detail: result.detail,
+                    },
+                };
+            }
+
+            return {
+                message: 'Renewal payment verified successfully',
+                data: result,
+            };
+        } catch {
+            return {
+                message: 'Renewal payment verification failed',
+                error: {
+                    code: 'RENEWAL_VERIFICATION_ERROR',
+                    detail: 'An unexpected error occurred while verifying renewal payment',
+                },
+            };
+        }
+    };
+
     return {
         proceedToCheckout,
         createMoMoPayment,
         createVNPayPayment,
         processPayment,
         verifyPayment,
-        getPaymentStatus,
-        getOrderPayments,
         redirectToPayment,
-        pollPaymentStatus,
         checkCanRepay,
         repayOrder,
+        checkRenewalCanRepay,
+        repayRenewalOrder,
+        renewVps,
+        verifyRenewalPayment,
     };
 }
 

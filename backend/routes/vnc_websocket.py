@@ -5,6 +5,8 @@ from urllib.parse import quote
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from typing import Optional
 
+from backend.core import settings
+
 try:
     import websockets
 
@@ -12,10 +14,9 @@ try:
 except ImportError:
     WEBSOCKETS_AVAILABLE = False
 
-from backend.core import settings
 
-router = APIRouter(prefix="/vnc", tags=["VNC WebSocket Proxy"])
 logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/vnc", tags=["VNC WebSocket Proxy"])
 
 
 @router.websocket("/ws")
@@ -113,18 +114,3 @@ async def vnc_websocket_proxy(
             await websocket.close(code=1011, reason=str(e))
         except:
             pass
-
-
-@router.get("/test")
-async def test_vnc_proxy():
-    """Test if VNC WebSocket proxy is available"""
-    return {
-        "available": WEBSOCKETS_AVAILABLE,
-        "message": (
-            "VNC WebSocket proxy is ready"
-            if WEBSOCKETS_AVAILABLE
-            else "websockets library not installed"
-        ),
-        "proxmox_host": settings.PROXMOX_HOST,
-        "endpoint": "/api/v1/vnc/ws",
-    }

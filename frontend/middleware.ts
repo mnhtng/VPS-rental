@@ -31,7 +31,6 @@ const ROUTE_PATTERNS = new Set([
     'forgot-password',
     'reset-password',
     'client-dashboard',
-    'vps'
 ]);
 
 // Protected routes that require authentication
@@ -42,6 +41,7 @@ const PROTECTED_ROUTES = new Set([
     'cart',
     'checkout',
     'admin',
+    'client-dashboard',
 ]);
 
 /**

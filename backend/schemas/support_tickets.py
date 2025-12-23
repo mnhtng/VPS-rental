@@ -2,7 +2,7 @@ from __future__ import annotations
 import uuid
 import re
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 from pydantic import (
     BaseModel,
     Field,
@@ -354,6 +354,136 @@ class SupportTicketUpdate(BaseModel):
         return v
 
 
+class CreateTicketRequest(BaseModel):
+    """Request schema for creating a ticket"""
+
+    subject: str = Field(..., description="Ticket subject")
+    description: str = Field(..., description="Detailed description")
+    category: TicketCategory = Field(..., description="Ticket category")
+    priority: TicketPriority = Field(
+        default=TicketPriority.LOW, description="Priority level"
+    )
+    phone: str = Field(..., description="Contact phone number")
+
+    @field_validator("subject", "description")
+    @classmethod
+    def validate_subject(cls, v: str, info: ValidationInfo) -> str:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
+        if not v:
+            raise ValueError(f"{field_name} must not be empty")
+
+        v = v.strip()
+        if len(v) == 0:
+            raise ValueError(f"{field_name} must be at least 5 characters long")
+        if info.field_name == "subject" and len(v) > 255:
+            raise ValueError(f"{field_name} must not exceed 255 characters")
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Phone number must not be empty")
+
+        v = v.strip()
+        if len(v) == 0:
+            raise ValueError("Phone number must not be empty")
+
+        phone_pattern = r"^[\d]+$"
+        if not re.match(phone_pattern, v):
+            raise ValueError("Invalid phone number format")
+        if len(v) < 10:
+            raise ValueError("Phone number must be at least 10 digits")
+        if len(v) > 20:
+            raise ValueError("Phone number must not exceed 20 digits")
+        return v
+
+    @field_validator("category", mode="before")
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Ticket category must not be empty")
+
+        v = str(v).strip().lower()
+        if len(v) == 0:
+            raise ValueError("Ticket category must not be empty")
+        if len(v) > 100:
+            raise ValueError("Ticket category must not exceed 100 characters")
+
+        valid_categories = [item.value for item in TicketCategory]
+        if v not in valid_categories:
+            raise ValueError("Invalid ticket category")
+        return v
+
+    @field_validator("priority", mode="before")
+    @classmethod
+    def validate_priority(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Ticket priority must not be empty")
+
+        v = str(v).strip().lower()
+        if len(v) == 0:
+            raise ValueError("Ticket priority must not be empty")
+        if len(v) > 20:
+            raise ValueError("Ticket priority must not exceed 20 characters")
+
+        valid_priorities = [item.value for item in TicketPriority]
+        if v not in valid_priorities:
+            raise ValueError("Invalid ticket priority")
+        return v
+
+
+class AddReplyRequest(BaseModel):
+    """Request schema for adding a reply"""
+
+    message: str = Field(..., description="Reply message content")
+
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Message must not be empty")
+
+        v = v.strip()
+        if len(v) == 0:
+            raise ValueError("Message must not be empty")
+        return v
+
+
+class TicketStatisticsResponse(BaseModel):
+    """Response schema for ticket statistics"""
+
+    total: int = Field(..., description="Total number of tickets")
+    open: int = Field(..., description="Number of open tickets")
+    in_progress: int = Field(..., description="Number of in-progress tickets")
+    resolved: int = Field(..., description="Number of resolved tickets")
+    closed: int = Field(..., description="Number of closed tickets")
+
+
+class UpdateTicketStatusRequest(BaseModel):
+    """Request schema for updating ticket status"""
+
+    status: TicketStatus = Field(..., description="New status for the ticket")
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Ticket status must not be empty")
+
+        v = str(v).strip().lower()
+        if len(v) == 0:
+            raise ValueError("Ticket status must not be empty")
+        if len(v) > 20:
+            raise ValueError("Ticket status must not exceed 20 characters")
+
+        valid_statuses = [item.value for item in TicketStatus]
+        if v not in valid_statuses:
+            raise ValueError("Invalid ticket status")
+        return v
+
+
 class SupportTicketPublic(SupportTicketBase):
     """Schema representing support ticket data in the database"""
 
@@ -368,7 +498,7 @@ class SupportTicketResponse(SupportTicketPublic):
     """Schema for support ticket data returned in API responses"""
 
     user: Optional[UserPublic] = Field(None, description="Associated user details")
-    ticket_replies: Optional[list[SupportTicketReplyPublic]] = Field(
+    replies: Optional[list[SupportTicketReplyPublic]] = Field(
         None, description="List of replies associated with the ticket"
     )
 

@@ -205,5 +205,8 @@ class OrderResponse(OrderPublic):
     payment_status: Optional[str] = Field(
         default="pending", description="Payment status (pending, completed, failed)"
     )
+    payment_method: Optional[str] = Field(
+        default=None, description="Payment method used for the order"
+    )
 
     model_config = ConfigDict(from_attributes=True)

@@ -62,7 +62,7 @@ class SupportTicketReplyPublic(SupportTicketReplyBase):
 class SupportTicketReplyResponse(SupportTicketReplyPublic):
     """Schema for support ticket reply data returned in API responses"""
 
-    ticket: Optional[SupportTicketPublic] = Field(
+    support_ticket: Optional[SupportTicketPublic] = Field(
         None, description="Associated support ticket details"
     )
 

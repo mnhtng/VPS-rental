@@ -45,6 +45,14 @@ const HomePage = () => {
     return `${mbps} Mbps`;
   };
 
+  const getDiskSize = (storage_gb: number, storage_type?: string) => {
+    if (storage_gb >= 1000) {
+      const tb = (storage_gb / 1000).toFixed(1);
+      return `${tb} TB ${storage_type || ''}`;
+    }
+    return `${storage_gb} GB ${storage_type || ''}`;
+  }
+
   useEffect(() => {
     if (status === 'loading') {
       setIsLoading(true);
@@ -242,7 +250,7 @@ const HomePage = () => {
                       </div>
                       <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
                         <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
-                        <span>{plan.storage_gb} GB {plan.storage_type} {t('popular_plans.storage')}</span>
+                        <span>{getDiskSize(plan.storage_gb, plan.storage_type)} {t('popular_plans.storage')}</span>
                       </div>
                       <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
                         <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
@@ -309,7 +317,7 @@ const HomePage = () => {
                   className="flex items-start space-x-4 group hover:translate-x-2 transition-all duration-300"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className="flex-shrink-0 bg-white dark:bg-card rounded-lg p-3 shadow-md group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                  <div className="shrink-0 bg-white dark:bg-card rounded-lg p-3 shadow-md group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
                     {advantage.icon}
                   </div>
                   <div>

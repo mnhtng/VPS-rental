@@ -28,9 +28,12 @@ import { Profile } from '@/types/types';
 import ProfilePlaceholder from '@/components/custom/placeholder/profile';
 import useMember from '@/hooks/useMember';
 import { useSession } from 'next-auth/react';
+import { formatDate } from '@/utils/string';
+import { useLocale } from 'next-intl';
 
 const ProfilePage = () => {
     const { data: session } = useSession();
+    const locale = useLocale();
     const { getProfile, updateProfile, changePassword } = useMember();
 
     const [userInfo, setUserInfo] = useState<Profile | null>(null);
@@ -221,32 +224,32 @@ const ProfilePage = () => {
                 <TabsContent value="profile" className="mt-6">
                     <Card className='relative group'>
                         {/* Animated gradient background */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 
+                        <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-purple-500/5 
                                       opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                         {/* Top-left corner with gradient fade */}
                         <div className="absolute top-0 left-0 w-40 h-40 pointer-events-none">
                             {/* Vertical border - bright at top, fade down */}
-                            <div className="absolute top-0 left-0 w-[3px] h-full bg-gradient-to-b from-primary via-primary/50 to-transparent
+                            <div className="absolute top-0 left-0 w-0.75 h-full bg-linear-to-b from-primary via-primary/50 to-transparent
                                           transition-all duration-500 group-hover:from-purple-400 group-hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
                             {/* Horizontal border - bright at left, fade right */}
-                            <div className="absolute top-0 left-0 h-[3px] w-full bg-gradient-to-r from-primary via-primary/50 to-transparent
+                            <div className="absolute top-0 left-0 h-0.75 w-full bg-linear-to-r from-primary via-primary/50 to-transparent
                                           transition-all duration-500 group-hover:from-purple-400 group-hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
                             {/* Corner glow */}
-                            <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent blur-xl
+                            <div className="absolute top-0 left-0 w-20 h-20 bg-linear-to-br from-primary/20 via-primary/10 to-transparent blur-xl
                                           transition-all duration-500 group-hover:from-purple-400/30 group-hover:w-28 group-hover:h-28" />
                         </div>
 
                         {/* Bottom-right corner with gradient fade */}
                         <div className="absolute bottom-0 right-0 w-40 h-40 pointer-events-none">
                             {/* Vertical border - bright at bottom, fade up */}
-                            <div className="absolute bottom-0 right-0 w-[3px] h-full bg-gradient-to-t from-primary via-primary/50 to-transparent
+                            <div className="absolute bottom-0 right-0 w-0.75 h-full bg-linear-to-t from-primary via-primary/50 to-transparent
                                           transition-all duration-500 group-hover:from-purple-400 group-hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
                             {/* Horizontal border - bright at right, fade left */}
-                            <div className="absolute bottom-0 right-0 h-[3px] w-full bg-gradient-to-l from-primary via-primary/50 to-transparent
+                            <div className="absolute bottom-0 right-0 h-0.75 w-full bg-linear-to-l from-primary via-primary/50 to-transparent
                                           transition-all duration-500 group-hover:from-purple-400 group-hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
                             {/* Corner glow */}
-                            <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-primary/20 via-primary/10 to-transparent blur-xl
+                            <div className="absolute bottom-0 right-0 w-20 h-20 bg-linear-to-tl from-primary/20 via-primary/10 to-transparent blur-xl
                                           transition-all duration-500 group-hover:from-purple-400/30 group-hover:w-28 group-hover:h-28" />
                         </div>
 
@@ -298,12 +301,12 @@ const ProfilePage = () => {
                                     </div>
 
                                     <p className="text-sm text-muted-foreground">
-                                        Member since {originalUserInfo?.joinedDate ? new Date(originalUserInfo.joinedDate).toLocaleDateString('en-US') : 'N/A'}
+                                        Member since {originalUserInfo?.joinedDate ? formatDate(new Date(originalUserInfo.joinedDate), locale) : 'N/A'}
                                     </p>
                                 </div>
                             </div>
 
-                            <Separator className='bg-gradient-to-r from-transparent via-gray-400 to-transparent' />
+                            <Separator className='bg-linear-to-r from-transparent via-gray-400 to-transparent' />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
@@ -361,7 +364,7 @@ const ProfilePage = () => {
                                             id="joinedDate"
                                             name="joinedDate"
                                             placeholder='N/A'
-                                            value={userInfo?.joinedDate ? new Date(userInfo.joinedDate).toLocaleDateString('en-US') : ''}
+                                            value={userInfo?.joinedDate ? formatDate(new Date(userInfo.joinedDate), locale) : ''}
                                             disabled
                                         />
                                     </div>

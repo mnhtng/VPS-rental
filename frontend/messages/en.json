@@ -96,15 +96,10 @@
             "description": "Manage your billing information, view invoices, and track payments for your VPS hosting services.",
             "keywords": "VPS billing, invoice management, payment tracking, hosting billing"
         },
-        "settings": {
-            "title": "Settings - PCloud",
-            "description": "Manage your VPS account settings, personal information, and password from your PCloud profile.",
-            "keywords": "VPS account settings, personal information, password change, hosting account"
-        },
-        "client-support": {
-            "title": "Support - PCloud",
-            "description": "Access support resources, submit tickets, and get help for your VPS hosting services from the client support center.",
-            "keywords": "VPS client support, technical help, support tickets, hosting assistance"
+        "renewal": {
+            "title": "Renewal - PCloud",
+            "description": "Renew your VPS hosting services and extend your subscription.",
+            "keywords": "VPS renewal, subscription renewal, VPS hosting renewal, hosting renewal"
         }
     },
     "header": {
@@ -147,6 +142,7 @@
             "services": {
                 "web_server": "Web Server",
                 "database": "Database",
+                "backup": "Backup",
                 "scalability": "Scalability",
                 "monitoring": "Monitoring"
             },

@@ -12,8 +12,8 @@ import * as React from "react";
 import EmailLayout from "@/components/custom/email/EmailLayout";
 import { EmailVPSWelcomeProps } from "@/types/types";
 
-const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : 'https://mnhtng.site';
 
 const EmailVPSWelcome = ({
@@ -31,6 +31,7 @@ const EmailVPSWelcome = ({
     },
     credentials = {
         ipAddress: "192.168.1.1",
+        subIpAddress: "10.10.1.1",
         username: "root",
         password: "********",
         sshPort: 22,
@@ -68,10 +69,10 @@ const EmailVPSWelcome = ({
                 </Row>
 
                 <div style={specsBar}>
-                    <Text style={specBadge}>⚡ {vps.cpu} vCPU</Text>
-                    <Text style={specBadge}>🚀 {vps.ram} GB RAM</Text>
-                    <Text style={specBadge}>💾 {vps.storage} GB SSD</Text>
-                    <Text style={specBadge}>🌐 {vps.network_speed < 1000 ? vps.network_speed : Math.round(vps.network_speed / 1000).toFixed(1)} {vps.network_speed < 1000 ? 'Mbps' : 'Gbps'}</Text>
+                    <Text style={specBadge}>{vps.cpu} vCPU</Text>
+                    <Text style={specBadge}>{vps.ram} GB RAM</Text>
+                    <Text style={specBadge}>{vps.storage < 1000 ? vps.storage : Math.round(vps.storage / 1000).toFixed(1)} {vps.storage < 1000 ? 'GB' : 'TB'} {vps.storage_type}</Text>
+                    <Text style={specBadge}>{vps.network_speed < 1000 ? vps.network_speed : Math.round(vps.network_speed / 1000).toFixed(1)} {vps.network_speed < 1000 ? 'Mbps' : 'Gbps'}</Text>
                 </div>
             </Section>
 
@@ -84,8 +85,12 @@ const EmailVPSWelcome = ({
 
                 <div style={credentialsGrid}>
                     <div style={credentialItem}>
-                        <Text style={credentialLabel}>IP Address</Text>
-                        <Text style={credentialValue}>{credentials.ipAddress}</Text>
+                        <Text style={credentialLabel}>
+                            IP Address 1 / IP Address 2
+                        </Text>
+                        <Text style={credentialValue}>
+                            {credentials.ipAddress} / {credentials.subIpAddress}
+                        </Text>
                     </div>
                     <div style={credentialItem}>
                         <Text style={credentialLabel}>Username</Text>
@@ -113,19 +118,6 @@ const EmailVPSWelcome = ({
             {/* Quick Actions */}
             <Section style={actionsSection}>
                 <Heading style={sectionTitle}>BẮT ĐẦU SỬ DỤNG</Heading>
-
-                <Row>
-                    <Column style={{ width: '50%', paddingRight: '8px' }}>
-                        <Button style={primaryButton} href={`${baseUrl}/client-dashboard`}>
-                            Quản Lý VPS
-                        </Button>
-                    </Column>
-                    <Column style={{ width: '50%', paddingLeft: '8px' }}>
-                        <Button style={secondaryButton} href={`${baseUrl}/api/vps/${orderNumber}/welcome-guide`}>
-                            Tải Hướng Dẫn PDF
-                        </Button>
-                    </Column>
-                </Row>
             </Section>
 
             {/* Security Tips */}
@@ -241,11 +233,16 @@ const specValueMono = {
 };
 
 const specsBar = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '10px',
     marginTop: '16px',
 };
 
 const specBadge = {
     display: 'inline-block',
+    textAlign: 'center' as const,
     backgroundColor: '#0F172A',
     color: '#5EEAD4',
     padding: '6px 12px',
@@ -331,7 +328,7 @@ const commandCode = {
 
 // Actions
 const actionsSection = {
-    marginBottom: '24px',
+    marginBottom: '6px',
 };
 
 const sectionTitle = {
@@ -342,32 +339,6 @@ const sectionTitle = {
     margin: '0 0 16px',
     borderLeft: '4px solid #14B8A6',
     paddingLeft: '12px',
-};
-
-const primaryButton = {
-    background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
-    color: '#ffffff',
-    padding: '14px 20px',
-    borderRadius: '10px',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    textDecoration: 'none',
-    display: 'block',
-    textAlign: 'center' as const,
-    boxShadow: '0 4px 12px -2px rgba(20, 184, 166, 0.4)',
-};
-
-const secondaryButton = {
-    background: '#F97316',
-    color: '#ffffff',
-    padding: '14px 20px',
-    borderRadius: '10px',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    textDecoration: 'none',
-    display: 'block',
-    textAlign: 'center' as const,
-    boxShadow: '0 4px 12px -2px rgba(249, 115, 22, 0.4)',
 };
 
 // Tips Card

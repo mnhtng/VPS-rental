@@ -34,13 +34,10 @@ import {
     CircleDashed,
     BookmarkCheck,
     BanknoteX,
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
     Smartphone,
     Shield,
-    AlertTriangle
+    AlertTriangle,
+    RefreshCw
 } from 'lucide-react';
 import { Order, OrderItemDetail } from '@/types/types';
 import useMember from '@/hooks/useMember';
@@ -50,6 +47,8 @@ import { formatDateTime } from '@/utils/string';
 import { formatPrice } from '@/utils/currency';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import MyOrderPlaceholder from '@/components/custom/placeholder/my-order';
+import { cn } from '@/lib/utils';
+import Pagination from '@/components/ui/pagination';
 
 const MyOrdersPage = () => {
     const { getOrders } = useMember();
@@ -295,11 +294,9 @@ const MyOrdersPage = () => {
                     <div className="flex items-center space-x-2">
                         <Server className="h-4 w-4 text-muted-foreground" />
                         <div>
-                            <p className="text-muted-foreground">Service Plan</p>
-                            <p className="font-medium truncate max-w-[200px]">
-                                {order.order_items.length > 0
-                                    ? order.order_items.map((item: OrderItemDetail) => item.configuration.plan_name).join(', ')
-                                    : 'N/A'}
+                            <p className="text-muted-foreground">Payment Method</p>
+                            <p className="font-medium">
+                                {order.payment_method || 'N/A'}
                             </p>
                         </div>
                     </div>
@@ -307,7 +304,7 @@ const MyOrdersPage = () => {
                     <div className="flex items-center space-x-2">
                         <CreditCard className="h-4 w-4 text-muted-foreground" />
                         <div>
-                            <p className="text-muted-foreground">Payment</p>
+                            <p className="text-muted-foreground">Payment Status</p>
                             {getPaymentStatusBadge(order.payment_status || 'pending')}
                         </div>
                     </div>
@@ -333,15 +330,22 @@ const MyOrdersPage = () => {
 
     return (
         <div className="min-h-screen max-w-7xl mx-auto py-8 px-4">
-            <div className="mb-8 animate-in fade-in slide-in-from-top duration-700">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">My Orders</h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage and track all your VPS orders
-                </p>
+            <div className={`flex justify-between items-center mb-8 duration-700 ${!hasAnimated && 'animate-in fade-in slide-in-from-top'}`}>
+                <div>
+                    <h1 className="text-3xl font-bold">My Orders</h1>
+                    <p className="text-muted-foreground mt-2">
+                        Manage and track all your VPS orders
+                    </p>
+                </div>
+
+                <Button variant="outline" size="lg" onClick={() => fetchOrders()} disabled={isLoading}>
+                    <RefreshCw className={cn('h-4 w-4 mr-2', isLoading && 'animate-spin')} />
+                    Refresh
+                </Button>
             </div>
 
             {/* Search and Filter */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 animate-in fade-in slide-in-from-top duration-700">
+            <div className={`flex flex-col sm:flex-row gap-4 mb-6 duration-700 ${!hasAnimated && 'animate-in fade-in slide-in-from-top'}`}>
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -381,7 +385,7 @@ const MyOrdersPage = () => {
                 ) : (
                     <div className="text-center py-12 animate-in fade-in zoom-in duration-700">
                         <div className="flex justify-center mb-6 animate-in slide-in-from-top duration-500">
-                            <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 p-8 rounded-full shadow-xl hover:scale-110 transition-transform duration-300">
+                            <div className="bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 p-8 rounded-full shadow-xl hover:scale-110 transition-transform duration-300">
                                 <Package className="h-12 w-12 text-blue-600 dark:text-blue-400" />
                             </div>
                         </div>
@@ -397,82 +401,17 @@ const MyOrdersPage = () => {
 
             {/* Pagination */}
             {totalItems > 0 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-4 border-t animate-in fade-in slide-in-from-bottom duration-700">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>
-                            Showing {startIndex + 1} - {Math.min(endIndex, totalItems)} of {totalItems} orders
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        {/* Items per page selector */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Per page:</span>
-                            <Select
-                                value={itemsPerPage.toString()}
-                                onValueChange={(value) => {
-                                    setItemsPerPage(Number(value));
-                                    setCurrentPage(1);
-                                }}
-                            >
-                                <SelectTrigger className="w-20 h-9">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="5">5</SelectItem>
-                                    <SelectItem value="10">10</SelectItem>
-                                    <SelectItem value="20">20</SelectItem>
-                                    <SelectItem value="50">50</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Page navigation */}
-                        <div className="flex items-center gap-1">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9"
-                                onClick={() => setCurrentPage(1)}
-                                disabled={currentPage === 1}
-                            >
-                                <ChevronsLeft className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9"
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-
-                            <span className="flex items-center justify-center min-w-[100px] text-sm">
-                                Page {currentPage} of {totalPages}
-                            </span>
-
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9"
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage === totalPages}
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9"
-                                onClick={() => setCurrentPage(totalPages)}
-                                disabled={currentPage === totalPages}
-                            >
-                                <ChevronsRight className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    startIndex={startIndex}
+                    endIndex={endIndex}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                    itemLabel="orders"
+                />
             )}
 
             {/* Order Detail Modal */}
@@ -517,46 +456,57 @@ const MyOrdersPage = () => {
                             </div>
 
                             <div>
-                                <h4 className="font-semibold mb-3">Ordered Products</h4>
-                                {selectedOrder.order_items.map((item: OrderItemDetail, index: number) => (
-                                    <div
-                                        key={index}
-                                        className="border border-dashed border-accent rounded-lg p-4 space-y-2 mb-2 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 animate-in fade-in slide-in-from-left"
-                                        style={{ animationDelay: `${index * 100}ms`, animationDuration: '500ms' }}
-                                    >
-                                        <h5 className="font-semibold">{item.configuration.plan_name}</h5>
+                                {selectedOrder.order_items.length > 0 && (
+                                    <>
+                                        <h4 className="font-semibold mb-3">Ordered Products</h4>
+                                        {selectedOrder.order_items.map((item: OrderItemDetail, index: number) => (
+                                            <div
+                                                key={index}
+                                                className="border border-dashed border-accent rounded-lg p-4 space-y-2 mb-2 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 animate-in fade-in slide-in-from-left"
+                                                style={{ animationDelay: `${index * 100}ms`, animationDuration: '500ms' }}
+                                            >
+                                                <h5 className="font-semibold">{item.configuration.plan_name}</h5>
 
-                                        <p className="text-sm text-muted-foreground">
-                                            Hostname: {item.hostname}
-                                        </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Hostname: {item.hostname}
+                                                </p>
 
-                                        <p className="text-sm text-muted-foreground">
-                                            OS: {item.os}
-                                        </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    OS: {item.os}
+                                                </p>
 
-                                        <p className="text-sm text-muted-foreground">
-                                            {formatSpecifications(item)}
-                                        </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {formatSpecifications(item)}
+                                                </p>
 
-                                        <p className="text-sm text-muted-foreground">
-                                            Duration: {item.duration_months} months
-                                        </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Duration: {item.duration_months} months
+                                                </p>
 
-                                        <p className="text-sm font-medium">
-                                            Price: {formatPrice(item.total_price)}
-                                        </p>
-                                    </div>
-                                ))}
+                                                <p className="text-sm font-medium">
+                                                    Price: {formatPrice(item.total_price)}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
                             </div>
 
-                            {selectedOrder.status === 'pending' && (
+                            {selectedOrder.status === 'pending' && selectedOrder.order_items.length > 0 && !selectedOrder?.note && (
                                 <Button
-                                    className="w-full mt-4 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300 hover:shadow-xl hover:scale-105 animate-in fade-in zoom-in delay-300"
+                                    className="w-full mt-4 bg-linear-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300 hover:shadow-xl hover:scale-105 animate-in fade-in zoom-in delay-300"
                                     onClick={() => handlePayNowClick(selectedOrder)}
                                 >
                                     <CreditCard className="mr-2 h-4 w-4" />
                                     Pay Now
                                 </Button>
+                            )}
+
+                            {selectedOrder?.note && (
+                                // Hiển thị note
+                                <div className="mt-4">
+                                    <p className="text-sm text-muted-foreground">Note: {selectedOrder.note}</p>
+                                </div>
                             )}
                         </ScrollArea>
                     )}
@@ -607,7 +557,7 @@ const MyOrdersPage = () => {
                         </div>
                     ) : (
                         <div className="space-y-6 py-4">
-                            <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
+                            <div className="text-center p-4 bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
                                 <p className="text-sm text-muted-foreground">Amount to pay</p>
                                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                     {formatPrice(orderToRepay?.price || 0)}
@@ -621,7 +571,7 @@ const MyOrdersPage = () => {
                             >
                                 <Label
                                     className={`relative group cursor-pointer transition-all duration-300 hover:scale-[1.02] ${paymentMethod === 'momo'
-                                        ? 'bg-gradient-to-r from-pink-50 to-pink-100 dark:from-pink-900/30 dark:to-pink-800/30 border-2 border-pink-500 shadow-lg'
+                                        ? 'bg-linear-to-r from-pink-50 to-pink-100 dark:from-pink-900/30 dark:to-pink-800/30 border-2 border-pink-500 shadow-lg'
                                         : 'border-2 border-gray-200 dark:border-gray-700 hover:border-pink-300 hover:shadow-md'
                                         } rounded-xl p-4 flex items-center space-x-3`}
                                     htmlFor="momo"
@@ -638,7 +588,7 @@ const MyOrdersPage = () => {
 
                                 <Label
                                     className={`relative group cursor-pointer transition-all duration-300 hover:scale-[1.02] ${paymentMethod === 'vnpay'
-                                        ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 border-2 border-green-500 shadow-lg'
+                                        ? 'bg-linear-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 border-2 border-green-500 shadow-lg'
                                         : 'border-2 border-gray-200 dark:border-gray-700 hover:border-green-300 hover:shadow-md'
                                         } rounded-xl p-4 flex items-center space-x-3`}
                                     htmlFor="vnpay"
@@ -669,7 +619,7 @@ const MyOrdersPage = () => {
                                     Cancel
                                 </Button>
                                 <Button
-                                    className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                                    className="flex-1 bg-linear-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                                     onClick={handleProcessPayment}
                                     disabled={isProcessingPayment}
                                 >

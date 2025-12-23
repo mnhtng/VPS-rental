@@ -6,29 +6,165 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CreditCard, Download, Plus, TrendingUp, Receipt } from "lucide-react"
+import { CreditCard, TrendingUp, Receipt, RefreshCw, Clock } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
+import useMember from "@/hooks/useMember"
+import useVPS from "@/hooks/useVPS"
+import { Order, VPSInstance } from "@/types/types"
+import { toast } from "sonner"
+import { formatPrice } from "@/utils/currency"
+import { formatDateTime } from "@/utils/string"
+import RenewalDialog from "@/components/custom/client/RenewalDialog"
+import RepayDialog from "@/components/custom/client/RepayDialog"
 
 export default function BillingPage() {
+  const { getUserTotalRevenue, getOrders } = useMember()
+  const { getMyVps } = useVPS()
+
+  const [revenue, setRevenue] = useState({
+    total: 0,
+    current_month: 0,
+  })
+  const [vpsList, setVpsList] = useState<VPSInstance[] | []>([])
+  const [orders, setOrders] = useState<Order[] | []>([])
   const [loading, setLoading] = useState(true)
+  const [selectedVpsForRenewal, setSelectedVpsForRenewal] = useState<VPSInstance | null>(null)
+  const [renewalDialogOpen, setRenewalDialogOpen] = useState(false)
+  const [selectedOrderForRepay, setSelectedOrderForRepay] = useState<Order | null>(null)
+  const [repayDialogOpen, setRepayDialogOpen] = useState(false)
+
+  const fetchBilling = async (signal?: AbortSignal) => {
+    try {
+      const [totalRevenue, currentMonthRevenue, vpsData, orderData] = await Promise.all([
+        getUserTotalRevenue(undefined, signal),
+        getUserTotalRevenue(new Date().getMonth() + 1, signal),
+        getMyVps(null, signal),
+        getOrders(signal),
+      ])
+
+      if (signal?.aborted) return
+
+      const error = [totalRevenue, currentMonthRevenue, vpsData, orderData].find(res => res.error)
+
+      if (error) {
+        toast.error(error.message, {
+          description: error?.error?.detail,
+        })
+      } else {
+        setRevenue({
+          total: totalRevenue.data as number,
+          current_month: currentMonthRevenue.data as number,
+        })
+        setVpsList(vpsData.data)
+        setOrders(orderData.data)
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+
+      toast.error('Failed to fetch billing data', {
+        description: 'Please try again later',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
+    const controller = new AbortController()
+
+    fetchBilling(controller.signal)
+
+    return () => {
+      controller.abort()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const vpsUsage = () => {
+    if (vpsList.length === 0) return []
+
+    const usageData = []
+
+    for (const vps of vpsList) {
+      const usage = vps.order_item
+        ? parseFloat(((new Date().getTime() - new Date(vps.order_item.created_at).getTime()) / (vps.order_item.duration_months * 30 * 24 * 60 * 60 * 1000) * 100).toFixed(2))
+        : 0
+
+      const usagePercent = vps.order_item
+        ? usage > 80 ? 'bg-red-500'
+          : usage > 50 ? 'bg-yellow-500'
+            : 'bg-green-500'
+        : 'bg-green-500'
+
+      usageData.push({
+        vps: vps,
+        vm: vps.vm,
+        order_item: vps.order_item,
+        usage: usage,
+        color: usagePercent,
+      })
+    }
+
+    return usageData
+  }
+
+  const getDaysUntilExpiry = (expiresAt: string | null) => {
+    if (!expiresAt) return 0
+    return Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  }
+
+  const getExpiryColor = (days: number) => {
+    if (days <= 3) return "text-red-600"
+    if (days <= 7) return "text-yellow-600"
+    return "text-green-600"
+  }
+
+  const handleRenewClick = (vps: VPSInstance) => {
+    setSelectedVpsForRenewal(vps)
+    setRenewalDialogOpen(true)
+  }
+
+  const handleRenewalSuccess = () => {
+    setRenewalDialogOpen(false)
+    setSelectedVpsForRenewal(null)
+  }
+
+  const canShowRepayButton = (order: Order) => {
+    return order.status === "pending" && order.note?.startsWith("VPS Renewal")
+  }
+
+  const handleRepayClick = (order: Order) => {
+    setSelectedOrderForRepay(order)
+    setRepayDialogOpen(true)
+  }
+
+  const handleRepaySuccess = () => {
+    setRepayDialogOpen(false)
+    setSelectedOrderForRepay(null)
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Cancelled</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <h1 className="text-3xl font-bold tracking-tight">Tài chính</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
 
       {/* Balance & Usage Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-2">
         {loading ? (
           <>
-            {[1, 2, 3].map((i) => (
+            {[1, 2].map((i) => (
               <Card key={i} className="animate-in fade-in" style={{ animationDelay: `${i * 50}ms` }}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <Skeleton className="h-4 w-32" />
@@ -45,43 +181,35 @@ export default function BillingPage() {
           <>
             <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '0ms' }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Số dư khả dụng</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Spending</CardTitle>
                 <CreditCard className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-green-600">1.250.000 ₫</div>
-                <p className="text-xs text-muted-foreground mt-1">Đủ cho ~2 tháng sử dụng</p>
+                <div className="text-3xl font-bold text-green-600">{formatPrice(revenue.total)}</div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '50ms' }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Chi phí tháng này</CardTitle>
+                <CardTitle className="text-sm font-medium">This Month&apos;s Cost</CardTitle>
                 <TrendingUp className="h-4 w-4 text-blue-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-blue-600">485.000 ₫</div>
-                <p className="text-xs text-muted-foreground mt-1">+12% so với tháng trước</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '100ms' }}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Dự kiến thanh toán</CardTitle>
-                <CreditCard className="h-4 w-4 text-purple-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-purple-600">620.000 ₫</div>
-                <p className="text-xs text-muted-foreground mt-1">Ngày 1 tháng tới</p>
+                <div className="text-3xl font-bold text-blue-600">{formatPrice(revenue.current_month)}</div>
               </CardContent>
             </Card>
           </>
         )}
       </div>
 
-      {/* Resource Usage This Month */}
+      {/* VPS Usage */}
       <Card className="animate-in fade-in slide-in-from-left-4 duration-500">
         <CardHeader>
-          <CardTitle>Sử dụng tài nguyên tháng này</CardTitle>
-          <CardDescription>Chi tiết chi phí theo từng dịch vụ</CardDescription>
+          <CardTitle>
+            VPS Usage Progress
+          </CardTitle>
+          <CardDescription>
+            Current usage progress of your VPS services
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {loading ? (
@@ -98,20 +226,40 @@ export default function BillingPage() {
             </>
           ) : (
             <>
-              {[
-                { service: "VPS - web-server-01 (4 vCPU, 8GB RAM)", cost: 250000, usage: 100, color: "bg-blue-500" },
-                { service: "VPS - db-master (8 vCPU, 16GB RAM)", cost: 180000, usage: 75, color: "bg-green-500" },
-                { service: "VPS - test-env (2 vCPU, 4GB RAM)", cost: 35000, usage: 45, color: "bg-purple-500" },
-                { service: "Băng thông (150GB)", cost: 20000, usage: 60, color: "bg-orange-500" },
-              ].map((item, i) => (
+              {vpsUsage().length > 0 ? (vpsUsage().map((item, i) => (
                 <div key={i} className="space-y-2 animate-in fade-in slide-in-from-left-4" style={{ animationDelay: `${i * 50}ms` }}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{item.service}</span>
-                    <span className="font-semibold">{item.cost.toLocaleString()} ₫</span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium">{item.vm?.hostname}</span>
+                      <div className={`hidden sm:flex items-center gap-1 text-xs ${getExpiryColor(getDaysUntilExpiry(item.vps.expires_at))}`}>
+                        <Clock className="h-3 w-3" />
+                        <span>{getDaysUntilExpiry(item.vps.expires_at) > 0 ? `${getDaysUntilExpiry(item.vps.expires_at)} days` : "Expired"}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="hidden sm:block font-semibold">{formatPrice(item?.order_item?.total_price || 0)}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => handleRenewClick(item.vps)}
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        Renew
+                      </Button>
+                    </div>
                   </div>
                   <Progress value={item.usage} className={`h-2 ${item.color}`} />
                 </div>
-              ))}
+              ))) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center animate-in zoom-in duration-500">
+                  <div className="rounded-full bg-linear-to-br from-blue-100 to-purple-100 p-6 mb-4">
+                    <CreditCard className="h-16 w-16 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">No VPS Yet</h3>
+                  <p className="text-muted-foreground mb-6">When you rent a VPS, usage progress will be displayed here</p>
+                </div>
+              )}
             </>
           )}
         </CardContent>
@@ -120,8 +268,8 @@ export default function BillingPage() {
       {/* Invoice History */}
       <Card className="animate-in fade-in slide-in-from-right-4 duration-500">
         <CardHeader>
-          <CardTitle>Lịch sử hóa đơn</CardTitle>
-          <CardDescription>Tất cả giao dịch và hóa đơn của bạn</CardDescription>
+          <CardTitle>Invoice History</CardTitle>
+          <CardDescription>All your transactions and invoices</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -141,79 +289,83 @@ export default function BillingPage() {
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mã hóa đơn</TableHead>
-                    <TableHead>Ngày phát hành</TableHead>
-                    <TableHead>Mô tả</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead className="text-right">Số tiền</TableHead>
-                    <TableHead className="text-right">Hành động</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[
-                    {
-                      id: "INV-2024001",
-                      date: "01/11/2024",
-                      desc: "Thanh toán dịch vụ VPS",
-                      status: "paid",
-                      amount: 620000,
-                    },
-                    {
-                      id: "INV-2024002",
-                      date: "15/11/2024",
-                      desc: "Nạp tiền vào tài khoản",
-                      status: "paid",
-                      amount: 1000000,
-                    },
-                    {
-                      id: "INV-2024003",
-                      date: "20/11/2024",
-                      desc: "Phí băng thông vượt mức",
-                      status: "pending",
-                      amount: 50000,
-                    },
-                  ].map((invoice, index) => (
-                    <TableRow
-                      key={invoice.id}
-                      className="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors animate-in fade-in slide-in-from-left-4"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <TableCell className="font-medium font-mono">{invoice.id}</TableCell>
-                      <TableCell>{invoice.date}</TableCell>
-                      <TableCell>{invoice.desc}</TableCell>
-                      <TableCell>
-                        <Badge variant={invoice.status === "paid" ? "default" : "secondary"} className={invoice.status === "paid" ? "bg-green-500 hover:bg-green-600" : ""}>
-                          {invoice.status === "paid" ? "Đã thanh toán" : "Chờ xử lý"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">{invoice.amount.toLocaleString()} ₫</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:text-blue-600 dark:hover:text-blue-400 border dark:border-gray-700 hover:border-blue-300 hover:scale-105 transition-all">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {/* Empty state */}
-              {false && (
+            <div className="rounded-md border relative">
+              {orders.length > 0 ? (
+                <div className="max-h-100 overflow-auto">
+                  <Table>
+                    <TableHeader className="bg-muted">
+                      <TableRow>
+                        <TableHead>Invoice ID</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Note</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((invoice, index) => (
+                        <TableRow
+                          key={invoice.id}
+                          className="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors animate-in fade-in slide-in-from-left-4"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <TableCell className="font-medium font-mono">{invoice.id}</TableCell>
+                          <TableCell>{formatDateTime(new Date(invoice.created_at))}</TableCell>
+                          <TableCell>{invoice?.note || 'None'}</TableCell>
+                          <TableCell>
+                            {getStatusBadge(invoice.status)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">{formatPrice(invoice.price)}</TableCell>
+                          <TableCell className="text-right">
+                            {canShowRepayButton(invoice) && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => handleRepayClick(invoice)}
+                              >
+                                <CreditCard className="h-3 w-3 mr-1" />
+                                Pay
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center animate-in zoom-in duration-500">
-                  <div className="rounded-full bg-gradient-to-br from-blue-100 to-purple-100 p-6 mb-4">
+                  <div className="rounded-full bg-linear-to-br from-blue-100 to-purple-100 p-6 mb-4">
                     <Receipt className="h-16 w-16 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">Chưa có hóa đơn</h3>
-                  <p className="text-muted-foreground mb-6">Các giao dịch của bạn sẽ hiển thị ở đây</p>
+                  <h3 className="text-lg font-semibold mb-2">No Invoices Yet</h3>
+                  <p className="text-muted-foreground mb-6">Your transactions will be displayed here</p>
                 </div>
               )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      <RenewalDialog
+        open={renewalDialogOpen}
+        onOpenChange={setRenewalDialogOpen}
+        vpsInstance={selectedVpsForRenewal}
+        userPhone={selectedVpsForRenewal?.user?.phone || ""}
+        userAddress={selectedVpsForRenewal?.user?.address || ""}
+        onSuccess={handleRenewalSuccess}
+      />
+
+      <RepayDialog
+        open={repayDialogOpen}
+        onOpenChange={setRepayDialogOpen}
+        order={selectedOrderForRepay}
+        userPhone={selectedOrderForRepay?.billing_phone || ""}
+        userAddress={selectedOrderForRepay?.billing_address || ""}
+        onSuccess={handleRepaySuccess}
+      />
     </div>
   )
 }

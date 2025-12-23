@@ -216,7 +216,7 @@ export const sendVPSWelcomeEmail = async (data: VPSWelcomeEmailData) => {
             }),
             attachments: [
                 {
-                    filename: `VPS-Guide-${data.orderNumber}.pdf`,
+                    filename: `VPS-Guide-${data.orderNumber}-${data.vps.hostname}.pdf`,
                     content: pdfBase64,
                 },
             ],

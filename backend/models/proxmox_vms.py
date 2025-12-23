@@ -62,10 +62,6 @@ class ProxmoxVM(SQLModel, table=True):
             "vmid",
             name="proxmox_vms_cluster_id_node_id_vmid_key",
         ),
-        UniqueConstraint(
-            "hostname",
-            name="proxmox_vms_hostname_key",
-        ),
         CheckConstraint(
             "power_status IN ('running', 'stopped', 'suspended')",
             name="proxmox_vms_power_status_check",

@@ -103,7 +103,7 @@ class VMTemplate(SQLModel, table=True):
         max_length=10,
     )
     default_user: Optional[str] = Field(
-        default="root",
+        default="pcloud",
         nullable=True,
         max_length=50,
     )

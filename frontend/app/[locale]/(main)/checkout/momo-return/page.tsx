@@ -151,7 +151,7 @@ const MoMoReturnPage = () => {
                                 <span className="text-sm">Provisioning your VPS on our servers...</span>
                             </div>
                             <div className="flex items-center justify-center gap-2 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                                 <span className="text-sm text-amber-700 dark:text-amber-300">
                                     Please do not close or refresh this page during setup.
                                 </span>
@@ -196,7 +196,7 @@ const MoMoReturnPage = () => {
                         {result.status === 'success' ? (
                             <>
                                 <Button
-                                    className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                                    className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
                                     onClick={() => router.push(`/${locale}/client-dashboard`)}
                                     disabled={isSettingUpVps}
                                 >
@@ -215,7 +215,7 @@ const MoMoReturnPage = () => {
                             </>
                         ) : result.status === 'failed' ? (
                             <>
-                                <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" onClick={() => router.push(`/${locale}/checkout`)}>
+                                <Button className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" onClick={() => router.push(`/${locale}/checkout`)}>
                                     Retry
                                 </Button>
                                 <Button variant="outline" className="w-full" onClick={() => router.push(`/${locale}`)}>

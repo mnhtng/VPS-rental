@@ -71,7 +71,7 @@ export const VPSItemPlaceholder = () => {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                <div className="flex items-end gap-2 h-[250px]">
+                                <div className="flex items-end gap-2 h-62.5">
                                     {[40, 65, 45, 80, 55, 70, 60, 75, 50, 85, 65, 70].map((height, i) => (
                                         <Skeleton
                                             key={i}

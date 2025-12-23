@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple
 from uuid import UUID
 from fastapi import Depends, HTTPException, Path
 from sqlmodel import Session, select
@@ -113,9 +113,7 @@ def get_proxmox_from_vm(
     Get Proxmox connection from VM ID.
     Returns: (proxmox_connection, vm, template, node, cluster)
     """
-    vm = session.exec(
-        select(ProxmoxVM).where(ProxmoxVM.vmid == vm_id)
-    ).first()
+    vm = session.exec(select(ProxmoxVM).where(ProxmoxVM.vmid == vm_id)).first()
     if not vm:
         raise HTTPException(
             status_code=404,

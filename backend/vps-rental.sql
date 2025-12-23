@@ -231,7 +231,7 @@ CREATE TABLE "vm_templates" (
     "description" TEXT,
     "os_type" VARCHAR(50), -- linux, windows
 	"os_version" VARCHAR(10), -- 22.04
-    "default_user" VARCHAR(50) DEFAULT 'root',
+    "default_user" VARCHAR(50) DEFAULT 'pcloud',
 	"cloud_init_enabled" BOOLEAN DEFAULT FALSE,
 	-- Resource Specifications
     "cpu_cores" INTEGER DEFAULT 1,
@@ -285,7 +285,6 @@ CREATE TABLE "proxmox_vms" (
 
     CONSTRAINT "proxmox_vms_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "proxmox_vms_cluster_id_node_id_vmid_key" UNIQUE ("cluster_id", "node_id", "vmid"),
-    CONSTRAINT "proxmox_vms_hostname_key" UNIQUE ("hostname"),
     CONSTRAINT "proxmox_vms_power_status_check" CHECK (power_status IN ('running', 'stopped', 'suspended')),
     CONSTRAINT "proxmox_vms_cluster_id_fkey" FOREIGN KEY ("cluster_id") REFERENCES "proxmox_clusters"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "proxmox_vms_node_id_fkey" FOREIGN KEY ("node_id") REFERENCES "proxmox_nodes"("id") ON DELETE RESTRICT ON UPDATE CASCADE,

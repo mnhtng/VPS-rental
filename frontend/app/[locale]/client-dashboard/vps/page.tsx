@@ -8,9 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Search, Plus, Server } from "lucide-react"
 import Link from "next/link"
-import useVPS, { VPSInstance } from "@/hooks/useVPS"
+import useVPS from "@/hooks/useVPS"
 import { useLocale } from "next-intl"
 import { VPSPlaceholder } from "@/components/custom/placeholder/vps"
+import { VPSInstance } from "@/types/types"
+import Pagination from "@/components/ui/pagination"
+import { toast } from "sonner"
 
 export default function VPSListPage() {
   const locale = useLocale()
@@ -19,54 +22,82 @@ export default function VPSListPage() {
   const [vpsList, setVpsList] = useState<VPSInstance[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [searching, setSearching] = useState(false)
 
-  const fetchVps = async () => {
-    setLoading(true)
-    const result = await getMyVps()
-    if (result.data) {
-      setVpsList(result.data)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const fetchVps = async (signal?: AbortSignal) => {
+    try {
+      const result = await getMyVps(null, signal)
+
+      if (signal?.aborted) return
+
+      if (result.error) {
+        toast.error(result.message, {
+          description: result.error.detail,
+        })
+      } else {
+        setVpsList(result.data)
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+
+      toast.error('Failed to fetch VPS list', {
+        description: 'Please try again later',
+      })
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
-    fetchVps()
+    const controller = new AbortController()
+
+    fetchVps(controller.signal)
+
+    return () => {
+      controller.abort()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value)
-    setSearching(true)
-    setTimeout(() => setSearching(false), 300)
-  }
 
   const filteredVpsList = vpsList.filter((vps) => {
     const query = searchQuery.toLowerCase()
     return (
-      (vps.hostname?.toLowerCase() || "").includes(query) ||
-      (vps.ip_address?.toLowerCase() || "").includes(query)
+      (vps.vm?.hostname?.toLowerCase() || "").includes(query) ||
+      (vps.vm?.ip_address?.toLowerCase() || "").includes(query)
     )
   })
 
+  // Pagination calculations
+  const totalItems = filteredVpsList.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedVpsList = filteredVpsList.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <h1 className="text-3xl font-bold tracking-tight">Danh sách VPS</h1>
+      <h1 className="text-3xl font-bold tracking-tight">VPS List</h1>
 
       <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Tất cả máy chủ ({loading ? "..." : filteredVpsList.length})</CardTitle>
+            <CardTitle>All Servers ({loading ? "..." : filteredVpsList.length})</CardTitle>
             <div className="flex w-full max-w-sm items-center space-x-2">
               <Input
                 type="search"
-                placeholder="Tìm kiếm theo tên hoặc IP..."
+                placeholder="Search by name or IP..."
                 value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="hover:border-blue-400 transition-colors"
               />
-              <Button type="submit" size="icon" variant="ghost" className="hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                <Search className={`h-4 w-4 ${searching ? 'animate-pulse' : ''}`} />
+              <Button size="icon" variant="ghost" className="hover:bg-blue-50 hover:text-blue-600 dark:hover:text-blue-400 border dark:border-gray-700 hover:border-blue-300 hover:scale-105 transition-all">
+                <Search className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -75,106 +106,112 @@ export default function VPSListPage() {
           <div className="overflow-x-auto">
             {loading ? (
               <VPSPlaceholder />
-            ) : filteredVpsList.length === 0 ? (
+            ) : paginatedVpsList.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center animate-in zoom-in duration-500">
-                <div className="rounded-full bg-gradient-to-br from-blue-100 to-purple-100 p-6 mb-4">
+                <div className="rounded-full bg-linear-to-br from-blue-100 to-purple-100 p-6 mb-4">
                   <Server className="h-16 w-16 text-blue-600" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">
-                  {searchQuery ? "Không tìm thấy VPS" : "Chưa có VPS nào"}
+                  {searchQuery ? "No VPS found" : "No VPS yet"}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  {searchQuery ? "Thử tìm kiếm với từ khóa khác" : "Bắt đầu bằng cách đăng ký VPS mới"}
+                  {searchQuery ? "Try searching with different keywords" : "Start by registering a new VPS"}
                 </p>
                 {!searchQuery && (
-                  <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Button asChild className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                     <Link href={`/${locale}/plans`}>
-                      <Plus className="mr-2 h-4 w-4" /> Đăng ký VPS ngay
+                      <Plus className="mr-2 h-4 w-4" />
+                      Get VPS Now
                     </Link>
                   </Button>
                 )}
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead>Hostname</TableHead>
-                    <TableHead>IP Address</TableHead>
-                    <TableHead>Cấu hình</TableHead>
-                    <TableHead>Gói VPS</TableHead>
-                    <TableHead className="text-right">Hành động</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredVpsList.map((vps, index) => (
-                    <TableRow
-                      key={vps.id}
-                      className="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors animate-in fade-in slide-in-from-left-4"
-                      style={{ animationDelay: `${index * 30}ms` }}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
+              <>
+                <Table>
+                  <TableHeader className="bg-muted">
+                    <TableRow>
+                      <TableHead></TableHead>
+                      <TableHead>Hostname</TableHead>
+                      <TableHead>IP Address</TableHead>
+                      <TableHead>Configuration</TableHead>
+                      <TableHead>VPS Plan</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedVpsList.map((vps, index) => (
+                      <TableRow
+                        key={vps.id}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors animate-in fade-in slide-in-from-left-4"
+                        style={{ animationDelay: `${index * 30}ms` }}
+                      >
+                        <TableCell>
                           <div
-                            className={`h-2 w-2 rounded-full animate-pulse ${vps.power_status === "running"
+                            className={`h-2 w-2 rounded-full animate-pulse ${vps.vm?.power_status === "running"
                               ? "bg-green-500"
-                              : vps.power_status === "stopped"
+                              : vps.vm?.power_status === "stopped"
                                 ? "bg-red-500"
                                 : "bg-yellow-500"
                               }`}
                           />
-                          <Badge
-                            variant={vps.power_status === "running" ? "default" : "destructive"}
-                            className={vps.power_status === "running" ? "bg-green-500 hover:bg-green-600" : ""}
-                          >
-                            {vps.power_status === "running"
-                              ? "Đang chạy"
-                              : vps.power_status === "stopped"
-                                ? "Đã tắt"
-                                : vps.status}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {vps.vm?.hostname || "Configuring..."}
+                        </TableCell>
+                        <TableCell className="font-mono text-muted-foreground">
+                          {vps.vm?.ip_address || "Waiting for IP"}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {vps.vm?.vcpu && vps.vm?.ram_gb ? (
+                            <>
+                              {vps.vm?.vcpu} vCPU • {vps.vm?.ram_gb}GB RAM
+                              {vps.vm?.storage_gb && (
+                                <>
+                                  <br />
+                                  {vps.vm?.storage_gb}GB {vps.vm?.storage_type || "Disk"}
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            "N/A"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-normal">
+                            {vps.vps_plan?.name || "N/A"}
                           </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {vps.hostname || "Đang cấu hình..."}
-                      </TableCell>
-                      <TableCell className="font-mono text-muted-foreground">
-                        {vps.ip_address || "Chờ IP"}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {vps.vcpu && vps.ram_gb ? (
-                          <>
-                            {vps.vcpu} vCPU • {vps.ram_gb}GB RAM
-                            {vps.storage_gb && (
-                              <>
-                                <br />
-                                {vps.storage_gb}GB {vps.storage_type || "Disk"}
-                              </>
-                            )}
-                          </>
-                        ) : (
-                          "N/A"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-normal">
-                          {vps.plan_name || "N/A"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                          className="hover:bg-blue-50 hover:text-blue-600 dark:hover:text-blue-400 border dark:border-gray-700 hover:border-blue-300 hover:scale-105 transition-all"
-                        >
-                          <Link href={`/${locale}/client-dashboard/vps/${vps.id}`}>Quản lý</Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="hover:bg-blue-50 hover:text-blue-600 dark:hover:text-blue-400 border dark:border-gray-700 hover:border-blue-300 hover:scale-105 transition-all"
+                          >
+                            <Link href={`/${locale}/client-dashboard/vps/${vps.id}`}>Manage</Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination */}
+                {totalItems > 0 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    startIndex={startIndex}
+                    endIndex={endIndex}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                    itemLabel="VPS"
+                  />
+                )}
+              </>
             )}
           </div>
         </CardContent>

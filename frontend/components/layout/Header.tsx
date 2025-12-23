@@ -35,7 +35,8 @@ import {
     KeyRound,
     UserRoundPlus,
     Loader,
-    Cloud
+    Cloud,
+    Aperture
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
@@ -147,20 +148,20 @@ export const Header = () => {
                                     </Button>
                                 </Link>
 
-                                <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
+                                <Separator orientation="vertical" className="w-px h-6 bg-accent/50" />
 
                                 {/* Preferences */}
                                 <ThemeSwitcher />
                                 <LanguageBadge />
 
-                                <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
+                                <Separator orientation="vertical" className="w-px h-6 bg-accent/50" />
 
                                 {/* User */}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" className="relative h-10 w-10 rounded-full hidden md:inline-flex p-0 overflow-visible">
-                                            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#ff0000,#ff8000,#ffff00,#80ff00,#00ff00,#00ff80,#00ffff,#0080ff,#0000ff,#8000ff,#ff00ff,#ff0080,#ff0000)] animate-spin [animation-duration:2s]" />
-                                            <div className="absolute inset-[2px] rounded-full bg-background" />
+                                            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#ff0000,#ff8000,#ffff00,#80ff00,#00ff00,#00ff80,#00ffff,#0080ff,#0000ff,#8000ff,#ff00ff,#ff0080,#ff0000)] animate-spin animation-duration-[2s]" />
+                                            <div className="absolute inset-0.5 rounded-full bg-background" />
 
                                             <Avatar className="h-8 w-8 relative z-10">
                                                 <AvatarImage src={session.user.image || ''} />
@@ -201,7 +202,7 @@ export const Header = () => {
 
                                         <DropdownMenuItem asChild>
                                             <Link href={`/${locale}/my-tickets`} className="flex items-center">
-                                                <HelpCircle className="mr-2 h-4 w-4" />
+                                                <Aperture className="mr-2 h-4 w-4" />
                                                 {t('my_tickets')}
                                             </Link>
                                         </DropdownMenuItem>
@@ -249,7 +250,7 @@ export const Header = () => {
                                 <ThemeSwitcher />
                                 <LanguageBadge />
 
-                                <Separator orientation="vertical" className="w-[1px] h-6 bg-accent/50" />
+                                <Separator orientation="vertical" className="w-px h-6 bg-accent/50" />
 
                                 <Link href={`/${locale}/login`}>
                                     <Button variant="ghost" size="sm">
@@ -310,7 +311,7 @@ export const Header = () => {
 
                                     {!session || !session.user ? (
                                         <>
-                                            <Separator className="h-[1px] bg-accent/50 my-2" />
+                                            <Separator className="h-px bg-accent/50 my-2" />
 
                                             <SheetTitle className="mb-2">
                                                 {t('auth')}
@@ -339,7 +340,7 @@ export const Header = () => {
                                         </>
                                     ) : (
                                         <>
-                                            <Separator className="h-[1px] bg-accent/50 my-2" />
+                                            <Separator className="h-px bg-accent/50 my-2" />
 
                                             <SheetTitle className="mb-2">
                                                 {t('acc')}
@@ -357,7 +358,7 @@ export const Header = () => {
                                                     </Button>
                                                 </Link>
                                                 <Link
-                                                    href={`/${locale}/orders`}
+                                                    href={`/${locale}/my-orders`}
                                                     className='hover:ml-2 block transition-all duration-200'
                                                     onClick={() => setMobileMenuOpen(false)}
                                                 >
@@ -372,8 +373,18 @@ export const Header = () => {
                                                     onClick={() => setMobileMenuOpen(false)}
                                                 >
                                                     <Button variant="ghost" className="w-full justify-start">
-                                                        <HelpCircle className="mr-2 h-4 w-4" />
+                                                        <Aperture className="mr-2 h-4 w-4" />
                                                         {t('my_tickets')}
+                                                    </Button>
+                                                </Link>
+                                                <Link
+                                                    href={`/${locale}/client-dashboard`}
+                                                    className="hover:ml-2 block transition-all duration-200"
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    <Button variant="ghost" className="w-full justify-start">
+                                                        <Cloud className="mr-2 h-4 w-4" />
+                                                        {t('manage_vps')}
                                                     </Button>
                                                 </Link>
 

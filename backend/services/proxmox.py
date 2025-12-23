@@ -38,7 +38,7 @@ class CommonProxmoxService:
         """
         try:
             proxmox = ProxmoxAPI(
-                host or settings.PROXMOX_HOST,
+                host=host or settings.PROXMOX_HOST,
                 port=port or settings.PROXMOX_PORT,
                 user=user or settings.PROXMOX_USER,
                 password=password or settings.PROXMOX_PASSWORD,
@@ -92,7 +92,7 @@ class CommonProxmoxService:
             raise Exception("Proxmox connection test failed")
 
     @staticmethod
-    def get_version(proxmox: ProxmoxAPI) -> Dict[str, Any]:
+    async def get_version(proxmox: ProxmoxAPI) -> Dict[str, Any]:
         """
         Get Proxmox version information
 
@@ -109,7 +109,9 @@ class CommonProxmoxService:
             raise Exception("Failed to retrieve Proxmox version")
 
     @staticmethod
-    def get_task_status(proxmox: ProxmoxAPI, node: str, upid: str) -> Dict[str, Any]:
+    async def get_task_status(
+        proxmox: ProxmoxAPI, node: str, upid: str
+    ) -> Dict[str, Any]:
         """
         Get status of a Proxmox task
 
@@ -128,7 +130,7 @@ class CommonProxmoxService:
             raise Exception("Failed to retrieve task status")
 
     @staticmethod
-    def get_next_vmid(proxmox: ProxmoxAPI) -> int:
+    async def get_next_vmid(proxmox: ProxmoxAPI) -> int:
         """
         Get next available VM ID
 
@@ -149,7 +151,7 @@ class ProxmoxAccessService:
     """Service for managing Proxmox access control (users, groups, roles, permissions, ACLs)"""
 
     @staticmethod
-    def get_users(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_users(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get list of all users
 
@@ -166,7 +168,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to retrieve users")
 
     @staticmethod
-    def get_user(proxmox: ProxmoxAPI, userid: str) -> Dict[str, Any]:
+    async def get_user(proxmox: ProxmoxAPI, userid: str) -> Dict[str, Any]:
         """
         Get specific user details
 
@@ -184,7 +186,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to retrieve user")
 
     @staticmethod
-    def create_user(
+    async def create_user(
         proxmox: ProxmoxAPI,
         userid: str,
         password: Optional[str] = None,
@@ -248,7 +250,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to create user")
 
     @staticmethod
-    def update_user(
+    async def update_user(
         proxmox: ProxmoxAPI,
         userid: str,
         password: Optional[str] = None,
@@ -312,7 +314,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to update user")
 
     @staticmethod
-    def delete_user(proxmox: ProxmoxAPI, userid: str) -> Dict[str, Any]:
+    async def delete_user(proxmox: ProxmoxAPI, userid: str) -> Dict[str, Any]:
         """
         Delete a user
 
@@ -335,7 +337,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to delete user")
 
     @staticmethod
-    def change_user_password(
+    async def change_user_password(
         proxmox: ProxmoxAPI,
         userid: str,
         password: str,
@@ -363,7 +365,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to change user password")
 
     @staticmethod
-    def get_groups(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_groups(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get list of all groups
 
@@ -380,7 +382,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to retrieve groups")
 
     @staticmethod
-    def get_group(proxmox: ProxmoxAPI, groupid: str) -> Dict[str, Any]:
+    async def get_group(proxmox: ProxmoxAPI, groupid: str) -> Dict[str, Any]:
         """
         Get specific group details
 
@@ -398,7 +400,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to retrieve group")
 
     @staticmethod
-    def create_group(
+    async def create_group(
         proxmox: ProxmoxAPI,
         groupid: str,
         comment: Optional[str] = None,
@@ -430,7 +432,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to create group")
 
     @staticmethod
-    def update_group(
+    async def update_group(
         proxmox: ProxmoxAPI,
         groupid: str,
         comment: Optional[str] = None,
@@ -462,7 +464,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to update group")
 
     @staticmethod
-    def delete_group(proxmox: ProxmoxAPI, groupid: str) -> Dict[str, Any]:
+    async def delete_group(proxmox: ProxmoxAPI, groupid: str) -> Dict[str, Any]:
         """
         Delete a group
 
@@ -485,7 +487,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to delete group")
 
     @staticmethod
-    def get_roles(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_roles(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get list of all roles
 
@@ -502,7 +504,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to get roles")
 
     @staticmethod
-    def get_role(proxmox: ProxmoxAPI, roleid: str) -> Dict[str, Any]:
+    async def get_role(proxmox: ProxmoxAPI, roleid: str) -> Dict[str, Any]:
         """
         Get specific role details
 
@@ -520,7 +522,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to get role")
 
     @staticmethod
-    def create_role(
+    async def create_role(
         proxmox: ProxmoxAPI,
         roleid: str,
         privs: Optional[str] = None,
@@ -552,7 +554,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to create role")
 
     @staticmethod
-    def update_role(
+    async def update_role(
         proxmox: ProxmoxAPI,
         roleid: str,
         privs: Optional[str] = None,
@@ -588,7 +590,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to update role")
 
     @staticmethod
-    def delete_role(proxmox: ProxmoxAPI, roleid: str) -> Dict[str, Any]:
+    async def delete_role(proxmox: ProxmoxAPI, roleid: str) -> Dict[str, Any]:
         """
         Delete a role
 
@@ -611,7 +613,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to delete role")
 
     @staticmethod
-    def get_acl(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_acl(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get Access Control List (ACL)
 
@@ -628,7 +630,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to get ACL")
 
     @staticmethod
-    def update_acl(
+    async def update_acl(
         proxmox: ProxmoxAPI,
         path: str,
         roles: str,
@@ -683,7 +685,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to update ACL")
 
     @staticmethod
-    def get_domains(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_domains(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get authentication domains/realms
 
@@ -700,7 +702,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to get domains")
 
     @staticmethod
-    def get_permissions(
+    async def get_permissions(
         proxmox: ProxmoxAPI,
         path: Optional[str] = None,
         userid: Optional[str] = None,
@@ -729,7 +731,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to get permissions")
 
     @staticmethod
-    def create_api_token(
+    async def create_api_token(
         proxmox: ProxmoxAPI,
         userid: str,
         tokenid: str,
@@ -772,7 +774,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to create API token")
 
     @staticmethod
-    def get_api_tokens(proxmox: ProxmoxAPI, userid: str) -> List[Dict[str, Any]]:
+    async def get_api_tokens(proxmox: ProxmoxAPI, userid: str) -> List[Dict[str, Any]]:
         """
         Get list of API tokens for a user
 
@@ -790,7 +792,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to get API tokens")
 
     @staticmethod
-    def delete_api_token(
+    async def delete_api_token(
         proxmox: ProxmoxAPI,
         userid: str,
         tokenid: str,
@@ -818,7 +820,7 @@ class ProxmoxAccessService:
             raise Exception("Failed to delete API token")
 
     @staticmethod
-    def generate_tfa_secret(proxmox: ProxmoxAPI, userid: str) -> Dict[str, Any]:
+    async def generate_tfa_secret(proxmox: ProxmoxAPI, userid: str) -> Dict[str, Any]:
         """
         Generate TOTP (Two-Factor Authentication) secret for a user
 
@@ -845,7 +847,7 @@ class ProxmoxClusterService:
     """Service for managing Proxmox cluster operations"""
 
     @staticmethod
-    def get_cluster_status(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_cluster_status(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get cluster status information
 
@@ -862,7 +864,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get cluster status")
 
     @staticmethod
-    def get_cluster_resources(
+    async def get_cluster_resources(
         proxmox: ProxmoxAPI,
         resource_type: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
@@ -884,7 +886,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get cluster resources")
 
     @staticmethod
-    def get_cluster_options(proxmox: ProxmoxAPI) -> Dict[str, Any]:
+    async def get_cluster_options(proxmox: ProxmoxAPI) -> Dict[str, Any]:
         """
         Get cluster configuration options
 
@@ -901,7 +903,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get cluster options")
 
     @staticmethod
-    def update_cluster_options(
+    async def update_cluster_options(
         proxmox: ProxmoxAPI,
         keyboard: Optional[str] = None,
         language: Optional[str] = None,
@@ -950,7 +952,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to update cluster options")
 
     @staticmethod
-    def get_cluster_tasks(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_cluster_tasks(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get cluster task list
 
@@ -967,7 +969,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get cluster tasks")
 
     @staticmethod
-    def get_cluster_backup_schedule(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_cluster_backup_schedule(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get cluster backup schedule
 
@@ -984,7 +986,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get backup schedule")
 
     @staticmethod
-    def create_backup_job(
+    async def create_backup_job(
         proxmox: ProxmoxAPI,
         starttime: Optional[str],
         dow: Optional[str],
@@ -1057,7 +1059,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to create backup job")
 
     @staticmethod
-    def update_backup_job(
+    async def update_backup_job(
         proxmox: ProxmoxAPI,
         job_id: str,
         starttime: Optional[str],
@@ -1121,7 +1123,7 @@ class ProxmoxClusterService:
             raise
 
     @staticmethod
-    def delete_backup_job(proxmox: ProxmoxAPI, job_id: str) -> Dict[str, Any]:
+    async def delete_backup_job(proxmox: ProxmoxAPI, job_id: str) -> Dict[str, Any]:
         """
         Delete cluster backup job
 
@@ -1144,7 +1146,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to delete backup job")
 
     @staticmethod
-    def get_cluster_ha_resources(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_cluster_ha_resources(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get High Availability (HA) resources
 
@@ -1161,7 +1163,7 @@ class ProxmoxClusterService:
             raise
 
     @staticmethod
-    def add_ha_resource(
+    async def add_ha_resource(
         proxmox: ProxmoxAPI,
         sid: str,
         group: Optional[str] = None,
@@ -1213,7 +1215,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to add HA resource")
 
     @staticmethod
-    def update_ha_resource(
+    async def update_ha_resource(
         proxmox: ProxmoxAPI,
         sid: str,
         group: Optional[str] = None,
@@ -1268,7 +1270,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to update HA resource")
 
     @staticmethod
-    def remove_ha_resource(proxmox: ProxmoxAPI, sid: str) -> Dict[str, Any]:
+    async def remove_ha_resource(proxmox: ProxmoxAPI, sid: str) -> Dict[str, Any]:
         """
         Remove resource from HA management
 
@@ -1291,7 +1293,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to remove HA resource")
 
     @staticmethod
-    def get_cluster_ha_groups(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_cluster_ha_groups(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get HA groups
 
@@ -1308,7 +1310,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get HA groups")
 
     @staticmethod
-    def create_ha_group(
+    async def create_ha_group(
         proxmox: ProxmoxAPI,
         group: str,
         nodes: str,
@@ -1357,7 +1359,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to create HA group")
 
     @staticmethod
-    def update_ha_group(
+    async def update_ha_group(
         proxmox: ProxmoxAPI,
         group: str,
         restricted: bool = False,
@@ -1404,7 +1406,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to update HA group")
 
     @staticmethod
-    def delete_ha_group(proxmox: ProxmoxAPI, group: str) -> Dict[str, Any]:
+    async def delete_ha_group(proxmox: ProxmoxAPI, group: str) -> Dict[str, Any]:
         """
         Delete HA group
 
@@ -1427,7 +1429,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to delete HA group")
 
     @staticmethod
-    def get_cluster_ha_status(proxmox: ProxmoxAPI) -> Dict[str, Any]:
+    async def get_cluster_ha_status(proxmox: ProxmoxAPI) -> Dict[str, Any]:
         """
         Get HA manager status
 
@@ -1444,7 +1446,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get HA status")
 
     @staticmethod
-    def get_cluster_firewall_groups(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_cluster_firewall_groups(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get cluster firewall security groups
 
@@ -1461,7 +1463,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get firewall groups")
 
     @staticmethod
-    def create_firewall_group(
+    async def create_firewall_group(
         proxmox: ProxmoxAPI,
         group: str,
         comment: Optional[str] = None,
@@ -1497,7 +1499,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to create firewall group")
 
     @staticmethod
-    def delete_firewall_group(proxmox: ProxmoxAPI, group: str) -> Dict[str, Any]:
+    async def delete_firewall_group(proxmox: ProxmoxAPI, group: str) -> Dict[str, Any]:
         """
         Delete cluster firewall security group
 
@@ -1516,7 +1518,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to delete firewall group")
 
     @staticmethod
-    def get_cluster_firewall_rules(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_cluster_firewall_rules(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get cluster firewall rules
 
@@ -1533,7 +1535,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to get firewall rules")
 
     @staticmethod
-    def create_firewall_rule(
+    async def create_firewall_rule(
         proxmox: ProxmoxAPI,
         action: str,
         type: str,
@@ -1597,7 +1599,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to create firewall rule")
 
     @staticmethod
-    def update_firewall_rule(
+    async def update_firewall_rule(
         proxmox: ProxmoxAPI,
         pos: int,
         action: Optional[str] = None,
@@ -1664,7 +1666,7 @@ class ProxmoxClusterService:
             raise Exception("Failed to update firewall rule")
 
     @staticmethod
-    def delete_firewall_rule(proxmox: ProxmoxAPI, pos: int) -> Dict[str, Any]:
+    async def delete_firewall_rule(proxmox: ProxmoxAPI, pos: int) -> Dict[str, Any]:
         """
         Delete cluster firewall rule
 
@@ -1691,7 +1693,7 @@ class ProxmoxNodeService:
     """Service for managing Proxmox node operations"""
 
     @staticmethod
-    def get_nodes(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_nodes(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get list of all nodes in the cluster
 
@@ -1708,7 +1710,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get nodes")
 
     @staticmethod
-    def get_node_status(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
+    async def get_node_status(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
         """
         Get current status of a specific node
 
@@ -1726,7 +1728,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get node status")
 
     @staticmethod
-    def get_node_version(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
+    async def get_node_version(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
         """
         Get node version information
 
@@ -1744,7 +1746,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get node version")
 
     @staticmethod
-    def get_node_time(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
+    async def get_node_time(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
         """
         Get node time and timezone
 
@@ -1762,7 +1764,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get node time")
 
     @staticmethod
-    def update_node_time(
+    async def update_node_time(
         proxmox: ProxmoxAPI,
         node: str,
         timezone: str,
@@ -1790,7 +1792,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to update node time")
 
     @staticmethod
-    def get_node_subscription(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
+    async def get_node_subscription(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
         """
         Get node subscription information
 
@@ -1808,7 +1810,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get node subscription")
 
     @staticmethod
-    def get_node_rrd_data(
+    async def get_node_rrd_data(
         proxmox: ProxmoxAPI,
         node: str,
         timeframe: str = "hour",
@@ -1837,7 +1839,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get node RRD data")
 
     @staticmethod
-    def get_node_report(proxmox: ProxmoxAPI, node: str) -> str:
+    async def get_node_report(proxmox: ProxmoxAPI, node: str) -> str:
         """
         Get node system report
 
@@ -1855,7 +1857,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get node report")
 
     @staticmethod
-    def get_node_network(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_node_network(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
         """
         Get node network configuration
 
@@ -1873,7 +1875,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get node network")
 
     @staticmethod
-    def get_node_network_interface(
+    async def get_node_network_interface(
         proxmox: ProxmoxAPI,
         node: str,
         iface: str,
@@ -1898,7 +1900,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get interface")
 
     @staticmethod
-    def create_network_interface(
+    async def create_network_interface(
         proxmox: ProxmoxAPI,
         node: str,
         iface: str,
@@ -1960,7 +1962,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to create interface")
 
     @staticmethod
-    def update_network_interface(
+    async def update_network_interface(
         proxmox: ProxmoxAPI,
         node: str,
         iface: str,
@@ -2022,7 +2024,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to update interface")
 
     @staticmethod
-    def delete_network_interface(
+    async def delete_network_interface(
         proxmox: ProxmoxAPI,
         node: str,
         iface: str,
@@ -2052,7 +2054,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to delete interface")
 
     @staticmethod
-    def apply_network_changes(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
+    async def apply_network_changes(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
         """
         Apply pending network configuration changes (requires reboot)
 
@@ -2075,7 +2077,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to apply network changes")
 
     @staticmethod
-    def revert_network_changes(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
+    async def revert_network_changes(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
         """
         Revert pending network configuration changes
 
@@ -2098,7 +2100,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to revert network changes")
 
     @staticmethod
-    def get_node_disks(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_node_disks(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
         """
         Get list of physical disks on node
 
@@ -2116,7 +2118,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get disks")
 
     @staticmethod
-    def get_node_disk_smart(
+    async def get_node_disk_smart(
         proxmox: ProxmoxAPI,
         node: str,
         disk: str,
@@ -2141,7 +2143,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get S.M.A.R.T. data")
 
     @staticmethod
-    def get_node_lvm(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_node_lvm(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
         """
         Get LVM volume groups on node
 
@@ -2159,7 +2161,7 @@ class ProxmoxNodeService:
             raise
 
     @staticmethod
-    def create_lvm(
+    async def create_lvm(
         proxmox: ProxmoxAPI,
         node: str,
         device: str,
@@ -2198,7 +2200,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to create LVM")
 
     @staticmethod
-    def get_node_lvmthin(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_node_lvmthin(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
         """
         Get LVM-thin pools on node
 
@@ -2216,7 +2218,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get LVM-thin")
 
     @staticmethod
-    def create_lvmthin(
+    async def create_lvmthin(
         proxmox: ProxmoxAPI,
         node: str,
         device: str,
@@ -2255,7 +2257,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to create LVM-thin")
 
     @staticmethod
-    def get_node_zfs(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_node_zfs(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
         """
         Get ZFS pools on node
 
@@ -2273,7 +2275,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get ZFS")
 
     @staticmethod
-    def create_zfs(
+    async def create_zfs(
         proxmox: ProxmoxAPI,
         node: str,
         devices: str,
@@ -2323,7 +2325,9 @@ class ProxmoxNodeService:
             raise Exception("Failed to create ZFS pool")
 
     @staticmethod
-    def get_node_certificates(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_node_certificates(
+        proxmox: ProxmoxAPI, node: str
+    ) -> List[Dict[str, Any]]:
         """
         Get node SSL certificates
 
@@ -2341,7 +2345,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get certificates")
 
     @staticmethod
-    def get_node_services(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_node_services(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
         """
         Get node system services
 
@@ -2359,7 +2363,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get services")
 
     @staticmethod
-    def get_node_service_state(
+    async def get_node_service_state(
         proxmox: ProxmoxAPI,
         node: str,
         service: str,
@@ -2384,7 +2388,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get service state")
 
     @staticmethod
-    def control_node_service(
+    async def control_node_service(
         proxmox: ProxmoxAPI,
         node: str,
         service: str,
@@ -2426,7 +2430,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to action service")
 
     @staticmethod
-    def reboot_node(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
+    async def reboot_node(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
         """
         Reboot a node
 
@@ -2449,7 +2453,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to reboot node")
 
     @staticmethod
-    def shutdown_node(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
+    async def shutdown_node(proxmox: ProxmoxAPI, node: str) -> Dict[str, Any]:
         """
         Shutdown a node
 
@@ -2472,7 +2476,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to shutdown node")
 
     @staticmethod
-    def get_node_tasks(
+    async def get_node_tasks(
         proxmox: ProxmoxAPI,
         node: str,
         errors: Optional[bool] = None,
@@ -2523,7 +2527,7 @@ class ProxmoxNodeService:
             raise Exception("Failed to get tasks for node")
 
     @staticmethod
-    def get_node_syslog(
+    async def get_node_syslog(
         proxmox: ProxmoxAPI,
         node: str,
         limit: Optional[int] = None,
@@ -2570,7 +2574,7 @@ class ProxmoxStorageService:
     """Service for managing Proxmox storage operations"""
 
     @staticmethod
-    def get_storages(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_storages(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get list of all storages in the cluster
 
@@ -2587,7 +2591,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to get storages")
 
     @staticmethod
-    def get_storage_config(proxmox: ProxmoxAPI, storage: str) -> Dict[str, Any]:
+    async def get_storage_config(proxmox: ProxmoxAPI, storage: str) -> Dict[str, Any]:
         """
         Get storage configuration
 
@@ -2605,7 +2609,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to get storage config")
 
     @staticmethod
-    def create_storage(
+    async def create_storage(
         proxmox: ProxmoxAPI,
         storage: str,
         type: str,
@@ -2668,7 +2672,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to create storage")
 
     @staticmethod
-    def update_storage(
+    async def update_storage(
         proxmox: ProxmoxAPI,
         storage: str,
         content: Optional[str] = None,
@@ -2711,7 +2715,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to update storage")
 
     @staticmethod
-    def delete_storage(proxmox: ProxmoxAPI, storage: str) -> Dict[str, Any]:
+    async def delete_storage(proxmox: ProxmoxAPI, storage: str) -> Dict[str, Any]:
         """
         Delete storage
 
@@ -2734,7 +2738,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to delete storage")
 
     @staticmethod
-    def get_node_storage_status(
+    async def get_node_storage_status(
         proxmox: ProxmoxAPI,
         node: str,
         storage: Optional[str] = None,
@@ -2777,7 +2781,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to get node storage status")
 
     @staticmethod
-    def get_storage_content(
+    async def get_storage_content(
         proxmox: ProxmoxAPI,
         node: str,
         storage: str,
@@ -2810,7 +2814,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to get storage content")
 
     @staticmethod
-    def allocate_disk_image(
+    async def allocate_disk_image(
         proxmox: ProxmoxAPI,
         node: str,
         storage: str,
@@ -2854,7 +2858,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to allocate disk image")
 
     @staticmethod
-    def upload_file_to_storage(
+    async def upload_file_to_storage(
         proxmox: ProxmoxAPI,
         node: str,
         storage: str,
@@ -2896,7 +2900,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to upload file to storage")
 
     @staticmethod
-    def get_volume_info(
+    async def get_volume_info(
         proxmox: ProxmoxAPI,
         node: str,
         storage: str,
@@ -2921,7 +2925,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to get volume information")
 
     @staticmethod
-    def update_volume_attributes(
+    async def update_volume_attributes(
         proxmox: ProxmoxAPI,
         node: str,
         storage: str,
@@ -2961,7 +2965,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to update volume")
 
     @staticmethod
-    def delete_volume(
+    async def delete_volume(
         proxmox: ProxmoxAPI,
         node: str,
         storage: str,
@@ -2997,7 +3001,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to delete volume")
 
     @staticmethod
-    def get_storage_rrd_data(
+    async def get_storage_rrd_data(
         proxmox: ProxmoxAPI,
         node: str,
         storage: str,
@@ -3028,7 +3032,7 @@ class ProxmoxStorageService:
             raise Exception("Failed to get RRD data for storage")
 
     @staticmethod
-    def prune_backups(
+    async def prune_backups(
         proxmox: ProxmoxAPI,
         node: str,
         storage: str,
@@ -3072,7 +3076,7 @@ class ProxmoxPoolService:
     """Service for managing Proxmox resource pools"""
 
     @staticmethod
-    def get_pools(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_pools(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get list of all resource pools
 
@@ -3089,7 +3093,7 @@ class ProxmoxPoolService:
             raise Exception("Failed to get pools")
 
     @staticmethod
-    def get_pool(proxmox: ProxmoxAPI, poolid: str) -> Dict[str, Any]:
+    async def get_pool(proxmox: ProxmoxAPI, poolid: str) -> Dict[str, Any]:
         """
         Get specific pool details including members
 
@@ -3107,7 +3111,7 @@ class ProxmoxPoolService:
             raise Exception("Failed to get pool")
 
     @staticmethod
-    def create_pool(
+    async def create_pool(
         proxmox: ProxmoxAPI,
         poolid: str,
         comment: Optional[str] = None,
@@ -3139,7 +3143,7 @@ class ProxmoxPoolService:
             raise Exception("Failed to create pool")
 
     @staticmethod
-    def update_pool(
+    async def update_pool(
         proxmox: ProxmoxAPI,
         poolid: str,
         comment: Optional[str] = None,
@@ -3193,7 +3197,7 @@ class ProxmoxPoolService:
             raise Exception("Failed to update pool")
 
     @staticmethod
-    def delete_pool(proxmox: ProxmoxAPI, poolid: str) -> Dict[str, Any]:
+    async def delete_pool(proxmox: ProxmoxAPI, poolid: str) -> Dict[str, Any]:
         """
         Delete resource pool
 
@@ -3223,7 +3227,7 @@ class ProxmoxTemplateService:
     """Service for managing Proxmox template operations"""
 
     @staticmethod
-    def get_templates(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_templates(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
         """
         Get list of all templates on a node
 
@@ -3241,7 +3245,7 @@ class ProxmoxTemplateService:
             raise Exception("Failed to get templates")
 
     @staticmethod
-    def get_all_templates(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
+    async def get_all_templates(proxmox: ProxmoxAPI) -> List[Dict[str, Any]]:
         """
         Get all templates across all nodes in the cluster
 
@@ -3266,7 +3270,7 @@ class ProxmoxTemplateService:
             raise Exception("Failed to get all templates")
 
     @staticmethod
-    def create_template_from_vm(
+    async def create_template_from_vm(
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
@@ -3294,7 +3298,7 @@ class ProxmoxTemplateService:
             raise Exception("Failed to create template from VM")
 
     @staticmethod
-    def delete_template(
+    async def delete_template(
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
@@ -3328,7 +3332,7 @@ class ProxmoxTemplateService:
             raise Exception("Failed to delete template")
 
     @staticmethod
-    def update_template_config(
+    async def update_template_config(
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
@@ -3365,7 +3369,7 @@ class ProxmoxTemplateService:
             raise Exception("Failed to update template config")
 
     @staticmethod
-    def move_template_disk(
+    async def move_template_disk(
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
@@ -3405,7 +3409,7 @@ class ProxmoxTemplateService:
             raise Exception("Failed to move template disk")
 
     @staticmethod
-    def check_template_exists(proxmox: ProxmoxAPI, node: str, vmid: int) -> bool:
+    async def check_template_exists(proxmox: ProxmoxAPI, node: str, vmid: int) -> bool:
         """
         Check if a VM is a template
 
@@ -3428,7 +3432,7 @@ class ProxmoxVMService:
     """Service for managing Proxmox VM operations"""
 
     @staticmethod
-    def get_vms(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
+    async def get_vms(proxmox: ProxmoxAPI, node: str) -> List[Dict[str, Any]]:
         """
         Get list of all VMs on a node
 
@@ -3446,7 +3450,9 @@ class ProxmoxVMService:
             raise Exception("Failed to get VMs")
 
     @staticmethod
-    def get_vm_config(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def get_vm_config(
+        proxmox: ProxmoxAPI, node: str, vmid: int
+    ) -> Dict[str, Any]:
         """
         Get VM configuration
 
@@ -3465,7 +3471,7 @@ class ProxmoxVMService:
             raise Exception("Failed to get VM config")
 
     @staticmethod
-    def update_vm_config(
+    async def update_vm_config(
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
@@ -3498,7 +3504,9 @@ class ProxmoxVMService:
             raise Exception("Failed to update VM config")
 
     @staticmethod
-    def get_vm_status(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def get_vm_status(
+        proxmox: ProxmoxAPI, node: str, vmid: int
+    ) -> Dict[str, Any]:
         """
         Get VM current status
 
@@ -3517,7 +3525,7 @@ class ProxmoxVMService:
             raise Exception("Failed to get VM status")
 
     @staticmethod
-    def get_vm_info(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def get_vm_info(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Get comprehensive VM information
 
@@ -3539,8 +3547,13 @@ class ProxmoxVMService:
                 "name": config.get("name"),
                 "description": config.get("description"),
                 "cores": config.get("cores"),
-                "cpu_type": config.get("cpu"),
+                "cpu_usage": status.get("cpu"),
+                "max_cpu": status.get("cpus"),
                 "memory": config.get("memory"),
+                "memory_usage": status.get("mem"),
+                "max_memory": status.get("maxmem"),
+                "netin": status.get("netin"),
+                "netout": status.get("netout"),
                 "sockets": config.get("sockets"),
                 "ostype": config.get("ostype"),
                 "template": config.get("template", 0),
@@ -3560,7 +3573,127 @@ class ProxmoxVMService:
             raise Exception("Failed to get VM info")
 
     @staticmethod
-    def create_vm(
+    async def get_vm_network(
+        proxmox: ProxmoxAPI,
+        node: str,
+        vmid: int,
+    ) -> Optional[str]:
+        """
+        Get VM IP address from QEMU guest agent.
+        Returns None if agent is not ready or no valid IP found.
+
+        Args:
+            proxmox (ProxmoxAPI): ProxmoxAPI instance
+            node (str): Node name
+            vmid (int): VM ID
+
+        Returns:
+            IP address string or None if not available
+        """
+        try:
+            result = (
+                proxmox.nodes(node).qemu(vmid).agent("network-get-interfaces").get()
+            )
+
+            interfaces = result.get("result", [])
+            network_info = []
+            for iface in interfaces:
+                # Skip loopback interface
+                if iface.get("name") in ["lo", "Loopback Pseudo-Interface 1"]:
+                    continue
+
+                ip_addresses = iface.get("ip-addresses", [])
+                for ip_info in ip_addresses:
+                    ip_type = ip_info.get("ip-address-type")
+                    ip_addr = ip_info.get("ip-address")
+                    mac_addr = iface.get("hardware-address", "")
+
+                    # Skip loopback (127.x.x.x) and link-local/APIPA (169.254.x.x) addresses
+                    if (
+                        ip_type == "ipv4"
+                        and ip_addr
+                        and not ip_addr.startswith("127.")
+                        and not ip_addr.startswith("169.254.")
+                    ):
+                        network_info.append(
+                            {
+                                "ip_address": ip_addr,
+                                "mac_address": mac_addr,
+                            }
+                        )
+
+            if network_info:
+                return network_info
+
+            return None
+        except ResourceException as e:
+            # Agent not ready or other error - return None instead of raising
+            logger.debug(
+                f">>> Could not get VM {vmid} IP (agent may not be ready): {str(e)}"
+            )
+            return None
+        except Exception as e:
+            logger.debug(f">>> Unexpected error getting VM {vmid} IP: {str(e)}")
+            return None
+
+    @staticmethod
+    async def get_vm_disk_usage(
+        proxmox: ProxmoxAPI,
+        node: str,
+        vmid: int,
+    ) -> Dict[str, Any]:
+        """
+        Get VM disk usage statistics
+
+        Args:
+            proxmox (ProxmoxAPI): ProxmoxAPI instance
+            node (str): Node name
+            vmid (int): VM ID
+
+        Returns:
+            Dict with disk usage statistics
+        """
+        try:
+            return proxmox.nodes(node).qemu(vmid).agent("get-fsinfo").get()
+        except ResourceException as e:
+            logger.error(f">>> Failed to get disk usage for VM {vmid}: {str(e)}")
+            raise Exception("Failed to get VM disk usage")
+
+    @staticmethod
+    async def get_rrddata(
+        proxmox: ProxmoxAPI,
+        node: str,
+        vmid: int,
+        timeframe: str = "hour",
+        cf: Optional[str] = "AVERAGE",
+    ) -> List[Dict[str, Any]]:
+        """
+        Get VM RRD statistics
+
+        Args:
+            proxmox (ProxmoxAPI): ProxmoxAPI instance
+            node (str): Node name
+            vmid (int): VM ID
+            timeframe (str): Time frame ('hour', 'day', 'week', 'month', 'year')
+            cf (Optional[str]): Consolidation function ('AVERAGE', 'MAX')
+
+        Returns:
+            List of RRD data points
+        """
+        try:
+            params = {"timeframe": timeframe, "cf": cf}
+
+            return (
+                proxmox.nodes(node)
+                .qemu(vmid)
+                .rrddata.get(node=node, vmid=vmid, **params)
+            )
+        except ResourceException as e:
+            logger.error(f">>> Failed to get RRD data for VM {vmid}: {str(e)}")
+            raise Exception("Failed to get RRD data for VM")
+
+    @staticmethod
+    async def create_vm(
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
@@ -3595,7 +3728,7 @@ class ProxmoxVMService:
             raise Exception("Failed to create VM")
 
     @staticmethod
-    def start_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def start_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Start a VM
 
@@ -3608,7 +3741,9 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).status.start.post()
+            task = (
+                proxmox.nodes(node).qemu(vmid).status.start.post(node=node, vmid=vmid)
+            )
             return {
                 "success": True,
                 "task": task,
@@ -3619,7 +3754,7 @@ class ProxmoxVMService:
             raise Exception("Failed to start VM")
 
     @staticmethod
-    def stop_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def stop_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Stop a VM immediately (hard stop - can lead to data loss)
 
@@ -3643,7 +3778,7 @@ class ProxmoxVMService:
             raise Exception("Failed to stop VM")
 
     @staticmethod
-    def shutdown_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def shutdown_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Gracefully shutdown a VM
 
@@ -3667,7 +3802,7 @@ class ProxmoxVMService:
             raise Exception("Failed to shutdown VM")
 
     @staticmethod
-    def reboot_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def reboot_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Reboot a VM (graceful shutdown followed by start)
 
@@ -3691,7 +3826,7 @@ class ProxmoxVMService:
             raise Exception("Failed to reboot VM")
 
     @staticmethod
-    def reset_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def reset_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Reset a VM
 
@@ -3715,7 +3850,7 @@ class ProxmoxVMService:
             raise Exception("Failed to reset VM")
 
     @staticmethod
-    def suspend_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def suspend_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Suspend a VM (pause)
 
@@ -3739,7 +3874,7 @@ class ProxmoxVMService:
             raise Exception("Failed to suspend VM")
 
     @staticmethod
-    def resume_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def resume_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Resume a suspended VM
 
@@ -3763,7 +3898,7 @@ class ProxmoxVMService:
             raise Exception("Failed to resume VM")
 
     @staticmethod
-    def delete_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def delete_vm(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Delete a VM
 
@@ -3776,7 +3911,17 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).delete()
+            task = (
+                proxmox.nodes(node)
+                .qemu(vmid)
+                .delete(
+                    node=node,
+                    vmid=vmid,
+                    skiplock=1,
+                    purge=1,
+                    **{"destroy-unreferenced-disks": 1},
+                )
+            )
             return {
                 "success": True,
                 "task": task,
@@ -3787,7 +3932,7 @@ class ProxmoxVMService:
             raise Exception("Failed to delete VM")
 
     @staticmethod
-    def resize_vm_disk(
+    async def resize_vm_disk(
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
@@ -3819,7 +3964,7 @@ class ProxmoxVMService:
             raise Exception("Failed to resize disk for VM")
 
     @staticmethod
-    def get_vnc_info(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
+    async def get_vnc_info(proxmox: ProxmoxAPI, node: str, vmid: int) -> Dict[str, Any]:
         """
         Get VNC connection information for a VM
 
@@ -3849,7 +3994,7 @@ class ProxmoxVMService:
             raise Exception("Failed to get VNC info for VM")
 
     @staticmethod
-    def create_snapshot(
+    async def create_snapshot(
         proxmox: ProxmoxAPI,
         node: str,
         vmid: int,
@@ -3873,7 +4018,9 @@ class ProxmoxVMService:
             task = (
                 proxmox.nodes(node)
                 .qemu(vmid)
-                .snapshot.post(snapname=snapname, description=description)
+                .snapshot.post(
+                    node=node, vmid=vmid, snapname=snapname, description=description
+                )
             )
             return {
                 "success": True,
@@ -3885,7 +4032,7 @@ class ProxmoxVMService:
             raise Exception("Failed to create snapshot for VM")
 
     @staticmethod
-    def list_snapshots(
+    async def list_snapshots(
         proxmox: ProxmoxAPI, node: str, vmid: int
     ) -> List[Dict[str, Any]]:
         """
@@ -3900,13 +4047,13 @@ class ProxmoxVMService:
             List of snapshots
         """
         try:
-            return proxmox.nodes(node).qemu(vmid).snapshot.get()
+            return proxmox.nodes(node).qemu(vmid).snapshot.get(node=node, vmid=vmid)
         except ResourceException as e:
             logger.error(f">>> Failed to list snapshots for VM {vmid}: {str(e)}")
             raise Exception("Failed to list snapshots for VM")
 
     @staticmethod
-    def rollback_snapshot(
+    async def rollback_snapshot(
         proxmox: ProxmoxAPI, node: str, vmid: int, snapname: str
     ) -> Dict[str, Any]:
         """
@@ -3922,7 +4069,12 @@ class ProxmoxVMService:
             Result of the rollback operation
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).snapshot(snapname).rollback.post()
+            task = (
+                proxmox.nodes(node)
+                .qemu(vmid)
+                .snapshot(snapname)
+                .rollback.post(node=node, vmid=vmid, snapname=snapname)
+            )
             return {
                 "success": True,
                 "task": task,
@@ -3933,7 +4085,7 @@ class ProxmoxVMService:
             raise Exception("Failed to rollback snapshot for VM")
 
     @staticmethod
-    def delete_snapshot(
+    async def delete_snapshot(
         proxmox: ProxmoxAPI, node: str, vmid: int, snapname: str
     ) -> Dict[str, Any]:
         """
@@ -3949,7 +4101,12 @@ class ProxmoxVMService:
             Result of the delete operation
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).snapshot(snapname).delete()
+            task = (
+                proxmox.nodes(node)
+                .qemu(vmid)
+                .snapshot(snapname)
+                .delete(node=node, vmid=vmid, snapname=snapname)
+            )
             return {
                 "success": True,
                 "task": task,

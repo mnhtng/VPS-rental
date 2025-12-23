@@ -14,9 +14,9 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a1a;
-            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #000;
+            color: #e5e7eb;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -24,53 +24,87 @@
         }
 
         .console-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
             padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             z-index: 100;
         }
 
         .console-title {
-            font-size: 1.1em;
-            font-weight: 600;
+            font-size: 0.875rem;
+            font-weight: 400;
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #94a3b8;
+        }
+
+        .console-title span:first-child {
+            font-size: 1rem;
         }
 
         .console-info {
-            font-size: 0.85em;
-            opacity: 0.9;
+            font-size: 0.875em;
+            color: #64748b;
+            font-weight: 400;
         }
 
         .console-controls {
             display: flex;
             gap: 8px;
+            align-items: center;
         }
 
         .control-button {
-            background: rgba(255, 255, 255, 0.2);
+            background: transparent;
             border: none;
-            color: white;
-            padding: 8px 14px;
+            color: #94a3b8;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 400;
             font-size: 13px;
-            transition: all 0.3s ease;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
         }
 
-        .control-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
+        .control-button:hover:not(:disabled) {
+            background: rgba(148, 163, 184, 0.1);
+            color: #e2e8f0;
+        }
+
+        .control-button:active:not(:disabled) {
+            transform: scale(0.98);
         }
 
         .control-button:disabled {
-            opacity: 0.5;
+            opacity: 0.3;
             cursor: not-allowed;
+        }
+
+        .control-button.primary {
+            background: #10b981;
+            color: white;
+            font-weight: 500;
+        }
+
+        .control-button.primary:hover:not(:disabled) {
+            background: #059669;
+        }
+
+        .control-button.danger {
+            color: #ef4444;
+        }
+
+        .control-button.danger:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
         }
 
         .console-container {
@@ -97,47 +131,39 @@
         }
 
         .status-bar {
-            background: #2d2d2d;
+            background: #1e293b;
+            border-top: 1px solid #334155;
             padding: 8px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.85em;
-            border-top: 1px solid #444;
+            font-size: 0.8125rem;
         }
 
         .status-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #dc3545;
-            animation: pulse 2s infinite;
+            background: #ef4444;
         }
 
         .status-dot.connected {
-            background: #28a745;
+            background: #10b981;
         }
 
         .status-dot.connecting {
-            background: #ffc107;
+            background: #f59e0b;
         }
 
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+        #statusText {
+            color: #94a3b8;
+            font-size: 0.875rem;
         }
 
         .loading-overlay {
@@ -146,7 +172,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: #000;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -155,13 +181,13 @@
         }
 
         .loading-spinner {
-            border: 4px solid #333;
-            border-top: 4px solid #667eea;
+            border: 3px solid #334155;
+            border-top: 3px solid #10b981;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
         }
 
         @keyframes spin {
@@ -174,54 +200,130 @@
             }
         }
 
+        #loadingText {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
         .info-message {
-            background: rgba(102, 126, 234, 0.2);
-            border: 2px solid #667eea;
-            color: white;
-            padding: 20px 30px;
-            border-radius: 10px;
-            max-width: 600px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e5e7eb;
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 500px;
             text-align: center;
             margin: 20px;
         }
 
+        .info-message .error-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            border: 3px solid #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ef4444;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
         .info-message h3 {
-            color: #667eea;
-            margin-bottom: 15px;
+            color: #ef4444;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
         }
 
         .info-message p {
-            margin: 10px 0;
-            line-height: 1.6;
-            color: #ccc;
+            margin: 12px 0;
+            line-height: 1.5;
+            color: #94a3b8;
+            font-size: 0.875rem;
         }
 
-        .info-message a,
+        .info-message .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
         .info-message button {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            margin: 8px 4px;
-            border: none;
+            background: transparent;
+            color: #94a3b8;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #334155;
             cursor: pointer;
-            transition: transform 0.3s ease;
+            font-weight: 400;
+            font-size: 0.875rem;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .info-message a:hover,
         .info-message button:hover {
-            transform: translateY(-2px);
+            background: rgba(148, 163, 184, 0.1);
+            color: #e2e8f0;
+            border-color: #475569;
         }
 
-        .info-message .secondary-btn {
-            background: #444;
+        .info-message button.primary {
+            background: #10b981;
+            color: white;
+            border-color: transparent;
+        }
+
+        .info-message button.primary:hover {
+            background: #059669;
         }
 
         .hidden {
             display: none !important;
+        }
+
+        /* Hide header and status bar when embedded in iframe */
+        body.minimal .console-header,
+        body.minimal .status-bar {
+            display: none !important;
+        }
+
+        body.minimal .console-container {
+            height: 100vh;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .console-header {
+                padding: 10px 16px;
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .console-controls {
+                justify-content: flex-end;
+                gap: 6px;
+            }
+
+            .control-button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .status-bar {
+                padding: 8px 16px;
+                font-size: 0.75rem;
+            }
+
+            .info-message {
+                padding: 24px;
+                margin: 16px;
+            }
         }
     </style>
 </head>
@@ -229,24 +331,20 @@
 <body>
     <div class="console-header">
         <div class="console-title">
-            <span>🖥️</span>
-            <span id="vmTitle">VNC Console</span>
+            <span id="vmTitle">Disconnected | VM: 118 @ pve</span>
         </div>
         <div class="console-controls">
-            <button class="control-button" onclick="sendCtrlAltDel()" id="ctrlAltDelBtn" disabled>
-                ⌨️ Ctrl+Alt+Del
+            <button class="control-button" onclick="toggleFullscreen()" title="Toggle Fullscreen">
+                ⛶
             </button>
-            <button class="control-button" onclick="toggleFullscreen()">
-                ⛶ Fullscreen
+            <button class="control-button" onclick="openProxmoxDirect()" title="Open Proxmox">
+                🔗
             </button>
-            <button class="control-button" onclick="reconnect()">
-                🔄 Reconnect
+            <button class="control-button" onclick="reconnect()" title="Load Console">
+                💱
             </button>
-            <button class="control-button" onclick="openProxmoxDirect()">
-                🌐 Proxmox
-            </button>
-            <button class="control-button" onclick="disconnect()">
-                ✖️ Close
+            <button class="control-button danger" onclick="disconnect()" title="Close">
+                ❌
             </button>
         </div>
     </div>
@@ -263,10 +361,10 @@
     <div class="status-bar">
         <div class="status-indicator">
             <div class="status-dot" id="statusDot"></div>
-            <span id="statusText">Đang kết nối...</span>
+            <span id="statusText">Disconnected</span>
         </div>
         <div class="console-info" id="consoleInfo">
-            VM ID: - | Node: -
+            Tip: Open in a new window for better keyboard handling
         </div>
     </div>
 
@@ -286,11 +384,11 @@
         // Extract host:port from apiUrl for WebSocket connection
         const apiHost = new URL(apiUrl).host;
 
-        console.log('VNC Console initialized:', { node, vmid, vmname, apiUrl, apiHost });
+        // console.log('VNC Console initialized:', { node, vmid, vmname, apiUrl, apiHost });
 
-        // Update UI
-        document.getElementById('vmTitle').textContent = `${vmname} Console`;
-        document.getElementById('consoleInfo').textContent = `VM ID: ${vmid} | Node: ${node}`;
+        // Update UI - use URL params, not undefined vpsInfo
+        document.getElementById('vmTitle').textContent = `Disconnected | VM: ${vmid} @ ${node}`;
+        document.getElementById('consoleInfo').textContent = `Tip: Open in a new window for better keyboard handling`;
 
         // Store Proxmox host for direct access
         let proxmoxHost = host;
@@ -301,11 +399,11 @@
                 return;
             }
 
-            console.log('=== VNC Console Debug ===');
-            console.log('vmid:', vmid);
-            console.log('node:', node);
-            console.log('apiUrl:', apiUrl);
-            console.log('apiHost:', apiHost);
+            // console.log('=== VNC Console Debug ===');
+            // console.log('vmid:', vmid);
+            // console.log('node:', node);
+            // console.log('apiUrl:', apiUrl);
+            // console.log('apiHost:', apiHost);
 
             try {
                 // Show loading
@@ -315,13 +413,13 @@
 
                 // Get VNC proxy info from backend
                 const vncApiUrl = `${apiUrl}/api/v1/proxmox/vms/${vmid}/vnc`;
-                console.log('Fetching VNC info from:', vncApiUrl);
+                // console.log('Fetching VNC info from:', vncApiUrl);
 
                 const response = await fetch(vncApiUrl, {
                     credentials: 'include'
                 });
 
-                console.log('VNC API response status:', response.status);
+                // console.log('VNC API response status:', response.status);
 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -330,7 +428,7 @@
                 }
 
                 const result = await response.json();
-                console.log('VNC Info:', result);
+                // console.log('VNC Info:', result);
 
                 if (!result.success || !result.task) {
                     throw new Error(result.message || result.detail || 'Không thể lấy thông tin VNC');
@@ -341,12 +439,12 @@
                 // Use authTicket from response (PVEAuthCookie for WebSocket proxy)
                 const authTicket = result.authTicket || result.task.cert || ticket;
 
-                console.log('VNC connection info:', {
-                    port,
-                    ticket: ticket.substring(0, 20) + '...',
-                    proxmoxHost,
-                    hasAuthTicket: !!result.authTicket
-                });
+                // console.log('VNC connection info:', {
+                //     port,
+                //     ticket: ticket.substring(0, 20) + '...',
+                //     proxmoxHost,
+                //     hasAuthTicket: !!result.authTicket
+                // });
 
                 // Update loading text
                 document.getElementById('loadingText').textContent = `Đang kết nối qua WebSocket proxy...`;
@@ -358,7 +456,7 @@
                 // Use our FastAPI WebSocket proxy on the BACKEND host (not frontend)
                 const wsUrl = `${wsProtocol}//${apiHost}/api/v1/vnc/ws?node=${node}&vmid=${vmid}&port=${port}&ticket=${encodeURIComponent(ticket)}&authticket=${encodeURIComponent(authTicket)}`;
 
-                console.log('Connecting to WebSocket proxy:', wsUrl);
+                // console.log('Connecting to WebSocket proxy:', wsUrl);
 
                 const screen = document.getElementById('screen');
                 rfb = new RFB(screen, wsUrl, {
@@ -379,7 +477,7 @@
                 // Timeout for connection
                 setTimeout(() => {
                     if (!connected && rfb) {
-                        console.log('Connection timeout');
+                        // console.log('Connection timeout');
                         showError(
                             'Kết nối hết thời gian',
                             'Không thể kết nối đến VNC console. Vui lòng thử sử dụng Proxmox Console trực tiếp.'
@@ -397,51 +495,95 @@
         }
 
         function onConnected() {
-            console.log('Connected to VNC');
+            // console.log('Connected to VNC');
             connected = true;
-            document.getElementById('loadingOverlay').classList.add('hidden');
-            updateStatus('connected', 'Đã kết nối');
-            document.getElementById('ctrlAltDelBtn').disabled = false;
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) loadingOverlay.classList.add('hidden');
+            updateStatus('connected', 'Connected');
+
+            const vmTitle = document.getElementById('vmTitle');
+            if (vmTitle) vmTitle.textContent = `Connected | VM: ${vmid} @ ${node}`;
+
+            // Update controls to show more options when connected
+            const controls = document.querySelector('.console-controls');
+            if (controls) {
+                controls.innerHTML = `
+                    <button class="control-button" onclick="sendCtrlAltDel()" id="ctrlAltDelBtn" title="Send Ctrl+Alt+Del">
+                        ⌨️
+                    </button>
+                    <button class="control-button" onclick="toggleFullscreen()" title="Fullscreen">
+                        ⛶
+                    </button>
+                    <button class="control-button" onclick="openProxmoxDirect()" title="Open Proxmox">
+                        🔗
+                    </button>
+                    <button class="control-button danger" onclick="disconnect()" title="Close">
+                        ✖️
+                    </button>
+                `;
+            }
         }
 
         function onDisconnected(e) {
-            console.log('Disconnected:', e.detail);
+            // console.log('Disconnected:', e.detail);
             connected = false;
             rfb = null;
-            updateStatus('', 'Đã ngắt kết nối');
-            document.getElementById('ctrlAltDelBtn').disabled = true;
+            updateStatus('', 'Disconnected');
+
+            const vmTitle = document.getElementById('vmTitle');
+            if (vmTitle) vmTitle.textContent = `Disconnected | VM: ${vmid} @ ${node}`;
+
+            // Reset controls to initial state
+            const controls = document.querySelector('.console-controls');
+            if (controls) {
+                controls.innerHTML = `
+                    <button class="control-button" onclick="toggleFullscreen()" title="Toggle Fullscreen">
+                        ⛶
+                    </button>
+                    <button class="control-button" onclick="openProxmoxDirect()" title="Open Proxmox">
+                        🔗
+                    </button>
+                    <button class="control-button" onclick="reconnect()" title="Load Console">
+                        🔄 Load Console
+                    </button>
+                    <button class="control-button danger" onclick="disconnect()" title="Close">
+                        ✖️
+                    </button>
+                `;
+            }
 
             if (e.detail && !e.detail.clean) {
-                showError('Kết nối bị ngắt', 'Kết nối VNC đã bị đóng không mong muốn.');
+                showError('Connection Lost', 'The connection to the VM console was lost.');
             }
         }
 
         function onSecurityFailure(e) {
             console.error('Security failure:', e.detail);
-            showError('Lỗi xác thực', e.detail?.reason || 'Xác thực VNC thất bại');
+            showError('Authentication Failed', e.detail?.reason || 'VNC authentication failed');
         }
 
         function updateStatus(status, text) {
             const dot = document.getElementById('statusDot');
-            dot.className = 'status-dot';
-            if (status) dot.classList.add(status);
-            document.getElementById('statusText').textContent = text;
+            if (dot) {
+                dot.className = 'status-dot';
+                if (status) dot.classList.add(status);
+            }
+            const statusText = document.getElementById('statusText');
+            if (statusText) statusText.textContent = text;
         }
 
         function showError(title, message) {
             const overlay = document.getElementById('loadingOverlay');
             overlay.innerHTML = `
                 <div class="info-message">
-                    <h3>⚠️ ${title}</h3>
+                    <div class="error-icon">!</div>
+                    <h3>${title}</h3>
                     <p>${message}</p>
-                    <p style="font-size: 0.9em;">
-                        Nếu không thể kết nối, vui lòng sử dụng Proxmox Web UI.
-                    </p>
-                    <div>
-                        <button onclick="location.reload()">🔄 Thử lại</button>
-                        <a href="https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmid}&vmname=${vmname}&node=${node}" target="_blank">
-                            🌐 Proxmox Console
-                        </a>
+                    <div class="button-group">
+                        <button onclick="location.reload()">🔄 Retry</button>
+                        <button class="primary" onclick="window.open('https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmid}&vmname=${vmname}&node=${node}', '_blank')">
+                            Open in Window
+                        </button>
                     </div>
                 </div>
             `;
@@ -492,6 +634,23 @@
 
         // Auto connect on load
         connectToConsole();
+
+        // Check if running in iframe - enable minimal mode
+        if (window.self !== window.top) {
+            document.body.classList.add('minimal');
+        }
+
+        // Also check URL param for minimal mode
+        if (urlParams.get('minimal') === 'true') {
+            document.body.classList.add('minimal');
+        }
+
+        // Listen for messages from parent window
+        window.addEventListener('message', function (event) {
+            if (event.data && event.data.type === 'sendCtrlAltDel') {
+                window.sendCtrlAltDel();
+            }
+        });
     </script>
 </body>
 

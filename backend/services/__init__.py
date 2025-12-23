@@ -25,6 +25,8 @@ from .proxmox import (
 
 from .promotion import PromotionService
 from .auth import AuthService
+from .vps import VPSService
+from .scheduler import VPSCleanupScheduler
 
 __all__ = [
     # Auth Service
@@ -33,6 +35,10 @@ __all__ = [
     "PaymentService",
     # Promotion Service
     "PromotionService",
+    # VPS Service
+    "VPSService",
+    # Scheduler Service
+    "VPSCleanupScheduler",
     # Proxmox Service
     "CommonProxmoxService",
     "ProxmoxAccessService",

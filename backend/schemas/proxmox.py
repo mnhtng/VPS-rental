@@ -1,15 +1,9 @@
-"""
-Proxmox API Schemas
-===================
-
-Request and response schemas for Proxmox VPS operations
-"""
-
 from __future__ import annotations
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field, field_validator
-from datetime import datetime
 from enum import Enum
+
+from backend.schemas import ProxmoxVMPublic
 
 
 class VMPowerAction(str, Enum):
@@ -63,23 +57,14 @@ class VMStatusResponse(BaseModel):
 class VMInfoResponse(BaseModel):
     """Comprehensive VM information"""
 
-    vmid: int = Field(..., description="VM ID")
-    node: str = Field(..., description="Proxmox node name")
-    hostname: str = Field(..., description="VM hostname")
-    description: Optional[str] = Field(None, description="VM description")
-    status: str = Field(..., description="Current power status")
-    uptime: Optional[int] = Field(None, description="Uptime in seconds")
-    cores: int = Field(..., description="Number of CPU cores")
-    memory: int = Field(..., description="RAM in MB")
+    node_name: str = Field(..., description="Proxmox node name")
+    vm: Optional[ProxmoxVMPublic] = Field(None, description="VM basic information")
+    vm_info: Dict[str, Any] = Field(
+        default_factory=dict, description="Detailed VM information from Proxmox"
+    )
     disk_info: Dict[str, Any] = Field(
         default_factory=dict, description="Disk configuration"
     )
-    network_info: Dict[str, Any] = Field(
-        default_factory=dict, description="Network configuration"
-    )
-    ip_address: Optional[str] = Field(None, description="Primary IP address")
-    os_type: Optional[str] = Field(None, description="Operating system type")
-    template_used: Optional[str] = Field(None, description="Template name")
 
 
 # ============================================================================
@@ -144,6 +129,7 @@ class SnapshotListResponse(BaseModel):
         default_factory=list, description="List of snapshots"
     )
     total: int = Field(..., description="Total number of snapshots")
+    max_snapshots: int = Field(..., description="Maximum allowed snapshots")
 
 
 class SnapshotRestoreRequest(BaseModel):

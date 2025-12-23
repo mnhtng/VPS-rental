@@ -22,6 +22,26 @@ class SupportTicketReply(SQLModel, table=True):
         id: Unique identifier for the support ticket reply.
         ticket_id: Identifier for the associated support ticket.
         message: Reply message in JSONB format.
+            VD: message: {
+                "content": {
+                    "text": "Chào bạn, gói VPS đã được kích hoạt.",
+                    "format": "markdown" (html/markdown/plain)
+                },
+                "sender": {
+                    "role": "admin", (user/admin)
+                    "id": "admin_01J8RZ3",
+                    "name": "Nguyen Van A"
+                },
+                "attachments": [
+                    {
+                    "id": "att_01J8RZ3",
+                    "name": "invoice.pdf",
+                    "url": "https://cdn.ptitcloud.io/invoice.pdf",
+                    "size": 245781,
+                    "mime": "application/pdf"
+                    }
+                ],
+            }
         created_at: Timestamp when the reply was created.
         updated_at: Timestamp when the reply was last updated.
 

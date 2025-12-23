@@ -20,36 +20,30 @@ import { useLocale } from "next-intl"
 
 const routes = [
     {
-        label: "Tổng quan",
+        label: "Dashboard",
         icon: LayoutDashboard,
         href: "/client-dashboard",
         color: "text-sky-500",
     },
     {
-        label: "Máy chủ VPS",
+        label: "VPS",
         icon: Server,
         href: "/client-dashboard/vps",
         color: "text-violet-500",
     },
     {
-        label: "Tài chính",
+        label: "Billing",
         icon: CreditCard,
         href: "/client-dashboard/billing",
         color: "text-pink-700",
-    },
-    {
-        label: "Cài đặt",
-        icon: Settings,
-        href: "/client-dashboard/settings",
-        color: "text-slate-400",
-    },
+    }
 ]
 
 const bottomRoutes = [
     {
-        label: "Hỗ trợ",
+        label: "Support",
         icon: LifeBuoy,
-        href: "/client-dashboard/support",
+        href: "/support",
         color: "text-orange-500",
     },
 ]
@@ -60,7 +54,6 @@ const ClientSidebar = () => {
     const { setOpenMobile } = useSidebar()
 
     const handleLinkClick = () => {
-        // Close mobile sidebar when a link is clicked
         setOpenMobile(false)
     }
 
@@ -109,7 +102,7 @@ const ClientSidebar = () => {
             <SidebarFooter className="px-3 py-2">
                 <SidebarMenu>
                     {bottomRoutes.map((route) => (
-                        <SidebarMenuItem key={route.href}>
+                        <SidebarMenuItem key={route.href} className="hidden md:block">
                             <SidebarMenuButton
                                 asChild
                                 tooltip={route.label}
@@ -122,15 +115,6 @@ const ClientSidebar = () => {
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            tooltip="Đăng xuất"
-                            className="h-11 text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer"
-                        >
-                            <LogOut className="h-5 w-5" />
-                            <span>Đăng xuất</span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
         </Sidebar>

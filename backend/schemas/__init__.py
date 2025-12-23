@@ -139,6 +139,7 @@ from .payment_transactions import (
     PaymentTransactionCreate,
     PaymentTransactionUpdate,
     PaymentRequest,
+    RenewalPaymentRequest,
     PaymentResponse,
     PaymentStatusResponse,
     CallbackResponse,
@@ -150,6 +151,10 @@ from .vps_instances import (
     VPSInstanceBase,
     VPSInstanceCreate,
     VPSInstanceUpdate,
+    VPSSetupRequest,
+    VPSCredentials,
+    VPSSetupItem,
+    VPSSetupResponse,
     VPSInstancePublic,
     VPSInstanceResponse,
 )
@@ -186,6 +191,10 @@ from .support_tickets import (
     SupportTicketUpdate,
     SupportTicketPublic,
     SupportTicketResponse,
+    CreateTicketRequest,
+    AddReplyRequest,
+    UpdateTicketStatusRequest,
+    TicketStatisticsResponse,
 )
 
 from .support_ticket_replies import (
@@ -210,6 +219,28 @@ from .knowledge_bases import (
     KnowledgeBaseUpdate,
     KnowledgeBasePublic,
     KnowledgeBaseResponse,
+)
+
+from .proxmox import (
+    VMPowerActionRequest,
+    VMStatusResponse,
+    VMInfoResponse,
+    VNCAccessRequest,
+    VNCAccessResponse,
+    SnapshotCreateRequest,
+    SnapshotInfo,
+    SnapshotListResponse,
+    SnapshotRestoreRequest,
+    VMCreateRequest,
+    VMDeploymentResponse,
+    VMConfigUpdateRequest,
+    VMResizeDiskRequest,
+    NodeInfo,
+    ClusterStatusResponse,
+    ClusterResourcesResponse,
+    TaskStatusResponse,
+    OperationResponse,
+    ErrorResponse,
 )
 
 __all__ = [
@@ -316,6 +347,7 @@ __all__ = [
     "PaymentTransactionCreate",
     "PaymentTransactionUpdate",
     "PaymentRequest",
+    "RenewalPaymentRequest",
     "PaymentResponse",
     "PaymentStatusResponse",
     "CallbackResponse",
@@ -325,6 +357,10 @@ __all__ = [
     "VPSInstanceBase",
     "VPSInstanceCreate",
     "VPSInstanceUpdate",
+    "VPSSetupRequest",
+    "VPSCredentials",
+    "VPSSetupItem",
+    "VPSSetupResponse",
     "VPSInstancePublic",
     "VPSInstanceResponse",
     # VPS Snapshot schemas
@@ -353,6 +389,10 @@ __all__ = [
     "SupportTicketUpdate",
     "SupportTicketPublic",
     "SupportTicketResponse",
+    "CreateTicketRequest",
+    "AddReplyRequest",
+    "UpdateTicketStatusRequest",
+    "TicketStatisticsResponse",
     # Support Ticket Reply schemas
     "SupportTicketReplyBase",
     "SupportTicketReplyCreate",
@@ -371,6 +411,26 @@ __all__ = [
     "KnowledgeBaseUpdate",
     "KnowledgeBasePublic",
     "KnowledgeBaseResponse",
+    # Proxmox schemas
+    "VMPowerActionRequest",
+    "VMStatusResponse",
+    "VMInfoResponse",
+    "VNCAccessRequest",
+    "VNCAccessResponse",
+    "SnapshotCreateRequest",
+    "SnapshotInfo",
+    "SnapshotListResponse",
+    "SnapshotRestoreRequest",
+    "VMCreateRequest",
+    "VMDeploymentResponse",
+    "VMConfigUpdateRequest",
+    "VMResizeDiskRequest",
+    "NodeInfo",
+    "ClusterStatusResponse",
+    "ClusterResourcesResponse",
+    "TaskStatusResponse",
+    "OperationResponse",
+    "ErrorResponse",
 ]
 
 # Rebuild models to ensure all validators are applied after resolving potential circular imports
@@ -397,3 +457,4 @@ SupportTicketResponse.model_rebuild()
 SupportTicketReplyResponse.model_rebuild()
 ConversationResponse.model_rebuild()
 KnowledgeBaseResponse.model_rebuild()
+VMInfoResponse.model_rebuild()

@@ -11,13 +11,14 @@ import {
     Power,
     Loader2,
     ExternalLink,
-    AlertCircle
+    AlertCircle,
+    MonitorUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import useProxmox from '@/hooks/useProxmox';
 
 interface VNCConsoleProps {
-    vmId: string;
+    vmId: number;
     node?: string;
     onClose?: () => void;
     className?: string;
@@ -103,12 +104,31 @@ const VNCConsole: React.FC<VNCConsoleProps> = ({ vmId, node = 'pve', onClose, cl
             const proxmoxHost = result.data?.host || '10.10.1.12';
             const proxmoxUrl = `https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmId}&vmname=VM-${vmId}&node=${node}&resize=off`;
             window.open(proxmoxUrl, `proxmox_${vmId}`, 'width=1024,height=768,toolbar=no,menubar=no,resizable=yes');
-            toast.info('Proxmox Console opened - login if required');
+            toast.info('Proxmox Console opened');
         } catch {
             const proxmoxUrl = `https://10.10.1.12:8006/?console=kvm&novnc=1&vmid=${vmId}&vmname=VM-${vmId}&node=${node}&resize=off`;
             window.open(proxmoxUrl, `proxmox_${vmId}`, 'width=1024,height=768,toolbar=no,menubar=no,resizable=yes');
         }
     }, [vmId, node, getVNCInfo]);
+
+    // Send Ctrl+Alt+Del to VNC console
+    const sendCtrlAltDel = useCallback(() => {
+        if (iframeRef.current && iframeRef.current.contentWindow) {
+            try {
+                // Send message to iframe to trigger Ctrl+Alt+Del
+                iframeRef.current.contentWindow.postMessage(
+                    { type: 'sendCtrlAltDel' },
+                    '*'
+                );
+                toast.success('Ctrl+Alt+Del sent');
+            } catch (error) {
+                console.error('Failed to send Ctrl+Alt+Del:', error);
+                toast.error('Failed to send Ctrl+Alt+Del');
+            }
+        } else {
+            toast.warning('Console not ready');
+        }
+    }, []);
 
     // Toggle fullscreen
     const toggleFullscreen = useCallback(() => {
@@ -149,7 +169,7 @@ const VNCConsole: React.FC<VNCConsoleProps> = ({ vmId, node = 'pve', onClose, cl
     };
 
     return (
-        <Card className={`bg-black border-slate-800 overflow-hidden ${className}`} ref={containerRef}>
+        <Card className={`bg-black border-slate-800 py-0 overflow-hidden ${className}`} ref={containerRef}>
             {/* Toolbar */}
             <div className="flex items-center justify-between p-2 bg-slate-900 border-b border-slate-800">
                 <div className="flex items-center gap-2">
@@ -164,19 +184,39 @@ const VNCConsole: React.FC<VNCConsoleProps> = ({ vmId, node = 'pve', onClose, cl
 
                 <div className="flex items-center gap-1">
                     {isConnected && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
-                            onClick={toggleFullscreen}
-                            title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-                        >
-                            {isFullscreen ? (
-                                <Minimize2 className="h-4 w-4" />
-                            ) : (
-                                <Maximize2 className="h-4 w-4" />
-                            )}
-                        </Button>
+                        <>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                                onClick={sendCtrlAltDel}
+                                title="Send Ctrl+Alt+Del"
+                            >
+                                Ctrl+Alt+Del
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                                onClick={openProxmoxDirect}
+                                title="Open Proxmox Console"
+                            >
+                                <MonitorUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                                onClick={toggleFullscreen}
+                                title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                            >
+                                {isFullscreen ? (
+                                    <Minimize2 className="h-4 w-4" />
+                                ) : (
+                                    <Maximize2 className="h-4 w-4" />
+                                )}
+                            </Button>
+                        </>
                     )}
 
                     <Button
@@ -296,7 +336,7 @@ const VNCConsole: React.FC<VNCConsoleProps> = ({ vmId, node = 'pve', onClose, cl
                             <div className="text-center space-y-4">
                                 <MonitorOff className="h-16 w-16 text-slate-600 mx-auto" />
                                 <div className="text-slate-400">VNC Console for VM {vmId}</div>
-                                <div className="text-xs text-slate-500 max-w-sm">
+                                <div className="text-xs text-slate-500 max-w-sm mx-auto">
                                     Click &quot;Load Console&quot; to try embedded VNC, or use &quot;Proxmox Console&quot;
                                     for direct access (requires Proxmox login).
                                 </div>
@@ -305,7 +345,7 @@ const VNCConsole: React.FC<VNCConsoleProps> = ({ vmId, node = 'pve', onClose, cl
                                         <Power className="mr-2 h-4 w-4" />
                                         Load Console
                                     </Button>
-                                    <Button onClick={openProxmoxDirect} variant="outline" className="border-blue-600 text-blue-400 hover:bg-blue-600/10">
+                                    <Button onClick={openProxmoxDirect} variant="ghost" className="border-blue-600 text-blue-400">
                                         <ExternalLink className="mr-2 h-4 w-4" />
                                         Proxmox Console
                                     </Button>

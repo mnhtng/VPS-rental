@@ -190,7 +190,6 @@ const CheckoutPage = () => {
             toast.error('Failed to create payment', {
                 description: 'Please try again later'
             });
-        } finally {
             setIsLoading(false);
         }
     }
@@ -241,7 +240,7 @@ const CheckoutPage = () => {
                             Back to Cart
                         </Link>
                     </Button>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                    <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
                         Secure Checkout
                     </h1>
                     <p className="text-xl text-muted-foreground">Complete your VPS purchase safely and securely</p>
@@ -374,7 +373,7 @@ const CheckoutPage = () => {
                                             <Button
                                                 type="submit"
                                                 size="lg"
-                                                className="px-12 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                                                className="px-12 py-4 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                                             >
                                                 Continue to Payment
                                                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -412,7 +411,7 @@ const CheckoutPage = () => {
                                                 {/* MoMo Payment */}
                                                 <Label
                                                     className={`relative group cursor-pointer transition-all duration-300 hover:scale-[1.02] ${formData.paymentMethod === 'momo'
-                                                        ? 'bg-gradient-to-r from-pink-50 to-pink-100 dark:from-pink-300 dark:to-pink-500 border-2 border-pink-500 shadow-lg'
+                                                        ? 'bg-linear-to-r from-pink-50 to-pink-100 dark:from-pink-300 dark:to-pink-500 border-2 border-pink-500 shadow-lg'
                                                         : 'border-2 border-gray-200 hover:border-pink-300 hover:shadow-md'
                                                         } rounded-xl p-6`}
                                                     htmlFor="momo"
@@ -439,7 +438,7 @@ const CheckoutPage = () => {
                                                 {/* VNPay */}
                                                 <Label
                                                     className={`relative group cursor-pointer transition-all duration-300 hover:scale-[1.02] ${formData.paymentMethod === 'vnpay'
-                                                        ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-300/80 dark:to-green-500 border-2 border-green-500 shadow-lg'
+                                                        ? 'bg-linear-to-r from-green-50 to-green-100 dark:from-green-300/80 dark:to-green-500 border-2 border-green-500 shadow-lg'
                                                         : 'border-2 border-gray-200 hover:border-green-300 hover:shadow-md'
                                                         } rounded-xl p-6`}
                                                     htmlFor="vnpay"
@@ -513,7 +512,7 @@ const CheckoutPage = () => {
                                                 type="submit"
                                                 size="lg"
                                                 disabled={isLoading}
-                                                className="px-12 py-4 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                                className="px-12 py-4 bg-linear-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                             >
                                                 {isLoading ? (
                                                     <>
@@ -540,7 +539,7 @@ const CheckoutPage = () => {
                         <Card className="sticky top-16.5 backdrop-blur-sm border-2 border-muted-foreground shadow-2xl animate-in fade-in slide-in-from-right duration-700">
                             <CardHeader>
                                 <CardTitle className="text-2xl flex items-center">
-                                    <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mr-3">
+                                    <div className="w-8 h-8 bg-linear-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mr-3">
                                         <CreditCard className="h-4 w-4 text-white" />
                                     </div>
                                     Order Summary
@@ -553,14 +552,14 @@ const CheckoutPage = () => {
                                     {cartItems.map((item, index) => (
                                         <div
                                             key={index}
-                                            className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-300 dark:to-purple-300 rounded-2xl p-6 border border-blue-200 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer animate-in fade-in slide-in-from-bottom"
+                                            className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-300 dark:to-purple-300 rounded-2xl p-6 border border-blue-200 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer animate-in fade-in slide-in-from-bottom"
                                             style={{ animationDelay: `${index * 100}ms`, animationDuration: '500ms' }}
                                         >
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <h3 className="font-bold text-lg text-black">{item.vps_plan.name}</h3>
 
-                                                    <Badge variant="secondary" className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-green-200">
+                                                    <Badge variant="secondary" className="bg-linear-to-r from-green-100 to-emerald-100 text-green-700 border-green-200">
                                                         {item.duration_months} month(s)
                                                     </Badge>
                                                 </div>
@@ -580,7 +579,7 @@ const CheckoutPage = () => {
                                     ))}
                                 </div>
 
-                                <Separator className="bg-gradient-to-r from-transparent via-pink-400 to-transparent h-0.5" />
+                                <Separator className="bg-linear-to-r from-transparent via-pink-400 to-transparent h-0.5" />
 
                                 {/* Pricing Breakdown */}
                                 <div className="space-y-3">
@@ -600,10 +599,10 @@ const CheckoutPage = () => {
                                     </div>
                                 </div>
 
-                                <Separator className="bg-gradient-to-r from-transparent via-pink-400 to-transparent h-0.5" />
+                                <Separator className="bg-linear-to-r from-transparent via-pink-400 to-transparent h-0.5" />
 
                                 {/* Total */}
-                                <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl p-6">
+                                <div className="bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-2xl p-6">
                                     <div className="flex flex-col justify-between items-center gap-3">
                                         <div className="text-2xl font-semibold">Total</div>
                                         <span className="text-3xl font-bold">{formatPrice(calculateTotal())}</span>

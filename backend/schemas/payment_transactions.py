@@ -284,6 +284,59 @@ class PaymentRequest(BaseModel):
         return v
 
 
+class RenewalPaymentRequest(BaseModel):
+    """Schema for creating a VPS renewal payment request"""
+
+    vps_id: uuid.UUID = Field(..., description="VPS instance ID to renew")
+    duration_months: int = Field(..., description="Duration in months to extend")
+    amount: float = Field(..., description="Amount in VND")
+    phone: str = Field(..., description="Customer phone number")
+    address: str = Field(..., description="Customer address")
+    return_url: Optional[str] = Field(None, description="Return URL after payment")
+
+    @field_validator("duration_months")
+    @classmethod
+    def validate_duration_months(cls, v: int) -> int:
+        if not v:
+            raise ValueError("Duration months must not be empty")
+        if v < 1:
+            raise ValueError("Duration months must be greater than 0")
+        if v > 24:
+            raise ValueError("Duration months must be less than or equal to 24")
+        return v
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v: float) -> float:
+        if not v:
+            raise ValueError("Amount must not be empty")
+        if v < 0:
+            raise ValueError("Amount must be a positive value")
+        return v
+
+    @field_validator("phone", "address")
+    @classmethod
+    def validate_required_str_fields(cls, v: str, info: ValidationInfo) -> str:
+        field_name = info.field_name.replace("_", " ").capitalize()
+
+        if not v:
+            raise ValueError(f"{field_name} must not be empty")
+
+        v = v.strip()
+        if len(v) == 0:
+            raise ValueError(f"{field_name} must not be empty")
+        return v
+
+    @field_validator("return_url", mode="before")
+    @classmethod
+    def validate_optional_str_field(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        v = v.strip()
+        return None if len(v) == 0 else v
+
+
 class PaymentResponse(BaseModel):
     """Schema for payment response from gateway"""
 

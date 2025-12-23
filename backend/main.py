@@ -1,3 +1,4 @@
+import logging
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from backend.core import settings, register_exception_handlers
 from backend.db import init_db
+from backend.services import VPSCleanupScheduler
 from backend.routes import (
     auth_router,
     users_router,
@@ -17,16 +19,33 @@ from backend.routes import (
     payment_router,
     vnc_websocket_router,
     orders_router,
+    support_router,
 )
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
+)
+
+
+vps_cleanup_scheduler: VPSCleanupScheduler | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup code
+    global vps_cleanup_scheduler
+
     init_db()
+
+    vps_cleanup_scheduler = VPSCleanupScheduler(check_interval_minutes=5)
+    vps_cleanup_scheduler.start()
+
     yield
-    # Shutdown code (if any)
-    pass
+    
+    if vps_cleanup_scheduler:
+        vps_cleanup_scheduler.shutdown()
 
 
 app = FastAPI(
@@ -46,26 +65,17 @@ app = FastAPI(
 )
 
 
-# CORS origins - include Proxmox host for VNC WebSocket
+# CORS origins
 origins = list(settings.ALLOWED_ORIGINS)
-# Add Proxmox VNC WebSocket origins
-proxmox_origins = [
-    f"https://{settings.PROXMOX_HOST}:{settings.PROXMOX_PORT}",
-    f"wss://{settings.PROXMOX_HOST}:{settings.PROXMOX_PORT}",
-    f"https://{settings.PROXMOX_HOST}",
-    "https://10.10.1.2:8006",
-    "wss://10.10.1.2:8006",
-]
-origins.extend(proxmox_origins)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for WebSocket compatibility
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
 )
+
 
 # Register all custom exception handlers
 register_exception_handlers(app)
@@ -80,6 +90,7 @@ app.include_router(cart_router, prefix=api_prefix)
 app.include_router(orders_router, prefix=api_prefix)
 app.include_router(payment_router, prefix=api_prefix)
 app.include_router(promotion_router, prefix=api_prefix)
+app.include_router(support_router, prefix=api_prefix)
 app.include_router(vps_router, prefix=api_prefix)
 app.include_router(vps_admin_router, prefix=api_prefix)
 app.include_router(vnc_websocket_router, prefix=api_prefix)

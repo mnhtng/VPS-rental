@@ -208,7 +208,6 @@ const CartPage = () => {
             toast.error("Failed to proceed to checkout", {
                 description: "Please try again later",
             });
-        } finally {
             setIsProceedCheckoutLoading(false);
         }
     }
@@ -240,6 +239,14 @@ const CartPage = () => {
         return `${mbps} Mbps`;
     };
 
+    const getDiskSize = (storage_gb: number, storage_type?: string) => {
+        if (storage_gb >= 1000) {
+            const tb = (storage_gb / 1000).toFixed(1);
+            return `${tb} TB ${storage_type || ''}`;
+        }
+        return `${storage_gb} GB ${storage_type || ''}`;
+    }
+
     if (isLoading) {
         return (
             <CartPlaceholder />
@@ -252,7 +259,7 @@ const CartPage = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="text-center py-16 animate-in fade-in zoom-in duration-700">
                         <div className="flex justify-center mb-8 animate-in slide-in-from-top duration-500">
-                            <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-700 dark:to-purple-700 p-8 rounded-full shadow-xl hover:scale-110 transition-transform duration-300">
+                            <div className="bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-700 dark:to-purple-700 p-8 rounded-full shadow-xl hover:scale-110 transition-transform duration-300">
                                 <ShoppingCart className="h-16 w-16 text-blue-600 dark:text-primary-foreground" />
                             </div>
                         </div>
@@ -263,7 +270,7 @@ const CartPage = () => {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom duration-700 delay-300">
-                            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300" asChild>
+                            <Button size="lg" className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300" asChild>
                                 <Link href={`/${locale}/plans`}>
                                     <Server className="mr-2 h-5 w-5" />
                                     Browse VPS Plans
@@ -287,7 +294,7 @@ const CartPage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Header */}
                 <div className="mb-8 animate-in fade-in slide-in-from-top duration-700">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                    <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
                         Shopping Cart
                     </h1>
                     <p className="text-xl text-muted-foreground">Review your VPS selections and proceed to checkout</p>
@@ -299,7 +306,7 @@ const CartPage = () => {
                         <Card className="shadow-xl bg-secondary backdrop-blur-sm animate-in fade-in slide-in-from-left duration-700">
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle className="flex items-center text-xl">
-                                    <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg mr-3">
+                                    <div className="p-2 bg-linear-to-r from-blue-600 to-purple-600 rounded-lg mr-3">
                                         <ShoppingCart className="h-5 w-5 text-white" />
                                     </div>
                                     <span className="hidden sm:inline">Your VPS Configuration</span>
@@ -345,7 +352,7 @@ const CartPage = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="text-base md:text-lg font-bold mb-0.5 truncate">{item.vps_plan.name}</h3>
                                                 </div>
-                                                <Badge variant="secondary" className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/60 dark:to-emerald-900/60 text-green-700 dark:text-green-200 border-green-200 shrink-0">
+                                                <Badge variant="secondary" className="bg-linear-to-r from-green-100 to-emerald-100 dark:from-green-900/60 dark:to-emerald-900/60 text-green-700 dark:text-green-200 border-green-200 shrink-0">
                                                     {formatPrice(item.vps_plan.monthly_price)}/mo
                                                 </Badge>
                                             </div>
@@ -380,7 +387,7 @@ const CartPage = () => {
                                             </Dialog>
                                         </div>
 
-                                        <Separator className="my-3 md:my-4 bg-gradient-to-r from-transparent via-foreground to-transparent" />
+                                        <Separator className="my-3 md:my-4 bg-linear-to-r from-transparent via-foreground to-transparent" />
 
                                         {/* Plan Specs */}
                                         <div className="mb-3 md:mb-8">
@@ -401,7 +408,7 @@ const CartPage = () => {
                                                 </div>
                                                 <div className="flex flex-col items-center p-2 md:p-3 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-700 rounded-lg hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer">
                                                     <HardDrive className="h-4 w-4 md:h-5 md:w-5 text-purple-600 dark:text-purple-400 mb-1 group-hover:scale-110 transition-transform" />
-                                                    <span className="font-bold text-sm md:text-base">{item.vps_plan.storage_gb} GB</span>
+                                                    <span className="font-bold text-sm md:text-base">{getDiskSize(item.vps_plan.storage_gb)}</span>
                                                     <span className="text-[10px] md:text-xs text-muted-foreground">{item.vps_plan.storage_type}</span>
                                                 </div>
                                                 <div className="flex flex-col items-center p-2 md:p-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-700 rounded-lg hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer">
@@ -456,7 +463,7 @@ const CartPage = () => {
                                 <div className="space-y-4">
                                     <Label className="text-base font-semibold">Promo Code</Label>
                                     {appliedPromo ? (
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 dark:border-green-700 rounded-xl shadow-sm animate-in fade-in zoom-in duration-300">
+                                        <div className="flex items-center justify-between p-4 bg-linear-to-r from-green-50 to-emerald-50 border-2 border-green-200 dark:border-green-700 rounded-xl shadow-sm animate-in fade-in zoom-in duration-300">
                                             <div className="flex items-center">
                                                 <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3 animate-pulse">
                                                     <Tag className="h-4 w-4 text-green-600" />
@@ -499,7 +506,7 @@ const CartPage = () => {
                                                         <div
                                                             key={promotion.id}
                                                             onClick={() => handleDiscountSelection(promotion.code)}
-                                                            className="relative bg-gradient-to-br from-amber-300 via-amber-400/90 to-amber-500/90 hover:from-yellow-600 hover:to-amber-700 text-white p-2.5 rounded-md cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-2 border-yellow-400 hover:border-yellow-300 transform hover:-translate-y-1 animate-in fade-in zoom-in"
+                                                            className="relative bg-linear-to-br from-amber-300 via-amber-400/90 to-amber-500/90 hover:from-yellow-600 hover:to-amber-700 text-white p-2.5 rounded-md cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg border-2 border-yellow-400 hover:border-yellow-300 transform hover:-translate-y-1 animate-in fade-in zoom-in"
                                                             style={{ animationDelay: `${index * 100}ms`, animationDuration: '400ms' }}
                                                         >
                                                             {/* Ticket perforated edge effect */}
@@ -519,7 +526,7 @@ const CartPage = () => {
                                                             </div>
 
                                                             {/* Shine effect */}
-                                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
+                                                            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -528,7 +535,7 @@ const CartPage = () => {
                                     )}
                                 </div>
 
-                                <Separator className="bg-gradient-to-r from-transparent via-gray-400 to-transparent" />
+                                <Separator className="bg-linear-to-r from-transparent via-gray-400 to-transparent" />
 
                                 {/* Pricing Breakdown */}
                                 <div className="space-y-4">
@@ -558,14 +565,14 @@ const CartPage = () => {
                                     </div>
                                 </div>
 
-                                <Separator className="bg-gradient-to-r from-transparent via-gray-400 to-transparent" />
+                                <Separator className="bg-linear-to-r from-transparent via-gray-400 to-transparent" />
 
                                 <div className="rounded-xl p-4 border-2 border-blue-600 dark:border-blue-400">
                                     <div className="flex flex-col sm:flex-row justify-between items-center">
                                         <div className="text-center sm:text-left">
                                             <span className="text-xl font-bold">Total</span>
                                         </div>
-                                        <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                        <span className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                             {formatPrice(calculateTotal())}
                                         </span>
                                     </div>
@@ -583,9 +590,10 @@ const CartPage = () => {
                                 </div>
 
                                 <Button
-                                    className="w-full h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl hover:scale-105"
+                                    className="w-full h-14 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl hover:scale-105"
                                     size="lg"
                                     onClick={handleProceedToCheckout}
+                                    disabled={isProceedCheckoutLoading}
                                 >
                                     {isProceedCheckoutLoading ? (
                                         <>
@@ -603,6 +611,7 @@ const CartPage = () => {
                                 <Button
                                     variant="outline"
                                     className="w-full h-12 border-2 border-gray-200 hover:bg-gray-50 rounded-xl font-semibold"
+                                    disabled={isProceedCheckoutLoading}
                                     asChild
                                 >
                                     <Link href={`/${locale}/plans`}>

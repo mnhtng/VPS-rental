@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Path, Body
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Path, Body
 from sqlmodel import Session, select
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+import asyncio
 import uuid
 import logging
-from pydantic import BaseModel, Field
 from datetime import datetime, timezone, timedelta
 
 from backend.db import get_session
-from backend.core import settings
 from backend.utils import get_current_user, get_admin_user
 from backend.dependencies import ProxmoxConnection, get_default_proxmox
 from backend.models import (
@@ -18,13 +17,16 @@ from backend.models import (
     VMTemplate,
     ProxmoxCluster,
     Order,
+    VPSPlan,
 )
 from backend.schemas import (
-    VMTemplateResponse,
-)
-from backend.schemas.proxmox import (
+    VPSSetupRequest,
+    VPSCredentials,
+    VPSSetupItem,
+    VPSSetupResponse,
+    VPSInstanceResponse,
+    # Proxmox Schemas
     VMPowerActionRequest,
-    VMStatusResponse,
     VMInfoResponse,
     VNCAccessResponse,
     SnapshotCreateRequest,
@@ -33,270 +35,205 @@ from backend.schemas.proxmox import (
     SnapshotInfo,
     VMCreateRequest,
     VMDeploymentResponse,
-    VMConfigUpdateRequest,
-    VMResizeDiskRequest,
     ClusterStatusResponse,
     ClusterResourcesResponse,
-    TaskStatusResponse,
     OperationResponse,
-    ErrorResponse,
     NodeInfo,
 )
 from backend.services import (
     CommonProxmoxService,
     ProxmoxVMService,
     ProxmoxClusterService,
-    ProxmoxNodeService,
+    VPSService,
 )
 
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/vps", tags=["VPS Management"])
 admin_router = APIRouter(prefix="/admin/vps", tags=["Admin - VPS Management"])
 
 
-# ============================================================================
-# Helper Functions
-# ============================================================================
-
-
-async def get_user_vps_instance(
-    vps_id: uuid.UUID,
-    current_user: User,
-    session: Session,
-) -> tuple[VPSInstance, ProxmoxVM, ProxmoxNode]:
+@router.get(
+    "/my-vps",
+    response_model=List[VPSInstanceResponse],
+    status_code=status.HTTP_200_OK,
+    summary="List My VPS Instances",
+    description="Retrieve a list of VPS instances owned by the current user",
+)
+async def list_my_vps(
+    skip: int = 0,
+    limit: int = None,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
     """
-    Get VPS instance and verify ownership
+    List VPS instances for the current user
+
+    Args:
+        skip (int, optional): Number of VPS instances to skip. Defaults to 0.
+        limit (int, optional): Maximum number of VPS instances to return. Defaults to None.
+        current_user (User, optional): The current authenticated user. Defaults to Depends(get_current_user).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+
+    Raises:
+        HTTPException: 500 if retrieval fails
 
     Returns:
-        tuple: (VPSInstance, ProxmoxVM, ProxmoxNode)
+        List[Dict[str, Any]]: List of VPS instances with details
     """
-    # Get VPS instance
-    vps = session.get(VPSInstance, vps_id)
-    if not vps:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="VPS instance not found",
-        )
-
-    # Verify ownership
-    if vps.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to access this VPS",
-        )
-
-    # Check VPS status
-    if vps.status == "terminated":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="VPS has been terminated",
-        )
-
-    # Get VM details
-    if not vps.vm_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="VPS is not linked to a VM yet",
-        )
-
-    vm = session.get(ProxmoxVM, vps.vm_id)
-    if not vm:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="VM not found",
-        )
-
-    # Get node details
-    node = session.get(ProxmoxNode, vm.node_id)
-    if not node:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Node not found",
-        )
-
-    return vps, vm, node
-
-
-async def get_proxmox_connection(cluster_id: uuid.UUID, session: Session):
-    """Get Proxmox API connection for cluster"""
-    cluster = session.get(ProxmoxCluster, cluster_id)
-    if not cluster:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Proxmox cluster not found",
-        )
-
     try:
-        proxmox = CommonProxmoxService.get_connection(
-            host=settings.PROXMOX_HOST,
-            port=settings.PROXMOX_PORT,
-            user=settings.PROXMOX_USER,
-            password=settings.PROXMOX_PASSWORD,
-            verify_ssl=False,
+        statement = (
+            select(VPSInstance)
+            .where(VPSInstance.user_id == current_user.id)
+            .where(VPSInstance.status != "terminated")
+            .order_by(VPSInstance.created_at.desc())
+            .offset(skip)
         )
-        return proxmox
+        if limit is not None:
+            statement = statement.limit(limit)
+        vps_list = session.exec(statement).all()
+
+        return vps_list
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to connect to Proxmox cluster {cluster_id}: {str(e)}")
+        logger.error(f">>> Failed to list user VPS: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Failed to connect to Proxmox cluster",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve VPS instances",
         )
-
-
-# ============================================================================
-# User Endpoints - VPS Power Management
-# ============================================================================
 
 
 @router.get(
-    "/templates",
-    response_model=List[VMTemplateResponse],
+    "/{vps_id}/info",
+    response_model=VMInfoResponse,
     status_code=status.HTTP_200_OK,
+    summary="Get VPS Information",
+    description="Retrieve detailed information about a specific VPS instance",
 )
-async def list_vm_templates(
-    session: Session = Depends(get_session),
-):
-    try:
-        statement = select(VMTemplate)
-        templates = session.exec(statement).all()
-
-        return templates
-    except Exception as e:
-        logger.error(f">>> Failed to list VM templates: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve VM templates",
-        )
-
-
-@router.get("/my-vps", response_model=List[Dict[str, Any]])
-async def list_my_vps(
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session),
-):
-    """List all VPS instances owned by current user"""
-    statement = (
-        select(VPSInstance)
-        .where(VPSInstance.user_id == current_user.id)
-        .where(VPSInstance.status != "terminated")
-        .order_by(VPSInstance.created_at.desc())
-    )
-    vps_list = session.exec(statement).all()
-
-    result = []
-    for vps in vps_list:
-        vps_data = {
-            "id": str(vps.id),
-            "status": vps.status,
-            "expires_at": vps.expires_at.isoformat(),
-            "auto_renew": vps.auto_renew,
-            "created_at": vps.created_at.isoformat(),
-            "plan_name": vps.vps_plan.name if vps.vps_plan else None,
-        }
-
-        # Add VM details if available
-        if vps.vm:
-            vps_data.update(
-                {
-                    "vmid": vps.vm.vmid,
-                    "hostname": vps.vm.hostname,
-                    "ip_address": vps.vm.ip_address,
-                    "vcpu": vps.vm.vcpu,
-                    "ram_gb": vps.vm.ram_gb,
-                    "storage_gb": vps.vm.storage_gb,
-                    "storage_type": vps.vm.storage_type,
-                    "bandwidth_mbps": vps.vm.bandwidth_mbps,
-                    "power_status": vps.vm.power_status,
-                }
-            )
-
-        result.append(vps_data)
-
-    return result
-
-
-@router.get("/{vps_id}/status", response_model=VMStatusResponse)
-async def get_vps_status(
-    vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session),
-):
-    """Get current status of a VPS"""
-    vps, vm, node = await get_user_vps_instance(vps_id, current_user, session)
-    proxmox = await get_proxmox_connection(vm.cluster_id, session)
-
-    try:
-        vm_status = ProxmoxVMService.get_vm_status(proxmox, node.node_name, vm.vmid)
-
-        return VMStatusResponse(
-            vmid=vm.vmid,
-            hostname=vm.hostname,
-            status=vm_status.get("status", "unknown"),
-            uptime=vm_status.get("uptime"),
-            cpu_usage=vm_status.get("cpu"),
-            memory_used=vm_status.get("mem"),
-            memory_total=vm_status.get("maxmem"),
-            disk_used=vm_status.get("disk"),
-            disk_total=vm_status.get("maxdisk"),
-            ip_address=vm.ip_address,
-        )
-    except Exception as e:
-        logger.error(f"Failed to get VM status: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get VM status",
-        )
-
-
-@router.get("/{vps_id}/info", response_model=VMInfoResponse)
 async def get_vps_info(
     vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
     current_user: User = Depends(get_current_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
-    """Get comprehensive information about a VPS"""
-    vps, vm, node = await get_user_vps_instance(vps_id, current_user, session)
-    proxmox = await get_proxmox_connection(vm.cluster_id, session)
+    """
+    Get detailed information about a VPS
 
+    Args:
+        vps_id (uuid.UUID, optional): VPS instance ID. Defaults to Path(...).
+        current_user (User, optional): The current authenticated user. Defaults to Depends(get_current_user).
+        proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+
+    Raises:
+        HTTPException: 401 if user is not authenticated
+        HTTPException: 404 if VPSInstance, ProxmoxVM, or ProxmoxNode not found
+        HTTPException: 403 if user does not own the VPS
+        HTTPException: 400 if VPS is terminated or not linked to a VM
+        HTTPException: 500 if retrieval fails
+
+    Returns:
+        VMInfoResponse: Detailed information about the VPS
+    """
     try:
-        vm_info = ProxmoxVMService.get_vm_info(proxmox, node.node_name, vm.vmid)
+        vps, vm, node = await VPSService.get_user_vps_instance(
+            vps_id, current_user, session
+        )
 
-        # Get template name if available
-        template_name = None
-        if vm.template_id:
-            template = session.get(VMTemplate, vm.template_id)
-            if template:
-                template_name = template.template_name
+        vm_info = await ProxmoxVMService.get_vm_info(proxmox, node.name, vm.vmid)
+        if vm_info.get("status") != "running":
+            disk_info = {}
+        else:
+            disk_info = await ProxmoxVMService.get_vm_disk_usage(
+                proxmox, node.name, vm.vmid
+            )
 
         return VMInfoResponse(
-            vmid=vm.vmid,
-            node=node.node_name,
-            hostname=vm.hostname,
-            description=vm_info.get("description"),
-            status=vm_info.get("status", "unknown"),
-            uptime=vm_info.get("uptime"),
-            cores=vm_info.get("cores", vm.vcpu),
-            memory=vm_info.get("memory", vm.ram_gb * 1024),
-            disk_info=vm_info.get("disk_info", {}),
-            network_info=vm_info.get("network_info", {}),
-            ip_address=vm.ip_address,
-            os_type=vm_info.get("ostype"),
-            template_used=template_name,
+            node_name=node.name,
+            vm=vm,
+            vm_info=vm_info,
+            disk_info=disk_info,
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to get VM info: {str(e)}")
+        logger.error(f">>> Failed to get VM info: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get VM information",
         )
 
 
+@router.get(
+    "/{vps_id}/rrd",
+    response_model=List[Dict[str, Any]],
+    status_code=status.HTTP_200_OK,
+    summary="Get VPS RRD Data",
+    description="Retrieve RRD (Resource Usage Data) for a specific VPS instance",
+)
+async def get_vps_rrd_data(
+    vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
+    timeframe: Optional[str] = Query(None, description="Timeframe for RRD data"),
+    cf: Optional[str] = Query(None, description="Consolidation function for RRD data"),
+    current_user: User = Depends(get_current_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
+    session: Session = Depends(get_session),
+):
+    """
+    Get RRD data (Resource Usage Data) for a VPS
+
+    Args:
+        vps_id (uuid.UUID, optional): VPS instance ID. Defaults to Path(..., description="VPS instance ID").
+        timeframe (Optional[str], optional): Timeframe for RRD data. Defaults to Query(None, description="Timeframe for RRD data").
+        cf (Optional[str], optional): Consolidation function for RRD data. Defaults to Query(None, description="Consolidation function for RRD data").
+        current_user (User, optional): The current authenticated user. Defaults to Depends(get_current_user).
+        proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+
+    Raises:
+        HTTPException: 401 if user is not authenticated
+        HTTPException: 404 if VPSInstance, ProxmoxVM, or ProxmoxNode not found
+        HTTPException: 403 if user does not own the VPS
+        HTTPException: 500 if retrieval fails
+
+    Returns:
+        List[Dict[str, Any]]: RRD data points for the VPS
+    """
+    try:
+        vps, vm, node = await VPSService.get_user_vps_instance(
+            vps_id, current_user, session
+        )
+
+        params = {}
+        if timeframe:
+            params["timeframe"] = timeframe
+        if cf:
+            params["cf"] = cf
+
+        rrd_data = await ProxmoxVMService.get_rrddata(
+            proxmox, node.name, vm.vmid, **params
+        )
+
+        return rrd_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get RRD data: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get RRD data",
+        )
+
+
 @router.post("/{vps_id}/power", response_model=OperationResponse)
 async def control_vps_power(
     vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
-    action_request: VMPowerActionRequest = Body(...),
+    action_request: VMPowerActionRequest = Body(
+        ..., description="Power action request"
+    ),
     current_user: User = Depends(get_current_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
     """
@@ -310,43 +247,59 @@ async def control_vps_power(
     - reset: Force reset
     - suspend: Suspend/pause the VPS
     - resume: Resume from suspended state
-    """
-    vps, vm, node = await get_user_vps_instance(vps_id, current_user, session)
 
-    # Check if VPS is suspended (billing)
-    if vps.status == "suspended":
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="VPS is suspended due to payment. Please renew your subscription.",
+    Args:
+        vps_id (uuid.UUID): VPS instance ID
+        action_request (VMPowerActionRequest): Power action request
+        current_user (User): The current authenticated user
+        proxmox (ProxmoxConnection): Proxmox connection instance
+        session (Session): Database session
+
+    Raises:
+        HTTPException: 401 if user is not authenticated
+        HTTPException: 404 if VPSInstance, ProxmoxVM, or ProxmoxNode not found
+        HTTPException: 403 if user does not own the VPS
+        HTTPException: 400 if invalid action
+        HTTPException: 500 if operation fails
+
+    Returns:
+        OperationResponse: Result of the power action
+    """
+    try:
+        vps, vm, node = await VPSService.get_user_vps_instance(
+            vps_id, current_user, session
         )
 
-    proxmox = await get_proxmox_connection(vm.cluster_id, session)
+        # Check if VPS is suspended (billing)
+        if vps.status == "suspended":
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="VPS is suspended due to non-payment",
+            )
 
-    try:
         action = action_request.action
         result = None
 
         if action == "start":
-            result = ProxmoxVMService.start_vm(proxmox, node.node_name, vm.vmid)
+            result = await ProxmoxVMService.start_vm(proxmox, node.name, vm.vmid)
         elif action == "stop":
-            result = ProxmoxVMService.stop_vm(proxmox, node.node_name, vm.vmid)
+            result = await ProxmoxVMService.stop_vm(proxmox, node.name, vm.vmid)
         elif action == "shutdown":
-            result = ProxmoxVMService.shutdown_vm(proxmox, node.node_name, vm.vmid)
+            result = await ProxmoxVMService.shutdown_vm(proxmox, node.name, vm.vmid)
         elif action == "reboot":
-            result = ProxmoxVMService.reboot_vm(proxmox, node.node_name, vm.vmid)
+            result = await ProxmoxVMService.reboot_vm(proxmox, node.name, vm.vmid)
         elif action == "reset":
-            result = ProxmoxVMService.reset_vm(proxmox, node.node_name, vm.vmid)
+            result = await ProxmoxVMService.reset_vm(proxmox, node.name, vm.vmid)
         elif action == "suspend":
-            result = ProxmoxVMService.suspend_vm(proxmox, node.node_name, vm.vmid)
+            result = await ProxmoxVMService.suspend_vm(proxmox, node.name, vm.vmid)
         elif action == "resume":
-            result = ProxmoxVMService.resume_vm(proxmox, node.node_name, vm.vmid)
+            result = await ProxmoxVMService.resume_vm(proxmox, node.name, vm.vmid)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid action: {action}",
+                detail="Invalid power action",
             )
 
-        # Update VM power status in database
         if action in ["start", "resume"]:
             vm.power_status = "running"
         elif action in ["stop", "shutdown"]:
@@ -362,12 +315,14 @@ async def control_vps_power(
             message=result.get("message", "Operation completed"),
             task_id=result.get("task"),
         )
-
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to perform power action {action}: {str(e)}")
+        session.rollback()
+        logger.error(f">>> Failed to perform power action {action}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to {action} VPS",
+            detail="Failed to perform power action",
         )
 
 
@@ -375,6 +330,7 @@ async def control_vps_power(
 async def get_vps_vnc_access(
     vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
     current_user: User = Depends(get_current_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
     """
@@ -382,7 +338,9 @@ async def get_vps_vnc_access(
 
     Returns WebSocket URL and authentication credentials for VNC console access
     """
-    vps, vm, node = await get_user_vps_instance(vps_id, current_user, session)
+    vps, vps, vm, node = await VPSService.get_user_vps_instance(
+        vps_id, current_user, session
+    )
 
     # Check if VPS is active
     if vps.status != "active":
@@ -391,10 +349,8 @@ async def get_vps_vnc_access(
             detail="VPS must be active to access VNC console",
         )
 
-    proxmox = await get_proxmox_connection(vm.cluster_id, session)
-
     try:
-        vnc_info = ProxmoxVMService.get_vnc_info(proxmox, node.node_name, vm.vmid)
+        vnc_info = await ProxmoxVMService.get_vnc_info(proxmox, node.name, vm.vmid)
 
         # Get cluster for building VNC URL
         cluster = session.get(ProxmoxCluster, vm.cluster_id)
@@ -427,19 +383,44 @@ async def get_vps_vnc_access(
 # ============================================================================
 
 
-@router.get("/{vps_id}/snapshots", response_model=SnapshotListResponse)
+@router.get(
+    "/{vps_id}/snapshots",
+    response_model=SnapshotListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List VPS Snapshots",
+    description="Retrieve a list of snapshots for a specific VPS instance",
+)
 async def list_vps_snapshots(
     vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
     current_user: User = Depends(get_current_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
-    """List all snapshots for a VPS"""
-    vps, vm, node = await get_user_vps_instance(vps_id, current_user, session)
-    proxmox = await get_proxmox_connection(vm.cluster_id, session)
+    """
+    List snapshots for a VPS
 
+    Args:
+        vps_id (uuid.UUID, optional): VPS instance ID. Defaults to Path(..., description="VPS instance ID").
+        current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+        proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+
+    Raises:
+        HTTPException: 401 if user is not authenticated
+        HTTPException: 404 if VPSInstance, ProxmoxVM, or ProxmoxNode not found
+        HTTPException: 403 if user does not own the VPS
+        HTTPException: 500 if retrieval fails
+
+    Returns:
+        SnapshotListResponse: List of snapshots for the VPS
+    """
     try:
-        snapshots_raw = ProxmoxVMService.list_snapshots(
-            proxmox, node.node_name, vm.vmid
+        vps, vm, node = await VPSService.get_user_vps_instance(
+            vps_id, current_user, session
+        )
+
+        snapshots_raw = await ProxmoxVMService.list_snapshots(
+            proxmox, node.name, vm.vmid
         )
 
         # Filter out 'current' snapshot which is not a real snapshot
@@ -455,44 +436,85 @@ async def list_vps_snapshots(
             if snap.get("name") != "current"
         ]
 
-        return SnapshotListResponse(snapshots=snapshots, total=len(snapshots))
-
+        return SnapshotListResponse(
+            snapshots=snapshots,
+            total=len(snapshots),
+            max_snapshots=(
+                session.get(VPSPlan, vps.vps_plan_id).max_snapshots
+                if vps.vps_plan_id
+                else 1
+            ),
+        )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to list snapshots: {str(e)}")
+        logger.error(f">>> Failed to list snapshots: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list snapshots",
         )
 
 
-@router.post("/{vps_id}/snapshots", response_model=OperationResponse)
+@router.post(
+    "/{vps_id}/snapshots",
+    response_model=OperationResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create VPS Snapshot",
+    description="Create a new snapshot for a specific VPS instance",
+)
 async def create_vps_snapshot(
     vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
     snapshot_request: SnapshotCreateRequest = Body(...),
     current_user: User = Depends(get_current_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
     """
-    Create a snapshot of VPS
+    Create a snapshot for a VPS
 
-    Note: Creating snapshots may temporarily affect VPS performance
+    Args:
+        vps_id (uuid.UUID, optional): VPS instance ID. Defaults to Path(...).
+        snapshot_request (SnapshotCreateRequest, optional): Snapshot creation request data. Defaults to Body(...).
+        current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+        proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+
+    Raises:
+        HTTPException: 401 if user is not authenticated
+        HTTPException: 404 if VPSInstance, ProxmoxVM, or ProxmoxNode not found
+        HTTPException: 403 if user does not own the VPS
+        HTTPException: 500 if creation fails
+
+    Returns:
+        OperationResponse: Result of the snapshot creation
     """
-    vps, vm, node = await get_user_vps_instance(vps_id, current_user, session)
-
-    # Check VPS status
-    if vps.status != "active":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="VPS must be active to create snapshots",
-        )
-
-    proxmox = await get_proxmox_connection(vm.cluster_id, session)
-
     try:
-        # Check if snapshot name already exists
-        existing_snapshots = ProxmoxVMService.list_snapshots(
-            proxmox, node.node_name, vm.vmid
+        vps, vm, node = await VPSService.get_user_vps_instance(
+            vps_id, current_user, session
         )
+
+        if vps.status != "active":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="VPS must be active to create snapshots",
+            )
+
+        existing_snapshots = await ProxmoxVMService.list_snapshots(
+            proxmox, node.name, vm.vmid
+        )
+
+        # Filter out 'current' which is not a real snapshot
+        real_snapshots = [s for s in existing_snapshots if s.get("name") != "current"]
+
+        vps_plan = session.get(VPSPlan, vps.vps_plan_id)
+        max_snapshots = vps_plan.max_snapshots if vps_plan else 1
+
+        if len(real_snapshots) >= max_snapshots:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Snapshot limit reached for this VPS plan",
+            )
+
         if any(
             snap.get("name") == snapshot_request.name for snap in existing_snapshots
         ):
@@ -501,9 +523,9 @@ async def create_vps_snapshot(
                 detail="Snapshot with this name already exists",
             )
 
-        result = ProxmoxVMService.create_snapshot(
+        result = await ProxmoxVMService.create_snapshot(
             proxmox,
-            node.node_name,
+            node.name,
             vm.vmid,
             snapshot_request.name,
             snapshot_request.description or "",
@@ -514,35 +536,55 @@ async def create_vps_snapshot(
             message=result.get("message", "Snapshot creation initiated"),
             task_id=result.get("task"),
         )
-
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to create snapshot: {str(e)}")
+        logger.error(f">>> Failed to create snapshot: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create snapshot",
         )
 
 
-@router.post("/{vps_id}/snapshots/restore", response_model=OperationResponse)
+@router.post(
+    "/{vps_id}/snapshots/restore",
+    response_model=OperationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Restore VPS to Snapshot",
+    description="Restore a VPS instance to a specific snapshot",
+)
 async def restore_vps_snapshot(
     vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
     restore_request: SnapshotRestoreRequest = Body(...),
     current_user: User = Depends(get_current_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
     """
-    Restore VPS to a snapshot
+    Restore a VPS to a specific snapshot
 
-    Warning: This will revert all changes made after the snapshot was created
+    Args:
+        vps_id (uuid.UUID, optional): VPS instance ID. Defaults to Path(...).
+        restore_request (SnapshotRestoreRequest, optional): Snapshot restore request data. Defaults to Body(...).
+        current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+        proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+
+    Raises:
+        HTTPException: 401 if user is not authenticated
+        HTTPException: 404 if VPSInstance, ProxmoxVM, or ProxmoxNode not found
+        HTTPException: 403 if user does not own the VPS
+        HTTPException: 500 if restoration fails
+
+    Returns:
+        OperationResponse: Result of the snapshot restoration
     """
-    vps, vm, node = await get_user_vps_instance(vps_id, current_user, session)
-    proxmox = await get_proxmox_connection(vm.cluster_id, session)
-
     try:
-        # Verify snapshot exists
-        snapshots = ProxmoxVMService.list_snapshots(proxmox, node.node_name, vm.vmid)
+        vps, vm, node = await VPSService.get_user_vps_instance(
+            vps_id, current_user, session
+        )
+
+        snapshots = await ProxmoxVMService.list_snapshots(proxmox, node.name, vm.vmid)
         if not any(
             snap.get("name") == restore_request.snapshot_name for snap in snapshots
         ):
@@ -551,8 +593,8 @@ async def restore_vps_snapshot(
                 detail="Snapshot not found",
             )
 
-        result = ProxmoxVMService.rollback_snapshot(
-            proxmox, node.node_name, vm.vmid, restore_request.snapshot_name
+        result = await ProxmoxVMService.rollback_snapshot(
+            proxmox, node.name, vm.vmid, restore_request.snapshot_name
         )
 
         return OperationResponse(
@@ -560,39 +602,45 @@ async def restore_vps_snapshot(
             message=result.get("message", "Snapshot restore initiated"),
             task_id=result.get("task"),
         )
-
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to restore snapshot: {str(e)}")
+        logger.error(f">>> Failed to restore snapshot: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to restore snapshot",
         )
 
 
-@router.delete("/{vps_id}/snapshots/{snapshot_name}", response_model=OperationResponse)
+@router.delete(
+    "/{vps_id}/snapshots/{snapshot_name}",
+    response_model=OperationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Delete VPS Snapshot",
+    description="Delete a specific snapshot of a VPS instance",
+)
 async def delete_vps_snapshot(
     vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
     snapshot_name: str = Path(..., description="Snapshot name to delete"),
     current_user: User = Depends(get_current_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
     """Delete a VPS snapshot"""
-    vps, vm, node = await get_user_vps_instance(vps_id, current_user, session)
-    proxmox = await get_proxmox_connection(vm.cluster_id, session)
-
     try:
-        # Verify snapshot exists
-        snapshots = ProxmoxVMService.list_snapshots(proxmox, node.node_name, vm.vmid)
+        vps, vm, node = await VPSService.get_user_vps_instance(
+            vps_id, current_user, session
+        )
+
+        snapshots = await ProxmoxVMService.list_snapshots(proxmox, node.name, vm.vmid)
         if not any(snap.get("name") == snapshot_name for snap in snapshots):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Snapshot not found",
             )
 
-        result = ProxmoxVMService.delete_snapshot(
-            proxmox, node.node_name, vm.vmid, snapshot_name
+        result = await ProxmoxVMService.delete_snapshot(
+            proxmox, node.name, vm.vmid, snapshot_name
         )
 
         return OperationResponse(
@@ -600,11 +648,10 @@ async def delete_vps_snapshot(
             message=result.get("message", "Snapshot deletion initiated"),
             task_id=result.get("task"),
         )
-
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to delete snapshot: {str(e)}")
+        logger.error(f">>> Failed to delete snapshot: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete snapshot",
@@ -619,7 +666,8 @@ async def delete_vps_snapshot(
 @admin_router.post("/deploy", response_model=VMDeploymentResponse)
 async def deploy_vps_for_user(
     vm_request: VMCreateRequest = Body(...),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
     """
@@ -658,7 +706,7 @@ async def deploy_vps_for_user(
     # Select node (auto-select if not specified)
     node = None
     if vm_request.node:
-        statement = select(ProxmoxNode).where(ProxmoxNode.node_name == vm_request.node)
+        statement = select(ProxmoxNode).where(ProxmoxNode.name == vm_request.node)
         node = session.exec(statement).first()
     else:
         # Auto-select node with most available resources
@@ -679,17 +727,14 @@ async def deploy_vps_for_user(
             detail="Node not found",
         )
 
-    # Get Proxmox connection
-    proxmox = await get_proxmox_connection(node.cluster_id, session)
-
     try:
         # Get next available VMID
-        vmid = CommonProxmoxService.get_next_vmid(proxmox)
+        vmid = await CommonProxmoxService.get_next_vmid(proxmox)
 
         # Create VM from template
-        result = ProxmoxVMService.create_vm(
+        result = await ProxmoxVMService.create_vm(
             proxmox=proxmox,
-            node=node.node_name,
+            node=node.name,
             vmid=vmid,
             name=vm_request.hostname,
             cores=plan.vcpu,
@@ -749,15 +794,14 @@ async def deploy_vps_for_user(
 @admin_router.get("/cluster/status", response_model=ClusterStatusResponse)
 async def get_cluster_status(
     cluster_id: uuid.UUID = Path(..., description="Cluster ID"),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
     """Get Proxmox cluster status overview"""
-    proxmox = await get_proxmox_connection(cluster_id, session)
-
     try:
-        cluster_status = ProxmoxClusterService.get_cluster_status(proxmox)
-        resources = ProxmoxClusterService.get_cluster_resources(proxmox)
+        cluster_status = await ProxmoxClusterService.get_cluster_status(proxmox)
+        resources = await ProxmoxClusterService.get_cluster_resources(proxmox)
 
         # Parse nodes
         nodes_info = []
@@ -806,14 +850,13 @@ async def get_cluster_status(
 )
 async def get_cluster_resources(
     cluster_id: uuid.UUID = Path(..., description="Cluster ID"),
-    current_user: User = Depends(get_admin_user),
+    admin_user: User = Depends(get_admin_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
 ):
     """Get all cluster resources (VMs, nodes, storage)"""
-    proxmox = await get_proxmox_connection(cluster_id, session)
-
     try:
-        resources = ProxmoxClusterService.get_cluster_resources(proxmox)
+        resources = await ProxmoxClusterService.get_cluster_resources(proxmox)
 
         vms = [r for r in resources if r.get("type") in ["qemu", "lxc"]]
         nodes = [r for r in resources if r.get("type") == "node"]
@@ -829,115 +872,6 @@ async def get_cluster_resources(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get cluster resources",
         )
-
-
-@admin_router.get("/task/{node}/{upid}", response_model=TaskStatusResponse)
-async def get_task_status(
-    node: str = Path(..., description="Node name"),
-    upid: str = Path(..., description="Task UPID"),
-    cluster_id: uuid.UUID = Path(..., description="Cluster ID"),
-    current_user: User = Depends(get_admin_user),
-    session: Session = Depends(get_session),
-):
-    """Get Proxmox task status"""
-    proxmox = await get_proxmox_connection(cluster_id, session)
-
-    try:
-        task_status = CommonProxmoxService.get_task_status(proxmox, node, upid)
-
-        return TaskStatusResponse(
-            status=task_status.get("status", "unknown"),
-            exitstatus=task_status.get("exitstatus"),
-            upid=upid,
-            type=task_status.get("type", "unknown"),
-            node=node,
-            pid=task_status.get("pid"),
-            pstart=task_status.get("pstart"),
-            starttime=task_status.get("starttime"),
-            user=task_status.get("user"),
-        )
-
-    except Exception as e:
-        logger.error(f"Failed to get task status: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get task status",
-        )
-
-
-# ============================================================================
-# Response Models
-# ============================================================================
-
-
-class VPSCredentials(BaseModel):
-    """VPS credentials returned after setup"""
-
-    ip_address: str = Field(..., description="VPS IP address")
-    username: str = Field(..., description="SSH username")
-    password: str = Field(..., description="SSH password")
-    ssh_port: int = Field(default=22, description="SSH port")
-
-
-class VPSSetupItem(BaseModel):
-    """Individual VPS setup result"""
-
-    order_item_id: str = Field(..., description="Order item ID")
-    vps_instance_id: str = Field(..., description="VPS instance ID")
-    vm_id: str = Field(..., description="Proxmox VM record ID")
-    vmid: int = Field(..., description="Proxmox VM ID")
-    hostname: str = Field(..., description="VPS hostname")
-    status: str = Field(..., description="VPS status")
-    credentials: VPSCredentials = Field(..., description="VPS credentials")
-    vps_info: Dict[str, Any] = Field(..., description="VPS specifications")
-
-
-class VPSSetupResponse(BaseModel):
-    """Response for VPS setup endpoint"""
-
-    success: bool = Field(..., description="Whether setup was successful")
-    message: str = Field(..., description="Status message")
-    order_number: str = Field(..., description="Order number")
-    order_date: str = Field(..., description="Order date")
-    customer_name: str = Field(..., description="Customer name")
-    customer_email: str = Field(..., description="Customer email")
-    vps_list: List[VPSSetupItem] = Field(
-        default=[], description="List of provisioned VPS"
-    )
-    errors: List[str] = Field(default=[], description="Any errors encountered")
-
-
-# ============================================================================
-# Helper Functions
-# ============================================================================
-
-
-def generate_password(length: int = 16) -> str:
-    """Generate a secure random password"""
-    return "pcloud"
-    # import secrets
-    # import string
-    # alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-    # return "".join(secrets.choice(alphabet) for _ in range(length))
-
-
-def generate_placeholder_ip() -> str:
-    """
-    Generate a placeholder IP address.
-    In production, this would come from DHCP or cloud-init configuration.
-    """
-    import random
-
-    return f"10.10.{random.randint(1, 254)}.{random.randint(1, 254)}"
-
-
-# ============================================================================
-# VPS Setup Endpoint
-# ============================================================================
-
-
-class VPSSetupRequest(BaseModel):
-    order_number: str = Field(..., description="Order number")
 
 
 @router.post(
@@ -960,9 +894,20 @@ async def setup_vps(
     2. For each order item, clones the VM template to create a new VPS
     3. Creates database records for ProxmoxVM and VPSInstance
     4. Returns VPS credentials for email notification
+
+    Args:
+        data (VPSSetupRequest): Request data containing order number
+        session (Session): Database session
+        current_user (User): Currently authenticated user
+        proxmox (ProxmoxConnection): Proxmox API connection
+
+    Raises:
+        HTTPException: If order not found, all items provisioned, or errors occur
+
+    Returns:
+        VPSSetupResponse: Details of provisioned VPS instances
     """
     try:
-        # Find the user's latest paid order with unprovisioned items
         statement = select(Order).where(Order.order_number == data.order_number)
         order = session.exec(statement).first()
 
@@ -984,46 +929,33 @@ async def setup_vps(
             )
 
         provisioned_vps: List[VPSSetupItem] = []
-        errors: List[str] = []
 
         for order_item in unprovisioned_items:
-            # Skip if already provisioned
-            if order_item.vps_instance:
-                logger.info(
-                    f">>> Order item {order_item.id} already has VPS instance, skipping"
-                )
-                continue
-
             try:
-                # Get the VM template
                 template = session.get(VMTemplate, order_item.template_id)
                 if not template:
-                    errors.append(f"Template not found for order item {order_item.id}")
-                    continue
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Template not found for any order items",
+                    )
 
-                # Get or select node
                 node = None
-                if template.node_id:
-                    node = session.get(ProxmoxNode, template.node_id)
-
-                if not node:
-                    # Auto-select an online node from the template's cluster
+                if template.node_id and template.cluster_id:
                     statement = select(ProxmoxNode).where(
+                        ProxmoxNode.id == template.node_id,
                         ProxmoxNode.cluster_id == template.cluster_id,
                         ProxmoxNode.status == "online",
                     )
-                    nodes = session.exec(statement).all()
-                    if nodes:
-                        node = nodes[0]
+                    node = session.exec(statement).first()
 
                 if not node:
-                    errors.append(f"No available node for order item {order_item.id}")
-                    continue
+                    raise HTTPException(
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        detail="No available node for provisioning",
+                    )
 
-                # Get next available VMID
-                new_vmid = CommonProxmoxService.get_next_vmid(proxmox)
-
-                clone_result = ProxmoxVMService.create_vm(
+                new_vmid = await CommonProxmoxService.get_next_vmid(proxmox)
+                clone_result = await ProxmoxVMService.create_vm(
                     proxmox=proxmox,
                     node=node.name,
                     vmid=new_vmid,
@@ -1032,41 +964,132 @@ async def setup_vps(
                 )
 
                 if not clone_result.get("success"):
-                    errors.append(f"Failed to clone template for {order_item.hostname}")
-                    continue
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Failed to create VM",
+                    )
 
-                # Generate credentials
-                ip_address = generate_placeholder_ip()
-                username = template.default_user or "root"
-                password = generate_password()
-
-                # Create ProxmoxVM record
-                new_vm = ProxmoxVM(
-                    cluster_id=node.cluster_id,
-                    node_id=node.id,
-                    template_id=template.id,
-                    vmid=new_vmid,
-                    hostname=order_item.hostname,
-                    ip_address=ip_address,
-                    username=username,
-                    password=password,
-                    ssh_port=22,
-                    vcpu=order_item.configuration.get("vcpu", 1),
-                    ram_gb=order_item.configuration.get("ram_gb", 1),
-                    storage_gb=order_item.configuration.get("storage_gb", 20),
-                    storage_type=order_item.configuration.get("storage_type", "SSD"),
-                    bandwidth_mbps=order_item.configuration.get("bandwidth_mbps", 1000),
-                    power_status="stopped",
+                start_result = await ProxmoxVMService.start_vm(
+                    proxmox, node.name, new_vmid
                 )
-                session.add(new_vm)
-                session.flush()  # Get the ID
 
-                # Calculate expiration date based on duration
+                if not start_result.get("success"):
+                    logger.warning(f">>> VM {new_vmid} created but failed to start")
+                    ip_address = VPSService.generate_placeholder_ip()
+                else:
+                    # Retry getting IP with delay - VM needs time to boot and get IP
+                    max_retries = 100  # 100 retries * 5 seconds = 500 seconds max
+                    retry_delay = 5  # seconds
+
+                    for attempt in range(max_retries):
+                        await asyncio.sleep(retry_delay)
+
+                        network_addr = await ProxmoxVMService.get_vm_network(
+                            proxmox, node.name, new_vmid
+                        )
+
+                        if network_addr:
+                            valid_ips = [
+                                ip
+                                for ip in network_addr
+                                if ip.get("ip_address", "").startswith("192.168.")
+                                or ip.get("ip_address", "").startswith("10.10.")
+                            ]
+                            if len(valid_ips) == 2:
+                                break
+
+                    if not network_addr:
+                        logger.warning(
+                            f">>> Failed to retrieve IP for VM {new_vmid} after multiple attempts"
+                        )
+                        network_addr = [
+                            {
+                                "ip_address": VPSService.generate_placeholder_ip(),
+                                "mac_address": None,
+                            }
+                        ]
+
+                ip_addr = None
+                sub_ip_addr = None
+                mac_addr = None
+                for ip in network_addr:
+                    if not ip_addr:
+                        ip_addr = ip.get("ip_address")
+                        mac_addr = ip.get("mac_address")
+                    else:
+                        sub_ip_addr = ip.get("ip_address")
+
+                print(">>> IP Address:", ip_addr, sub_ip_addr, mac_addr)
+
+                username = template.default_user
+                password = VPSService.generate_password()
+
+                # Check if VM already exists in database (from previous failed attempt)
+                existing_vm = session.exec(
+                    select(ProxmoxVM).where(
+                        ProxmoxVM.cluster_id == node.cluster_id,
+                        ProxmoxVM.node_id == node.id,
+                        ProxmoxVM.vmid == str(new_vmid),
+                    )
+                ).first()
+
+                if existing_vm:
+                    # Update existing VM record
+                    existing_vm.template_id = template.id
+                    existing_vm.hostname = order_item.hostname
+                    existing_vm.ip_address = ip_addr
+                    existing_vm.mac_address = mac_addr
+                    existing_vm.username = username
+                    existing_vm.password = password
+                    existing_vm.vcpu = order_item.configuration.get("vcpu", 1)
+                    existing_vm.ram_gb = order_item.configuration.get("ram_gb", 1)
+                    existing_vm.storage_gb = order_item.configuration.get(
+                        "storage_gb", 20
+                    )
+                    existing_vm.storage_type = order_item.configuration.get(
+                        "storage_type", "SSD"
+                    )
+                    existing_vm.bandwidth_mbps = order_item.configuration.get(
+                        "bandwidth_mbps", 1000
+                    )
+                    existing_vm.power_status = (
+                        "stopped" if not start_result.get("success") else "running"
+                    )
+                    session.add(existing_vm)
+                    new_vm = existing_vm
+                else:
+                    new_vm = ProxmoxVM(
+                        cluster_id=node.cluster_id,
+                        node_id=node.id,
+                        template_id=template.id,
+                        vmid=new_vmid,
+                        hostname=order_item.hostname,
+                        ip_address=ip_addr,
+                        mac_address=mac_addr,
+                        username=username,
+                        password=password,
+                        ssh_port=22,
+                        vcpu=order_item.configuration.get("vcpu", 1),
+                        ram_gb=order_item.configuration.get("ram_gb", 1),
+                        storage_gb=order_item.configuration.get("storage_gb", 20),
+                        storage_type=order_item.configuration.get(
+                            "storage_type", "SSD"
+                        ),
+                        bandwidth_mbps=order_item.configuration.get(
+                            "bandwidth_mbps", 1000
+                        ),
+                        power_status=(
+                            "stopped" if not start_result.get("success") else "running"
+                        ),
+                    )
+                    session.add(new_vm)
+
+                session.flush()
+
                 expires_at = datetime.now(timezone.utc) + timedelta(
                     days=30 * order_item.duration_months
                 )
 
-                # Create VPSInstance record
                 vps_instance = VPSInstance(
                     user_id=current_user.id,
                     vps_plan_id=order_item.vps_plan_id,
@@ -1079,16 +1102,6 @@ async def setup_vps(
                 session.add(vps_instance)
                 session.flush()
 
-                # Try to start the VM
-                try:
-                    CommonProxmoxService.start_vm(proxmox, node.name, new_vmid)
-                    new_vm.power_status = "running"
-                    session.add(new_vm)
-                except Exception as start_error:
-                    logger.warning(f">>> Failed to start VM {new_vmid}: {start_error}")
-                    # VM created but not started - still consider it successful
-
-                # Build VPS info for response
                 vps_info = {
                     "name": order_item.vps_plan.name if order_item.vps_plan else "VPS",
                     "hostname": order_item.hostname,
@@ -1111,7 +1124,8 @@ async def setup_vps(
                         hostname=order_item.hostname,
                         status="active",
                         credentials=VPSCredentials(
-                            ip_address=ip_address,
+                            ip_address=ip_addr,
+                            sub_ip_addresses=sub_ip_addr,
                             username=username,
                             password=password,
                             ssh_port=22,
@@ -1119,31 +1133,25 @@ async def setup_vps(
                         vps_info=vps_info,
                     )
                 )
-
-                logger.info(
-                    f">>> Successfully provisioned VPS {order_item.hostname} (VMID: {new_vmid})"
-                )
-
-            except Exception as item_error:
+            except HTTPException:
+                raise
+            except Exception as e:
                 logger.error(
-                    f">>> Error provisioning VPS for order item {order_item.id}: {item_error}"
+                    f">>> Error provisioning VPS for item {order_item.id}: {str(e)}"
                 )
-                errors.append(
-                    f"Failed to provision {order_item.hostname}: {str(item_error)}"
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Error provisioning VPS",
                 )
 
-        # Commit all changes
         session.commit()
 
-        # Determine overall success
         success = len(provisioned_vps) > 0
 
-        if success and errors:
+        if success:
             message = (
-                f"Provisioned {len(provisioned_vps)} VPS with {len(errors)} errors"
+                f"Provisioned {len(provisioned_vps)} VPS for order {order.order_number}"
             )
-        elif success:
-            message = f"Successfully provisioned {len(provisioned_vps)} VPS"
         else:
             message = "Failed to provision any VPS"
 
@@ -1155,9 +1163,7 @@ async def setup_vps(
             customer_name=current_user.name or current_user.email,
             customer_email=current_user.email,
             vps_list=provisioned_vps,
-            errors=errors,
         )
-
     except HTTPException:
         raise
     except Exception as e:
@@ -1165,5 +1171,5 @@ async def setup_vps(
         logger.error(f">>> VPS setup error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"VPS setup failed: {str(e)}",
+            detail="Failed to setup VPS instances",
         )

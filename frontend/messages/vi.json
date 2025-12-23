@@ -51,6 +51,7 @@
         "support": "Hỗ trợ",
         "profile": "Hồ sơ",
         "my_orders": "Đơn hàng của tôi",
+        "my_tickets": "Yêu cầu của tôi",
         "support_tickets": "Yêu cầu hỗ trợ",
         "manage_vps": "Quản lý VPS",
         "admin": "Quản trị",
@@ -85,6 +86,7 @@
             "services": {
                 "web_server": "Web Server",
                 "database": "Cơ sở dữ liệu",
+                "backup": "Sao lưu",
                 "scalability": "Mở rộng linh hoạt",
                 "monitoring": "Giám sát"
             },

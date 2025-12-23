@@ -13,8 +13,8 @@ import EmailLayout from "@/components/custom/email/EmailLayout";
 import { EmailOrderConfirmationProps } from "@/types/types";
 import { formatPrice } from "@/utils/currency";
 
-const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : 'https://mnhtng.site';
 
 const EmailOrderConfirmation = ({
@@ -106,10 +106,10 @@ const EmailOrderConfirmation = ({
                     </div>
 
                     <div style={techSpecs}>
-                        <Text style={techSpecItem}>⚡ {item.cpu} vCPU</Text>
-                        <Text style={techSpecItem}>🚀 {item.ram} GB RAM</Text>
-                        <Text style={techSpecItem}>💾 {item.storage} GB {item.storage_type}</Text>
-                        <Text style={techSpecItem}>🌐 {item.network_speed < 1000 ? item.network_speed : Math.round(item.network_speed / 1000).toFixed(1)} {item.network_speed < 1000 ? 'Mbps' : 'Gbps'} </Text>
+                        <Text style={techSpecItem}>{item.cpu} vCPU</Text>
+                        <Text style={techSpecItem}>{item.ram} GB RAM</Text>
+                        <Text style={techSpecItem}>{item.storage < 1000 ? item.storage : Math.round(item.storage / 1000).toFixed(1)} {item.storage < 1000 ? 'GB' : 'TB'} {item.storage_type}</Text>
+                        <Text style={techSpecItem}>{item.network_speed < 1000 ? item.network_speed : Math.round(item.network_speed / 1000).toFixed(1)} {item.network_speed < 1000 ? 'Mbps' : 'Gbps'} </Text>
                     </div>
                 </Section>
             ))}
@@ -144,21 +144,6 @@ const EmailOrderConfirmation = ({
                 <Button style={primaryButton} href={`${baseUrl}/client-dashboard`}>
                     Truy cập Dashboard
                 </Button>
-            </Section>
-
-            {/* Invoice Download Box */}
-            <Section style={downloadBox}>
-                <Row>
-                    <Column style={{ width: '60%' }}>
-                        <Text style={downloadTitle}>HÓA ĐƠN ĐIỆN TỬ</Text>
-                        <Text style={downloadFile}>📎 Invoice-{orderNumber}.pdf</Text>
-                    </Column>
-                    <Column style={{ width: '40%', textAlign: 'right' }}>
-                        <Button style={downloadButtonSmall} href={`${baseUrl}/api/orders/${orderNumber}/download-invoice`}>
-                            Tải Ngay ↓
-                        </Button>
-                    </Column>
-                </Row>
             </Section>
 
             <Text style={supportText}>
@@ -338,17 +323,26 @@ const specValueMono = {
 };
 
 const techSpecs = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '10px',
     backgroundColor: '#F0FDFA', // Teal 50
     padding: '14px 24px',
     borderTop: '1px solid #CCFBF1', // Teal 100
 };
 
 const techSpecItem = {
-    fontSize: '12px',
-    color: '#0F766E', // Teal 700
-    margin: '0 16px 0 0',
-    fontWeight: '600',
     display: 'inline-block',
+    textAlign: 'center' as const,
+    backgroundColor: '#0F172A',
+    color: '#5EEAD4',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: '600',
+    marginRight: '8px',
+    marginBottom: '8px',
 };
 
 // Steps
@@ -411,43 +405,6 @@ const primaryButton = {
     textDecoration: 'none',
     display: 'inline-block',
     boxShadow: '0 8px 16px -4px rgba(20, 184, 166, 0.4)',
-};
-
-// Download Box
-const downloadBox = {
-    background: 'linear-gradient(to right, #FFF7ED, #FFEDD5)', // Orange 50
-    border: '2px dashed #F97316', // Orange 500
-    borderRadius: '12px',
-    padding: '20px 24px',
-    marginBottom: '24px',
-};
-
-const downloadTitle = {
-    color: '#C2410C', // Orange 700
-    fontSize: '11px',
-    fontWeight: '800',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.1em',
-    margin: '0 0 4px',
-};
-
-const downloadFile = {
-    color: '#9A3412', // Orange 800
-    fontSize: '14px',
-    fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
-    margin: '0',
-};
-
-const downloadButtonSmall = {
-    background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-    color: '#ffffff',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    padding: '10px 18px',
-    borderRadius: '8px',
-    textDecoration: 'none',
-    display: 'inline-block',
-    boxShadow: '0 4px 8px -2px rgba(249, 115, 22, 0.4)',
 };
 
 const supportText = {

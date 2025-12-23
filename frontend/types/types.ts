@@ -81,6 +81,81 @@ export interface VMTemplate {
     updated_at?: string;
 }
 
+export interface ProxmoxCluster {
+    id: string;
+    name: string;
+    api_host: string;
+    api_port: number;
+    api_user: string;
+    api_password?: string;
+    api_token_id?: string;
+    api_token_secret?: string;
+    verify_ssl: boolean;
+    status: string;
+    version?: string;
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface ProxmoxNode {
+    id: string;
+    name: string;
+    ip_address: string;
+    status: string;
+    cpu_cores?: number;
+    total_memory_gb?: number;
+    total_storage_gb?: number;
+    max_vms?: number;
+    cpu_overcommit_ratio?: number;
+    ram_overcommit_ratio?: number;
+    datacenter?: string;
+    location?: string;
+    last_health_check?: string;
+    health_status?: string;
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface ProxmoxVM {
+    id: string;
+    vmid: number;
+    hostname: string;
+    ip_address?: string;
+    mac_address?: string;
+    username?: string;
+    password?: string;
+    ssh_port?: number;
+    vnc_port?: number;
+    vnc_password?: string;
+    vcpu?: number;
+    ram_gb?: number;
+    storage_gb?: number;
+    storage_type?: string;
+    bandwidth_mbps?: number;
+    power_status: string;
+    created_at: string;
+    updated_at?: string;
+    cluster: ProxmoxCluster;
+    node: ProxmoxNode;
+    template: VMTemplate;
+    vps_instance: VPSInstance;
+    snapshots: VPSSnapshot[];
+}
+
+export interface SnapshotInfo {
+    name: string;
+    description?: string;
+    snaptime?: number;
+    vmstate?: number;
+    parent?: string;
+}
+
+export interface VPSSnapshot {
+    snapshots: SnapshotInfo[];
+    total: number;
+    max_snapshots: number;
+}
+
 export interface CartItem {
     id: string;
     hostname: string;
@@ -143,6 +218,7 @@ export interface Order {
     created_at: string;
     updated_at: string;
     order_items: OrderItemDetail[];
+    payment_method?: string;
 }
 
 export interface OrderPaymentsResponse {
@@ -200,15 +276,47 @@ export interface PaymentResult {
 
 export interface VPSInstance {
     id: string;
-    order_id: string;
-    server_name: string;
-    ip_address: string;
-    status: 'pending' | 'running' | 'stopped' | 'suspended';
-    cpu_usage: number;
-    memory_usage: number;
-    disk_usage: number;
+    vmid?: number;
+    status: string;
+    expires_at: string;
+    auto_renew: boolean;
     created_at: string;
-    updated_at: string;
+    updated_at?: string;
+    user?: User;
+    vps_plan?: VPSPlan;
+    order_item?: OrderItemDetail;
+    vm?: ProxmoxVM;
+}
+
+export interface VPSInfo {
+    node_name: string,
+    vm?: ProxmoxVM,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vm_info: Record<string, any>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    disk_info: Record<string, any>
+}
+
+export interface VPSRRDDataPoint {
+    time: number;
+    cpu: number;
+    maxcpu: number;
+    mem: number;
+    maxmem: number;
+    memhost: number;
+    netin: number;
+    netout: number;
+    disk: number;
+    diskread: number;
+    diskwrite: number;
+    maxdisk: number;
+    [key: string]: number;
+    pressurecpufull: number;
+    pressurecpusome: number;
+    pressureiofull: number;
+    pressureiosome: number;
+    pressurememoryfull: number;
+    pressurememorysome: number;
 }
 
 export interface SupportMessage {
@@ -218,22 +326,60 @@ export interface SupportMessage {
     created_at: string;
 }
 
-export interface SupportTicketContact {
-    email: string;
-    phone: string;
-}
-
 export interface SupportTicket {
     id: string;
     subject: string;
     description: string;
-    status: 'open' | 'in-progress' | 'resolved' | 'closed';
-    priority: 'low' | 'medium' | 'high' | 'urgent';
     category: string;
-    contact: SupportTicketContact;
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    status: 'open' | 'in_progress' | 'resolved' | 'closed';
+    email: string;
+    phone: string;
     created_at: string;
     updated_at: string;
-    messages: SupportMessage[];
+    user?: User;
+    replies?: TicketReply[];
+}
+
+export interface TicketReply {
+    id: string;
+    ticket_id: string;
+    message: {
+        content: {
+            text: string;
+            format: 'markdown' | 'html' | 'plain';
+        };
+        sender: {
+            role: 'ADMIN' | 'USER';
+            id: string;
+            name: string;
+        };
+        attachments: Array<{
+            id: string;
+            name: string;
+            url: string;
+            size: number;
+            mime: string;
+        }>;
+    };
+    created_at: string;
+    updated_at: string;
+}
+
+export interface TicketStatistics {
+    total: number;
+    open: number;
+    in_progress: number;
+    resolved: number;
+    closed: number;
+}
+
+export interface CreateTicketData {
+    subject: string;
+    description: string;
+    category: string;
+    priority: string;
+    phone: string;
 }
 
 export interface FAQ {
@@ -374,6 +520,7 @@ export interface InvoicePDFProps {
 // PDF VPS Welcome
 export interface VPSCredentials {
     ipAddress: string;
+    subIpAddress: string;
     username: string;
     password: string;
     sshPort: number;

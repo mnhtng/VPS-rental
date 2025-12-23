@@ -16,8 +16,12 @@ from .auth_utils import (
     get_current_user,
     get_admin_user,
 )
+from .string_utils import normalize_hostname, generate_order_number
 
 __all__ = [
+    # String utilities
+    "normalize_hostname",
+    "generate_order_number",
     # Authentication utilities
     "hash_password",
     "verify_password",

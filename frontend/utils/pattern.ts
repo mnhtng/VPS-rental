@@ -17,14 +17,17 @@ interface ApiPatternOptions extends RequestInit {
 export const apiPattern = async (url: string, options: ApiPatternOptions = {}): Promise<Response> => {
     const { timeout = DEFAULT_TIMEOUT, signal: externalSignal, ...fetchOptions } = options;
 
-    // Create internal AbortController for timeout
+    // Create internal AbortController for timeout (skip if timeout is 0 = no timeout)
     const timeoutController = new AbortController();
-    const timeoutId = setTimeout(() => timeoutController.abort(), timeout);
+    const timeoutId = timeout > 0 ? setTimeout(() => timeoutController.abort(), timeout) : null;
 
     // Combine external signal (from component) with timeout signal
-    const combinedSignal = externalSignal
-        ? createCombinedSignal(externalSignal, timeoutController.signal)
-        : timeoutController.signal;
+    // If no timeout, only use external signal or no signal at all
+    const combinedSignal = timeout > 0
+        ? (externalSignal
+            ? createCombinedSignal(externalSignal, timeoutController.signal)
+            : timeoutController.signal)
+        : externalSignal || undefined;
 
     try {
         let currentToken = useAuthStore.getState().accessToken;
@@ -71,7 +74,7 @@ export const apiPattern = async (url: string, options: ApiPatternOptions = {}): 
 
         return response;
     } finally {
-        clearTimeout(timeoutId);
+        if (timeoutId) clearTimeout(timeoutId);
     }
 };
 

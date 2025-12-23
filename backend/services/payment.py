@@ -5,7 +5,7 @@ import hmac
 import urllib.parse
 import requests
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Optional
 from decimal import Decimal
 from sqlmodel import Session, select
@@ -21,7 +21,9 @@ from backend.models import (
     UserPromotion,
     Promotion,
     User,
+    VPSInstance,
 )
+from backend.utils import generate_order_number
 
 
 logger = logging.getLogger(__name__)
@@ -225,9 +227,37 @@ class PaymentService:
                     payment = self.session.exec(
                         select(PaymentTransaction).where(
                             PaymentTransaction.order_id == order.id,
-                            PaymentTransaction.transaction_id == momo_order_id,
+                            PaymentTransaction.status == "pending",
                         )
                     ).first()
+
+                    if payment:
+                        # Update existing transaction with new payment method
+                        payment.payment_method = "momo"
+                        payment.gateway_response = {
+                            "request_id": request_id,
+                            "response": result,
+                        }
+                        self.session.add(payment)
+                        self.session.commit()
+                        self.session.refresh(payment)
+                    else:
+                        # Create new transaction if none exists
+                        payment = PaymentTransaction(
+                            order_id=order.id,
+                            transaction_id=momo_order_id,
+                            payment_method="momo",
+                            amount=Decimal(str(amount)),
+                            currency="VND",
+                            status="pending",
+                            gateway_response={
+                                "request_id": request_id,
+                                "response": result,
+                            },
+                        )
+                        self.session.add(payment)
+                        self.session.commit()
+                        self.session.refresh(payment)
                 else:
                     # Create payment transaction record
                     payment = PaymentTransaction(
@@ -371,11 +401,24 @@ class PaymentService:
                     select(Cart).where(Cart.user_id == order.user_id)
                 ).all()
 
+                saved_cart_data = [
+                    {
+                        "vps_plan_id": item.vps_plan_id,
+                        "hostname": item.hostname,
+                        "os": item.os,
+                        "duration_months": item.duration_months,
+                        "unit_price": float(item.unit_price),
+                        "total_price": float(item.total_price),
+                    }
+                    for item in cart_items
+                ]
+
                 for item in cart_items:
                     self.session.delete(item)
             else:  # Failed
                 payment.status = "failed"
                 payment.gateway_response = data
+                saved_cart_data = []
 
                 # Update order status to failed
                 order = self.session.get(Order, payment.order_id)
@@ -389,9 +432,10 @@ class PaymentService:
             self.session.refresh(payment)
 
             user = self.session.get(User, order.user_id)
+
             vps_plans = []
-            for item in cart_items:
-                vps_plan = self.session.get(VPSPlan, item.vps_plan_id)
+            for cart_item in saved_cart_data:
+                vps_plan = self.session.get(VPSPlan, cart_item["vps_plan_id"])
                 vps_plans.append(vps_plan)
 
             return {
@@ -404,7 +448,7 @@ class PaymentService:
                 "data": {
                     "user": user,
                     "plans": vps_plans,
-                    "cart": cart_items,
+                    "cart": saved_cart_data,
                     "order": order,
                     "payment": payment,
                 },
@@ -488,14 +532,36 @@ class PaymentService:
             # Build payment URL
             payment_url = f"{settings.VNPAY_URL}?{urllib.parse.urlencode(vnp_params)}"
 
-            # Create payment transaction record
+            # Create or update payment transaction record
             if repay == True:
                 payment = self.session.exec(
                     select(PaymentTransaction).where(
                         PaymentTransaction.order_id == order.id,
-                        PaymentTransaction.transaction_id == txn_ref,
+                        PaymentTransaction.status == "pending",
                     )
                 ).first()
+
+                if payment:
+                    # Update existing transaction with new payment method
+                    payment.payment_method = "vnpay"
+                    payment.gateway_response = {"request_params": vnp_params}
+                    self.session.add(payment)
+                    self.session.commit()
+                    self.session.refresh(payment)
+                else:
+                    # Create new transaction if none exists
+                    payment = PaymentTransaction(
+                        order_id=order.id,
+                        transaction_id=txn_ref,
+                        payment_method="vnpay",
+                        amount=Decimal(str(order.price)),
+                        currency="VND",
+                        status="pending",
+                        gateway_response={"request_params": vnp_params},
+                    )
+                    self.session.add(payment)
+                    self.session.commit()
+                    self.session.refresh(payment)
             else:
                 payment = PaymentTransaction(
                     order_id=order.id,
@@ -616,12 +682,25 @@ class PaymentService:
                         select(Cart).where(Cart.user_id == order.user_id)
                     ).all()
 
+                    saved_cart_data = [
+                        {
+                            "vps_plan_id": item.vps_plan_id,
+                            "hostname": item.hostname,
+                            "os": item.os,
+                            "duration_months": item.duration_months,
+                            "unit_price": float(item.unit_price),
+                            "total_price": float(item.total_price),
+                        }
+                        for item in cart_items
+                    ]
+
                     for item in cart_items:
                         self.session.delete(item)
                 else:
                     # Update payment as failed
                     payment.status = "failed"
                     payment.gateway_response = params
+                    saved_cart_data = []
 
                     # Update order status to failed
                     order = self.session.get(Order, payment.order_id)
@@ -635,9 +714,10 @@ class PaymentService:
                 self.session.refresh(payment)
 
                 user = self.session.get(User, order.user_id)
+
                 vps_plans = []
-                for item in cart_items:
-                    vps_plan = self.session.get(VPSPlan, item.vps_plan_id)
+                for cart_item in saved_cart_data:
+                    vps_plan = self.session.get(VPSPlan, cart_item["vps_plan_id"])
                     vps_plans.append(vps_plan)
 
             return {
@@ -651,7 +731,7 @@ class PaymentService:
                 "data": {
                     "user": user,
                     "plans": vps_plans,
-                    "cart": cart_items,
+                    "cart": saved_cart_data,
                     "order": order,
                     "payment": payment,
                 },
@@ -664,50 +744,649 @@ class PaymentService:
                 "error": "Payment transaction failed",
             }
 
-    def get_payment_status(self, payment_id: uuid.UUID) -> Optional[Dict[str, Any]]:
+    # =========================================================================
+    # Renewal Service Methods
+    # =========================================================================
+
+    def renewals_order(
+        self,
+        vps_instance_id: uuid.UUID,
+        duration_months: int,
+        amount: float,
+        user_id: uuid.UUID,
+        phone: str,
+        address: str,
+    ) -> Order:
         """
-        Get payment transaction status.
+        Create renewal order (Order only, no new OrderItem).
 
         Args:
-            payment_id: Payment transaction ID
+            vps_instance_id: ID of the VPS instance to renew
+            duration_months: Number of months to extend
+            amount: Total amount for renewal
+            user_id: ID of the user
+            phone: Billing phone number
+            address: Billing address
+
+        Raises:
+            HTTPException: 404 if VPS instance not found
+            HTTPException: 403 if VPS instance doesn't belong to user
+            HTTPException: 400 if VPS instance is terminated or errored
 
         Returns:
-            Payment status info or None
+            Order: The created renewal order
         """
-        payment = self.session.get(PaymentTransaction, payment_id)
-        if not payment:
-            return None
+        vps_instance = self.session.get(VPSInstance, vps_instance_id)
+        if not vps_instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="VPS instance not found",
+            )
 
-        order = self.session.get(Order, payment.order_id)
+        if vps_instance.user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="VPS instance does not belong to user",
+            )
 
-        return {
-            "payment_id": str(payment.id),
-            "transaction_id": payment.transaction_id,
-            "payment_method": payment.payment_method,
-            "amount": float(payment.amount),
-            "currency": payment.currency,
-            "status": payment.status,
-            "order_id": str(payment.order_id) if payment.order_id else None,
-            "order_number": order.order_number if order else None,
-            "order_status": order.status if order else None,
-            "created_at": payment.created_at.isoformat(),
-            "updated_at": payment.updated_at.isoformat(),
+        if vps_instance.status in ["terminated", "error"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot renew terminated or errored VPS instance",
+            )
+
+        order_number = generate_order_number()
+
+        order = Order(
+            user_id=user_id,
+            order_number=order_number,
+            price=Decimal(str(amount)),
+            billing_phone=phone,
+            billing_address=address,
+            status="pending",
+            note=f"VPS Renewal - {duration_months} {duration_months == 1 and 'month' or 'months'}",
+        )
+
+        self.session.add(order)
+        self.session.commit()
+        self.session.refresh(order)
+
+        return order
+
+    def create_renewals_vnpay(
+        self,
+        order: Order,
+        vps_instance_id: uuid.UUID,
+        duration_months: int,
+        client_ip: str = "127.0.0.1",
+        return_url: Optional[str] = None,
+        repay: Optional[bool] = False,
+    ) -> Dict[str, Any]:
+        """
+        Create VNPay payment for renewal order.
+
+        Args:
+            order: Renewal order
+            vps_instance_id: VPS instance ID for reference
+            duration_months: Duration for renewal
+            client_ip: Client IP address
+            return_url: Custom return URL
+
+        Returns:
+            Dict with payment URL and transaction info
+        """
+        tmn_code = settings.VNPAY_TMN_CODE
+        hash_secret = settings.VNPAY_HASH_SECRET
+
+        txn_ref = f"{order.order_number}"
+        amount = int(order.price) * 100
+        vnp_return_url = return_url or settings.VNPAY_RETURN_URL
+        order_info = f"VPS Renewal #{order.order_number}"
+
+        vnp_params = {
+            "vnp_Version": "2.1.0",
+            "vnp_Command": "pay",
+            "vnp_TmnCode": tmn_code,
+            "vnp_Amount": amount,
+            "vnp_CurrCode": "VND",
+            "vnp_TxnRef": txn_ref,
+            "vnp_OrderInfo": order_info,
+            "vnp_OrderType": "other",
+            "vnp_Locale": "vn",
+            "vnp_ReturnUrl": vnp_return_url,
+            "vnp_CreateDate": datetime.now().strftime("%Y%m%d%H%M%S"),
+            "vnp_IpAddr": client_ip,
         }
 
-    def get_order_payments(self, order_id: uuid.UUID) -> list:
+        try:
+            sorted_params = sorted(vnp_params.items())
+            query_string = "&".join(
+                [
+                    f"{key}={urllib.parse.quote_plus(str(value))}"
+                    for key, value in sorted_params
+                ]
+            )
+
+            signature = hmac.new(
+                hash_secret.encode("utf-8"),
+                query_string.encode("utf-8"),
+                hashlib.sha512,
+            ).hexdigest()
+
+            vnp_params["vnp_SecureHash"] = signature
+            payment_url = f"{settings.VNPAY_URL}?{urllib.parse.urlencode(vnp_params)}"
+
+            if repay == True:
+                payment = self.session.exec(
+                    select(PaymentTransaction).where(
+                        PaymentTransaction.order_id == order.id,
+                        PaymentTransaction.status == "pending",
+                    )
+                ).first()
+
+                if payment:
+                    # Update existing transaction with new payment method
+                    payment.payment_method = "vnpay"
+                    payment.gateway_response = {
+                        "request_params": vnp_params,
+                        "vps_instance_id": str(vps_instance_id),
+                        "duration_months": duration_months,
+                        "is_renewal": True,
+                    }
+                    self.session.add(payment)
+                    self.session.commit()
+                    self.session.refresh(payment)
+            else:
+                # Create payment transaction with renewal metadata
+                payment = PaymentTransaction(
+                    order_id=order.id,
+                    transaction_id=txn_ref,
+                    payment_method="vnpay",
+                    amount=Decimal(str(order.price)),
+                    currency="VND",
+                    status="pending",
+                    gateway_response={
+                        "request_params": vnp_params,
+                        "vps_instance_id": str(vps_instance_id),
+                        "duration_months": duration_months,
+                        "is_renewal": True,
+                    },
+                )
+                self.session.add(payment)
+                self.session.commit()
+                self.session.refresh(payment)
+
+            return {
+                "success": True,
+                "payment_url": payment_url,
+                "transaction_id": txn_ref,
+                "payment_id": str(payment.id),
+            }
+        except Exception as e:
+            self.session.rollback()
+            logger.error(f">>> VNPay renewal payment creation error: {str(e)}")
+            return {
+                "success": False,
+                "error": "Failed to create VNPay renewal payment",
+            }
+
+    def create_renewals_momo(
+        self,
+        order: Order,
+        vps_instance_id: uuid.UUID,
+        duration_months: int,
+        return_url: Optional[str] = None,
+        notify_url: Optional[str] = None,
+        repay: Optional[bool] = False,
+    ) -> Dict[str, Any]:
         """
-        Get all payment transactions for an order.
+        Create MoMo payment for renewal order.
 
         Args:
-            order_id: Order ID
+            order: Renewal order
+            vps_instance_id: VPS instance ID for reference
+            duration_months: Duration for renewal
+            return_url: Custom return URL
+            notify_url: Custom notify URL
 
         Returns:
-            List of payment transactions
+            Dict with payment URL and transaction info
         """
-        statement = select(PaymentTransaction).where(
-            PaymentTransaction.order_id == order_id
+        partner_code = settings.MOMO_PARTNER_CODE
+        access_key = settings.MOMO_ACCESS_KEY
+        secret_key = settings.MOMO_SECRET_KEY
+
+        request_id = f"REQ-{order.id}-{int(datetime.now().timestamp())}"
+        momo_order_id = f"{order.order_number}"
+        amount = int(order.price)
+
+        redirect_url = return_url or settings.MOMO_RETURN_URL
+        ipn_url = notify_url or settings.MOMO_NOTIFY_URL
+
+        order_info = f"VPS Renewal #{order.order_number}"
+        extra_data = ""
+        request_type = "payWithMethod"
+
+        raw_signature = (
+            f"accessKey={access_key}"
+            f"&amount={amount}"
+            f"&extraData={extra_data}"
+            f"&ipnUrl={ipn_url}"
+            f"&orderId={momo_order_id}"
+            f"&orderInfo={order_info}"
+            f"&partnerCode={partner_code}"
+            f"&redirectUrl={redirect_url}"
+            f"&requestId={request_id}"
+            f"&requestType={request_type}"
         )
-        return list(self.session.exec(statement).all())
+
+        signature = hmac.new(
+            secret_key.encode("utf-8"),
+            raw_signature.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        payload = {
+            "partnerCode": partner_code,
+            "partnerName": "PCloud",
+            "storeId": "pcloud_store",
+            "requestId": request_id,
+            "amount": amount,
+            "orderId": momo_order_id,
+            "orderInfo": order_info,
+            "redirectUrl": redirect_url,
+            "ipnUrl": ipn_url,
+            "lang": "vi",
+            "extraData": extra_data,
+            "requestType": request_type,
+            "signature": signature,
+        }
+
+        try:
+            response = requests.post(
+                settings.MOMO_ENDPOINT,
+                json=payload,
+                timeout=30,
+                headers={"Content-Type": "application/json"},
+            )
+
+            result = response.json()
+
+            if result.get("resultCode") == 0:
+                if repay == True:
+                    payment = self.session.exec(
+                        select(PaymentTransaction).where(
+                            PaymentTransaction.order_id == order.id,
+                            PaymentTransaction.status == "pending",
+                        )
+                    ).first()
+
+                    if payment:
+                        # Update existing transaction with new payment method
+                        payment.payment_method = "momo"
+                        payment.gateway_response = {
+                            "request_id": request_id,
+                            "response": result,
+                            "vps_instance_id": str(vps_instance_id),
+                            "duration_months": duration_months,
+                            "is_renewal": True,
+                        }
+                        self.session.add(payment)
+                        self.session.commit()
+                        self.session.refresh(payment)
+                    else:
+                        # Create new transaction if none exists
+                        payment = PaymentTransaction(
+                            order_id=order.id,
+                            transaction_id=momo_order_id,
+                            payment_method="momo",
+                            amount=Decimal(str(amount)),
+                            currency="VND",
+                            status="pending",
+                            gateway_response={
+                                "request_id": request_id,
+                                "response": result,
+                                "vps_instance_id": str(vps_instance_id),
+                                "duration_months": duration_months,
+                                "is_renewal": True,
+                            },
+                        )
+                        self.session.add(payment)
+                        self.session.commit()
+                        self.session.refresh(payment)
+                else:
+                    payment = PaymentTransaction(
+                        order_id=order.id,
+                        transaction_id=momo_order_id,
+                        payment_method="momo",
+                        amount=Decimal(str(amount)),
+                        currency="VND",
+                        status="pending",
+                        gateway_response={
+                            "request_id": request_id,
+                            "response": result,
+                            "vps_instance_id": str(vps_instance_id),
+                            "duration_months": duration_months,
+                            "is_renewal": True,
+                        },
+                    )
+                    self.session.add(payment)
+                    self.session.commit()
+                    self.session.refresh(payment)
+
+                return {
+                    "success": True,
+                    "payment_url": result.get("payUrl"),
+                    "deeplink": result.get("deeplink"),
+                    "transaction_id": momo_order_id,
+                    "request_id": request_id,
+                    "payment_id": str(payment.id),
+                }
+            else:
+                error_msg = result.get("message", "MoMo renewal payment creation failed")
+                logger.error(f">>> MoMo renewal error: {error_msg}")
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "result_code": result.get("resultCode"),
+                }
+        except requests.RequestException as e:
+            self.session.rollback()
+            logger.error(f">>> MoMo renewal API request failed: {str(e)}")
+            return {
+                "success": False,
+                "error": "Failed to connect to MoMo payment gateway",
+            }
+        except Exception as e:
+            self.session.rollback()
+            logger.error(f">>> MoMo renewal payment error: {str(e)}")
+            return {
+                "success": False,
+                "error": "Failed to create MoMo renewal payment",
+            }
+
+    def complete_renewal(
+        self,
+        order: Order,
+        vps_instance_id: uuid.UUID,
+        duration_months: int,
+    ) -> VPSInstance:
+        """
+        Complete renewal by updating order_item and vps_instance.
+
+        Args:
+            order: The renewal order
+            vps_instance_id: VPS instance ID
+            duration_months: Duration to extend
+
+        Returns:
+            Updated VPSInstance
+        """
+        vps_instance = self.session.get(VPSInstance, vps_instance_id)
+        if not vps_instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="VPS instance not found",
+            )
+
+        # Update duration months
+        if vps_instance.order_item:
+            vps_instance.order_item.duration_months += duration_months
+            self.session.add(vps_instance.order_item)
+
+        # Extend expire
+        current_expires = vps_instance.expires_at
+        if current_expires < datetime.now(timezone.utc):
+            new_expires = datetime.now(timezone.utc) + timedelta(days=30 * duration_months)
+        else:
+            new_expires = current_expires + timedelta(days=30 * duration_months)
+
+        vps_instance.expires_at = new_expires
+        vps_instance.status = "active"
+
+        self.session.add(vps_instance)
+        self.session.commit()
+        self.session.refresh(vps_instance)
+
+        return vps_instance
+
+    def verify_renewals_vnpay_callback(self, params: Dict[str, str]) -> Dict[str, Any]:
+        """
+        Verify VNPay renewal callback and complete renewal.
+
+        Args:
+            params: Query parameters from VNPay return URL
+
+        Returns:
+            Dict with verification result
+        """
+        try:
+            hash_secret = settings.VNPAY_HASH_SECRET
+
+            vnp_secure_hash = params.pop("vnp_SecureHash", "")
+            params.pop("vnp_SecureHashType", None)
+
+            sorted_params = sorted(params.items())
+            query_string = "&".join(
+                [
+                    f"{key}={urllib.parse.quote_plus(str(value))}"
+                    for key, value in sorted_params
+                ]
+            )
+
+            expected_signature = hmac.new(
+                hash_secret.encode("utf-8"),
+                query_string.encode("utf-8"),
+                hashlib.sha512,
+            ).hexdigest()
+
+            if expected_signature.lower() != vnp_secure_hash.lower():
+                return {
+                    "valid": False,
+                    "error": "Invalid signature",
+                }
+
+            txn_ref = params.get("vnp_TxnRef")
+            response_code = params.get("vnp_ResponseCode")
+            transaction_no = params.get("vnp_TransactionNo")
+            amount = int(params.get("vnp_Amount", 0)) / 100
+
+            statement = select(PaymentTransaction).where(
+                PaymentTransaction.transaction_id == txn_ref
+            )
+            payment = self.session.exec(statement).first()
+
+            if not payment:
+                return {
+                    "valid": False,
+                    "error": "Payment transaction not found",
+                }
+
+            success = response_code == "00"
+            order = self.session.get(Order, payment.order_id)
+
+            if success:
+                payment.status = "completed"
+                payment.gateway_response = {
+                    **payment.gateway_response,
+                    "vnpay_response": params,
+                }
+
+                if order:
+                    order.status = "paid"
+                    self.session.add(order)
+
+                # Complete the renewal - extend VPS expiration
+                gateway_response = payment.gateway_response
+                vps_instance_id = gateway_response.get("vps_instance_id")
+                duration_months = gateway_response.get("duration_months", 1)
+
+                if vps_instance_id:
+                    vps_instance = self.complete_renewal(
+                        order,
+                        uuid.UUID(vps_instance_id),
+                        duration_months,
+                    )
+                else:
+                    vps_instance = None
+            else:
+                payment.status = "failed"
+                payment.gateway_response = {
+                    **payment.gateway_response,
+                    "vnpay_response": params,
+                }
+                vps_instance = None
+
+                if order:
+                    order.status = "cancelled"
+                    self.session.add(order)
+
+            self.session.add(payment)
+            self.session.commit()
+            if order:
+                self.session.refresh(order)
+            self.session.refresh(payment)
+
+            return {
+                "valid": True,
+                "success": success,
+                "transaction_id": txn_ref,
+                "vnpay_transaction_no": transaction_no,
+                "amount": amount,
+                "response_code": response_code,
+                "message": self._get_vnpay_response_message(response_code),
+                "is_renewal": True,
+                "vps_instance": vps_instance,
+                "order": order,
+            }
+        except Exception as e:
+            self.session.rollback()
+            logger.error(f">>> VNPay renewal verification error: {str(e)}")
+            return {
+                "valid": False,
+                "error": "Renewal payment verification failed",
+            }
+
+    def verify_renewals_momo_callback(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Verify MoMo renewal callback and complete renewal.
+
+        Args:
+            data: Callback data from MoMo
+
+        Returns:
+            Dict with verification result
+        """
+        try:
+            secret_key = settings.MOMO_SECRET_KEY
+            access_key = settings.MOMO_ACCESS_KEY
+
+            received_signature = data.get("signature", "")
+
+            raw_signature = (
+                f"accessKey={access_key}"
+                f"&amount={data.get('amount')}"
+                f"&extraData={data.get('extraData', '')}"
+                f"&message={data.get('message', '')}"
+                f"&orderId={data.get('orderId')}"
+                f"&orderInfo={data.get('orderInfo', '')}"
+                f"&orderType={data.get('orderType', '')}"
+                f"&partnerCode={data.get('partnerCode')}"
+                f"&payType={data.get('payType', '')}"
+                f"&requestId={data.get('requestId')}"
+                f"&responseTime={data.get('responseTime')}"
+                f"&resultCode={data.get('resultCode')}"
+                f"&transId={data.get('transId')}"
+            )
+
+            expected_signature = hmac.new(
+                secret_key.encode("utf-8"),
+                raw_signature.encode("utf-8"),
+                hashlib.sha256,
+            ).hexdigest()
+
+            if expected_signature.lower() != received_signature.lower():
+                return {
+                    "valid": False,
+                    "error": "Invalid signature",
+                }
+
+            momo_order_id = data.get("orderId")
+            result_code = data.get("resultCode")
+
+            statement = select(PaymentTransaction).where(
+                PaymentTransaction.transaction_id == momo_order_id
+            )
+            payment = self.session.exec(statement).first()
+
+            if not payment:
+                return {
+                    "valid": False,
+                    "error": "Payment transaction not found",
+                }
+
+            order = self.session.get(Order, payment.order_id)
+
+            if result_code == 0: 
+                payment.status = "completed"
+                payment.gateway_response = {
+                    **payment.gateway_response,
+                    "momo_response": data,
+                }
+
+                if order:
+                    order.status = "paid"
+                    self.session.add(order)
+
+                # Complete the renewal - extend VPS expiration
+                gateway_response = payment.gateway_response
+                vps_instance_id = gateway_response.get("vps_instance_id")
+                duration_months = gateway_response.get("duration_months", 1)
+
+                if vps_instance_id:
+                    vps_instance = self.complete_renewal(
+                        order,
+                        uuid.UUID(vps_instance_id),
+                        duration_months,
+                    )
+                else:
+                    vps_instance = None
+            else:  # Failed
+                payment.status = "failed"
+                payment.gateway_response = {
+                    **payment.gateway_response,
+                    "momo_response": data,
+                }
+                vps_instance = None
+
+                if order:
+                    order.status = "cancelled"
+                    self.session.add(order)
+
+            self.session.add(payment)
+            self.session.commit()
+            if order:
+                self.session.refresh(order)
+            self.session.refresh(payment)
+
+            return {
+                "valid": True,
+                "success": result_code == 0,
+                "transaction_id": momo_order_id,
+                "momo_trans_id": data.get("transId"),
+                "amount": data.get("amount"),
+                "message": data.get("message"),
+                "is_renewal": True,
+                "vps_instance": vps_instance,
+                "order": order,
+            }
+        except Exception as e:
+            self.session.rollback()
+            logger.error(f">>> MoMo renewal callback verification error: {str(e)}")
+            return {
+                "valid": False,
+                "error": "Renewal payment verification failed",
+            }
 
     # =========================================================================
     # Helper methods

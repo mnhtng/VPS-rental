@@ -29,6 +29,7 @@ import useProduct from '@/hooks/useProduct';
 import { useLocale } from 'next-intl';
 import { PlanItemPlaceholder } from '@/components/custom/placeholder/vps_plan';
 import { useCart } from '@/contexts/CartContext';
+import { normalizeHostname } from '@/utils/string';
 
 const operatingSystemOptions = [
     { value: 'Ubuntu 22.04.5 LTS', label: 'Ubuntu 22.04.5 LTS', template_os: 'linux', template_version: '6.x-2.6' },
@@ -146,6 +147,15 @@ const PlanDetailPage = () => {
     const pricing = calculatePrice();
 
     const addItemToCart = async () => {
+        const normalizedHostname = normalizeHostname(hostname);
+
+        if (!normalizedHostname) {
+            toast.error("Invalid hostname", {
+                description: "Please enter a valid hostname for your VPS",
+            });
+            return;
+        }
+
         setAddingToCart(true);
 
         try {
@@ -155,7 +165,7 @@ const PlanDetailPage = () => {
 
             const result = await addToCart({
                 planID: plan.id,
-                hostname: hostname.trim(),
+                hostname: normalizedHostname,
                 os: selectedOS,
                 templateOS: templateOS || '',
                 templateVersion: templateVersion || '',
@@ -193,6 +203,14 @@ const PlanDetailPage = () => {
         return `${mbps} Mbps`;
     };
 
+    const getDiskSize = (storage_gb: number, storage_type?: string) => {
+        if (storage_gb >= 1000) {
+            const tb = (storage_gb / 1000).toFixed(1);
+            return `${tb} TB ${storage_type || ''}`;
+        }
+        return `${storage_gb} GB ${storage_type || ''}`;
+    }
+
     return (
         <div className="min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -203,7 +221,7 @@ const PlanDetailPage = () => {
                         <Card className="border-2 hover:shadow-lg transition-shadow animate-in fade-in slide-in-from-top duration-500">
                             <CardHeader className="text-center pb-6">
                                 <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
-                                    <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white">
+                                    <div className="p-4 rounded-2xl bg-linear-to-br from-blue-400 to-blue-600 text-white">
                                         <Server className="h-12 w-12" />
                                     </div>
                                     <div className="text-center sm:text-left">
@@ -228,22 +246,22 @@ const PlanDetailPage = () => {
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 dark:border dark:border-blue-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
+                                    <div className="text-center p-4 rounded-lg bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 dark:border dark:border-blue-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
                                         <Cpu className="h-8 w-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                         <div className="text-2xl font-bold">{plan.vcpu}</div>
                                         <div className="text-sm text-muted-foreground">Cores</div>
                                     </div>
-                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 dark:border dark:border-green-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
+                                    <div className="text-center p-4 rounded-lg bg-linear-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 dark:border dark:border-green-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
                                         <Zap className="h-8 w-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                         <div className="text-2xl font-bold">{plan.ram_gb} GB</div>
                                         <div className="text-sm text-muted-foreground">RAM</div>
                                     </div>
-                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 dark:border dark:border-purple-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
+                                    <div className="text-center p-4 rounded-lg bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 dark:border dark:border-purple-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
                                         <HardDrive className="h-8 w-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                                        <div className="text-2xl font-bold">{plan.storage_gb} GB</div>
+                                        <div className="text-2xl font-bold">{getDiskSize(plan.storage_gb)}</div>
                                         <div className="text-sm text-muted-foreground">{plan.storage_type}</div>
                                     </div>
-                                    <div className="text-center p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 dark:border dark:border-orange-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
+                                    <div className="text-center p-4 rounded-lg bg-linear-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 dark:border dark:border-orange-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
                                         <Gauge className="h-8 w-8 text-orange-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                         <div className="text-2xl font-bold">{getNetworkSpeed(plan.bandwidth_mbps)}</div>
                                         <div className="text-sm text-muted-foreground">Network</div>
@@ -263,7 +281,7 @@ const PlanDetailPage = () => {
                                 <div className="grid md:grid-cols-2 gap-3">
                                     {getPlanFeatures().map((feature, index) => (
                                         <div key={index} className="flex items-center gap-3 group">
-                                            <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                                            <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
                                             <span>{feature}</span>
                                         </div>
                                     ))}
@@ -311,19 +329,11 @@ const PlanDetailPage = () => {
                                         </SelectTrigger>
 
                                         <SelectContent>
-                                            {operatingSystemOptions
-                                                .filter(os => {
-                                                    if (plan.ram_gb < 4 || plan.vcpu < 4) {
-                                                        return os.template_os !== 'windows';
-                                                    }
-                                                    return true;
-                                                })
-                                                .map((os) => (
-                                                    <SelectItem key={os.value} value={os.value}>
-                                                        {os.label}
-                                                    </SelectItem>
-                                                ))
-                                            }
+                                            {operatingSystemOptions.map((os) => (
+                                                <SelectItem key={os.value} value={os.value}>
+                                                    {os.label}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -355,7 +365,7 @@ const PlanDetailPage = () => {
                                     </Select>
                                 </div>
 
-                                <Separator className='bg-gradient-to-r from-transparent via-accent to-transparent' />
+                                <Separator className='bg-linear-to-r from-transparent via-accent to-transparent' />
 
                                 {/* Pricing Summary */}
                                 <div className="space-y-3">
@@ -389,7 +399,7 @@ const PlanDetailPage = () => {
                                     </div>
                                 </div>
 
-                                <Separator className='bg-gradient-to-r from-transparent via-accent to-transparent' />
+                                <Separator className='bg-linear-to-r from-transparent via-accent to-transparent' />
 
                                 {/* Action Buttons */}
                                 <Button

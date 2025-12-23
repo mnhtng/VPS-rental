@@ -32,10 +32,7 @@ interface VMConfig {
 }
 
 const useProxmox = () => {
-    /**
-     * Get VNC connection info for a VM
-     */
-    const getVNCInfo = async (vmId: string) => {
+    const getVNCInfo = async (vmId: number) => {
         try {
             const response = await apiPattern(
                 `${process.env.NEXT_PUBLIC_API_URL}/proxmox/vms/${vmId}/vnc`,
@@ -77,7 +74,7 @@ const useProxmox = () => {
     /**
      * Get VM live status
      */
-    const getVMStatus = async (vmId: string) => {
+    const getVMStatus = async (vmId: number) => {
         try {
             const response = await apiPattern(
                 `${process.env.NEXT_PUBLIC_API_URL}/proxmox/vms/${vmId}/status`,
@@ -119,7 +116,7 @@ const useProxmox = () => {
     /**
      * Get VM configuration
      */
-    const getVMConfig = async (vmId: string) => {
+    const getVMConfig = async (vmId: number) => {
         try {
             const response = await apiPattern(
                 `${process.env.NEXT_PUBLIC_API_URL}/proxmox/vms/${vmId}/config`,
@@ -158,10 +155,7 @@ const useProxmox = () => {
         }
     };
 
-    /**
-     * Start VM
-     */
-    const startVM = async (vmId: string) => {
+    const startVM = async (vmId: number) => {
         try {
             const response = await apiPattern(
                 `${process.env.NEXT_PUBLIC_API_URL}/proxmox/vms/${vmId}/start`,
@@ -203,7 +197,7 @@ const useProxmox = () => {
     /**
      * Stop VM
      */
-    const stopVM = async (vmId: string) => {
+    const stopVM = async (vmId: number) => {
         try {
             const response = await apiPattern(
                 `${process.env.NEXT_PUBLIC_API_URL}/proxmox/vms/${vmId}/stop`,
@@ -245,7 +239,7 @@ const useProxmox = () => {
     /**
      * Reboot VM
      */
-    const rebootVM = async (vmId: string) => {
+    const rebootVM = async (vmId: number) => {
         try {
             const response = await apiPattern(
                 `${process.env.NEXT_PUBLIC_API_URL}/proxmox/vms/${vmId}/reboot`,

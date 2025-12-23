@@ -153,11 +153,47 @@ const useMember = () => {
         }
     }
 
+    const getUserTotalRevenue = async (month?: number, signal?: AbortSignal): Promise<ApiResponse> => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/orders/user/total-revenue${month ? `?month=${month}` : ''}`, {
+                method: 'GET',
+                signal,
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Get user total revenue failed",
+                    error: {
+                        code: "GET_USER_TOTAL_REVENUE_FAILED",
+                        detail: result.detail,
+                    }
+                }
+            }
+
+            return {
+                data: result as number,
+            }
+        } catch (error) {
+            return {
+                message: "Get user total revenue failed",
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'GET_USER_TOTAL_REVENUE_FAILED',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An error occurred while fetching the user total revenue",
+                }
+            }
+        }
+    }
+
     return {
         getProfile,
         updateProfile,
         changePassword,
         getOrders,
+        getUserTotalRevenue,
     }
 }
 

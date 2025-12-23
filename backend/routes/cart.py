@@ -5,12 +5,12 @@ from sqlmodel import Session, select
 import logging
 
 from backend.db import get_session
-from backend.models import Cart, VMTemplate, VPSPlan, ProxmoxVM
+from backend.models import Cart, VMTemplate, VPSPlan, ProxmoxVM, User
 from backend.schemas import (
     CartAdd,
     CartResponse,
 )
-from backend.utils import get_current_user, get_admin_user
+from backend.utils import get_current_user, normalize_hostname
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/cart", tags=["Cart"])
 )
 async def get_cart(
     session: Session = Depends(get_session),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Retrieve the shopping cart for the current user.
@@ -69,7 +69,7 @@ async def get_cart(
 )
 async def get_cart_total(
     session: Session = Depends(get_session),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get the total number of items in the current user's cart.
@@ -112,7 +112,7 @@ async def get_cart_total(
 async def add_to_cart(
     cart_data: CartAdd,
     session: Session = Depends(get_session),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Add a VPS plan to the shopping cart for the current user.
@@ -186,7 +186,7 @@ async def add_to_cart(
             user_id=current_user.id,
             vps_plan_id=plan.id,
             template_id=template.id,
-            hostname=cart_data.hostname,
+            hostname=normalize_hostname(cart_data.hostname),
             os=cart_data.os,
             duration_months=cart_data.duration_months,
             unit_price=plan.monthly_price,
@@ -217,7 +217,7 @@ async def add_to_cart(
 )
 async def clear_cart(
     session: Session = Depends(get_session),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Clear the shopping cart for the current user.
@@ -261,7 +261,7 @@ async def clear_cart(
 async def remove_cart_item(
     cart_id: uuid.UUID,
     session: Session = Depends(get_session),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Remove a specific item from the current user's cart.

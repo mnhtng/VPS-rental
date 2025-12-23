@@ -39,6 +39,7 @@ const VPSWelcomePDF = ({
     },
     credentials = {
         ipAddress: "192.168.1.1",
+        subIpAddress: "10.10.1.1",
         username: "root",
         password: "********",
         sshPort: 22,
@@ -119,8 +120,16 @@ const VPSWelcomePDF = ({
 
                         <View style={styles.credentialsGrid}>
                             <View style={styles.credentialBox}>
-                                <Text style={styles.credLabel}>IP Address</Text>
-                                <Text style={styles.credValue}>{credentials.ipAddress}</Text>
+                                <Text style={styles.credLabel}>
+                                    IP Address 1
+                                    <Text style={styles.separate}> | </Text>
+                                    IP Address 2
+                                </Text>
+                                <Text style={styles.credValue}>
+                                    {credentials.ipAddress}
+                                    <Text style={styles.separate}> | </Text>
+                                    {credentials.subIpAddress}
+                                </Text>
                             </View>
                             <View style={styles.credentialBox}>
                                 <Text style={styles.credLabel}>SSH Port</Text>
@@ -282,6 +291,9 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontFamily: 'Roboto',
         backgroundColor: '#ffffff',
+    },
+    separate: {
+        color: "#5EEAD4",
     },
 
     // HEADER
