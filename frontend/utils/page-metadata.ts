@@ -12,7 +12,7 @@ export async function generatePageMetadata({
     locale,
     page,
     path = '',
-    robots = true,
+    robots = false,
     twitterCard = 'summary_large_image',
     image = "/logo.png",
 
@@ -76,7 +76,7 @@ export async function generateDynamicPageMetadata({
     page,
     path = '',
     data = null,
-    robots = true,
+    robots = false,
     twitterCard = 'summary_large_image',
     image = "/logo.png",
 }: {

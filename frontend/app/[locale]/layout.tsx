@@ -12,6 +12,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { notFound } from 'next/navigation';
 import ClickSpark from "@/components/ClickSpark";
+
 import "@/styles/globals.css";
 import "@/styles/styles.css";
 

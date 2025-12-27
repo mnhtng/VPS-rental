@@ -1,8 +1,16 @@
 "use client"
 
 import {
+    Aperture,
     ChevronsUpDown,
+    Cloud,
+    HelpCircle,
+    Home,
+    Loader,
     LogOut,
+    Package,
+    Server,
+    User,
 } from "lucide-react"
 
 import {
@@ -23,24 +31,54 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
-import { logout } from "@/utils/auth"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
-import { ThemeSwitcherDropdown } from '@/components/custom/theme/theme-switcher-dropdown'
+import { useState } from "react"
+import { toast } from "sonner"
+import { useLocale, useTranslations } from "next-intl"
+import { useAuth } from '@/contexts/AuthContext';
+import Link from "next/link"
+import { AnimatedThemeToggler } from "@/components/theme/animated-theme-toggler"
+import { LanguageBadge } from "@/components/ui/language-badge"
 
 export function AdminNavUser() {
-    const { isMobile } = useSidebar()
-
+    const locale = useLocale()
+    const { isMobile, open } = useSidebar()
     const { data: session } = useSession()
+    const t = useTranslations('header')
+    const { logout } = useAuth()
 
-    const onLogout = async () => {
-        await logout()
-        window.location.href = "/"
-    }
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const navigation = [
+        { name: t('home'), href: `/${locale}`, icon: Home },
+        { name: t('plans'), href: `/${locale}/plans`, icon: Server },
+        { name: t('support'), href: `/${locale}/support`, icon: HelpCircle },
+    ]
+
+    const handleLogout = async () => {
+        try {
+            setIsLoggingOut(true);
+            await logout();
+            toast.success('Logged out successfully');
+        } catch {
+            toast.error('Failed to logout', {
+                description: 'Please try again later',
+            });
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
 
     return (
         <SidebarMenu>
             <SidebarMenuItem>
+                <div className={`flex items-center justify-between gap-4 px-4 py-2 ${open ? 'flex-row' : 'flex-col'}`}>
+                    <AnimatedThemeToggler />
+
+                    <LanguageBadge minimal={open ? false : true} />
+                </div>
+
                 <DropdownMenu modal={isMobile ? true : false}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
@@ -61,7 +99,7 @@ export function AdminNavUser() {
                                     />
                                 ) : (
                                     <AvatarFallback className="rounded-lg">
-                                        US
+                                        {session?.user.name?.charAt(0).toUpperCase()}
                                     </AvatarFallback>
                                 )}
                             </Avatar>
@@ -97,7 +135,7 @@ export function AdminNavUser() {
                                         />
                                     ) : (
                                         <AvatarFallback className="rounded-lg">
-                                            US
+                                            {session?.user.name?.charAt(0).toUpperCase()}
                                         </AvatarFallback>
                                     )}
                                 </Avatar>
@@ -110,21 +148,70 @@ export function AdminNavUser() {
 
                         <DropdownMenuSeparator />
 
-                        <DropdownMenuItem className="p-0">
-                            <ThemeSwitcherDropdown className="w-full flex items-center justify-start font-normal">
-                                Theme
-                            </ThemeSwitcherDropdown>
+                        {navigation.map((item) => (
+                            <DropdownMenuItem asChild key={item.name}>
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className="flex items-center"
+                                >
+                                    <item.icon className="mr-2 h-4 w-4" />
+                                    {item.name}
+                                </Link>
+                            </DropdownMenuItem>
+                        ))}
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem asChild>
+                            <Link href={`/${locale}/profile`} className="flex items-center">
+                                <User className="mr-2 h-4 w-4" />
+                                {t('profile')}
+                            </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                            <Link href={`/${locale}/my-orders`} className="flex items-center">
+                                <Package className="mr-2 h-4 w-4" />
+                                {t('my_orders')}
+                            </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                            <Link href={`/${locale}/my-tickets`} className="flex items-center">
+                                <Aperture className="mr-2 h-4 w-4" />
+                                {t('my_tickets')}
+                            </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem asChild>
+                            <Link href={`/${locale}/client-dashboard`} className="flex items-center">
+                                <Cloud className="mr-2 h-4 w-4" />
+                                {t('manage_vps')}
+                            </Link>
                         </DropdownMenuItem>
 
                         <DropdownMenuSeparator />
 
                         <DropdownMenuItem
-                            className="cursor-pointer px-[10px]"
-                            onClick={onLogout}
+                            className="cursor-pointer px-2.5"
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
                         >
                             <LogOut stroke="red" />
-                            <span className="text-red-500">
-                                Log out
+                            <span className={`text-red-500 ${isLoggingOut ? 'opacity-70 flex items-center' : ''}`}>
+                                {isLoggingOut ? (
+                                    <>
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                        Logging out...
+                                    </>
+                                ) : (
+                                    <>
+                                        {t('logout')}
+                                    </>
+                                )}
                             </span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>

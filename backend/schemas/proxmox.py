@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
-from backend.schemas import ProxmoxVMPublic
+from backend.schemas import ProxmoxVMResponse
 
 
 class VMPowerAction(str, Enum):
@@ -58,7 +58,7 @@ class VMInfoResponse(BaseModel):
     """Comprehensive VM information"""
 
     node_name: str = Field(..., description="Proxmox node name")
-    vm: Optional[ProxmoxVMPublic] = Field(None, description="VM basic information")
+    vm: Optional[ProxmoxVMResponse] = Field(None, description="VM basic information")
     vm_info: Dict[str, Any] = Field(
         default_factory=dict, description="Detailed VM information from Proxmox"
     )

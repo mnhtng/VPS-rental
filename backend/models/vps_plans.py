@@ -110,7 +110,7 @@ class VPSPlan(SQLModel, table=True):
         max_length=10,
     )
     max_snapshots: int = Field(
-        default=3,
+        default=1,
         nullable=False,
     )
     max_ip_addresses: int = Field(

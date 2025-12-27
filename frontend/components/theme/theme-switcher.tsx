@@ -89,13 +89,9 @@ function ThemeSwitcher() {
 
   // Handle theme change animation
   const handleThemeChange = async (value: string) => {
-    if (
-      !themeRef.current ||
-      !document.startViewTransition ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
+    if (!themeRef.current) {
       setTheme(value);
-      return
+      return;
     }
 
     await document.startViewTransition(() => {
@@ -107,11 +103,9 @@ function ThemeSwitcher() {
     const { top, left, width, height } = themeRef.current.getBoundingClientRect();
     const x = left + width / 2;
     const y = top + height / 2;
-    const right = window.innerWidth - left;
-    const bottom = window.innerHeight - top;
     const maxRadius = Math.hypot(
-      Math.max(left, right),
-      Math.max(top, bottom),
+      Math.max(left, window.innerWidth - left),
+      Math.max(top, window.innerHeight - top),
     );
 
     document.documentElement.animate(
@@ -122,7 +116,7 @@ function ThemeSwitcher() {
         ],
       },
       {
-        duration: 800,
+        duration: 400,
         easing: 'ease-in-out',
         pseudoElement: '::view-transition-new(root)',
       }

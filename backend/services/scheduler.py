@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -16,16 +16,18 @@ from backend.dependencies import ProxmoxConnection
 
 logger = logging.getLogger(__name__)
 
+# Grace period before terminating suspended VPS (in hours)
+GRACE_PERIOD_HOURS = 24
+
 
 class VPSCleanupScheduler:
     """
     Scheduler for automatic VPS expiration cleanup.
 
     This scheduler runs every 5 minutes to check for expired VPS instances
-    and terminates them by:
-    1. Stopping the VM on Proxmox (with retry until success)
-    2. Deleting the VM from Proxmox
-    3. Updating the VPS instance status to 'terminated'
+    and handles them in two phases:
+    1. Phase 1: Suspend expired active VPS (stop VM, set status to 'suspended')
+    2. Phase 2: Terminate VPS that have been expired for 24+ hours (delete VM)
     """
 
     def __init__(self, check_interval_minutes: int = 5):
@@ -69,35 +71,148 @@ class VPSCleanupScheduler:
         """
         Main cleanup job that runs periodically.
 
-        Finds all expired VPS instances and terminates them.
+        Implements 2-phase cleanup:
+        - Phase 1: Suspend expired active VPS
+        - Phase 2: Terminate VPS that have been expired for 24+ hours
         """
         logger.info(">>> Running VPS expiration cleanup check...")
 
         try:
             with Session(engine) as session:
                 now = datetime.now(timezone.utc)
-                statement = select(VPSInstance).where(
-                    VPSInstance.expires_at < now,
-                    VPSInstance.status.notin_(["terminated", "error"]),
-                )
-                expired_vps_list = session.exec(statement).all()
+                grace_period_cutoff = now - timedelta(hours=GRACE_PERIOD_HOURS)
 
-                if not expired_vps_list:
-                    logger.info(">>> Cleanup check: No expired VPS instances found")
-                    return
+                # Phase 1
+                await self._suspend_expired_vps(session, now)
 
-                logger.info(
-                    f">>> Cleanup check: Found {len(expired_vps_list)} expired VPS instance(s)"
-                )
-
-                for vps in expired_vps_list:
-                    await self._terminate_vps(session, vps)
+                # Phase 2
+                await self._terminate_suspended_vps(session, grace_period_cutoff)
         except Exception as e:
             logger.error(f">>> Error during VPS cleanup: {str(e)}", exc_info=True)
 
+    async def _suspend_expired_vps(self, session: Session, now: datetime):
+        """
+        Phase 1: Suspend expired active VPS instances.
+
+        Finds VPS where expires_at < now AND status = 'active',
+        stops the VM and sets status to 'suspended'.
+
+        Args:
+            session: Database session
+            now: Current UTC datetime
+        """
+        statement = select(VPSInstance).where(
+            VPSInstance.expires_at < now,
+            VPSInstance.status == "active",
+        )
+        expired_active_vps = session.exec(statement).all()
+
+        if not expired_active_vps:
+            logger.info(">>> Phase 1: No expired active VPS instances found")
+            return
+
+        logger.info(
+            f">>> Phase 1: Found {len(expired_active_vps)} expired active VPS instance(s) to suspend"
+        )
+
+        for vps in expired_active_vps:
+            await self._suspend_vps(session, vps)
+
+    async def _suspend_vps(self, session: Session, vps: VPSInstance):
+        """
+        Suspend a single VPS instance (stop VM, don't delete).
+
+        Args:
+            session: Database session
+            vps: VPS instance to suspend
+        """
+        logger.info(
+            f">>> Suspending VPS {vps.id} - expired at: {vps.expires_at.isoformat()}"
+        )
+
+        try:
+            if not vps.vm_id:
+                logger.warning(
+                    f">>> VPS {vps.id} has no VM linked, marking as suspended"
+                )
+                vps.status = "suspended"
+                session.add(vps)
+                session.commit()
+                return
+
+            vm = session.get(ProxmoxVM, vps.vm_id)
+            if not vm:
+                logger.warning(
+                    f">>> VM {vps.vm_id} not found for VPS {vps.id}, marking as suspended"
+                )
+                vps.status = "suspended"
+                session.add(vps)
+                session.commit()
+                return
+
+            node = session.get(ProxmoxNode, vm.node_id)
+            if not node:
+                logger.warning(
+                    f">>> Node {vm.node_id} not found for VM {vm.vmid}, marking VPS as error"
+                )
+                vps.status = "error"
+                session.add(vps)
+                session.commit()
+                return
+
+            proxmox = CommonProxmoxService.get_connection()
+
+            await self._stop_vm_with_retry(proxmox, node.name, vm.vmid)
+
+            vps.status = "suspended"
+            vm.power_status = "stopped"
+            session.add(vps)
+            session.add(vm)
+            session.commit()
+
+            logger.info(f">>> VPS {vps.id} suspended successfully")
+        except Exception as e:
+            logger.error(
+                f">>> Failed to suspend VPS {vps.id}: {str(e)}", exc_info=True
+            )
+            try:
+                vps.status = "error"
+                session.add(vps)
+                session.commit()
+            except Exception:
+                session.rollback()
+
+    async def _terminate_suspended_vps(self, session: Session, grace_period_cutoff: datetime):
+        """
+        Phase 2: Terminate VPS that have been expired for 24+ hours.
+
+        Finds VPS where expires_at < (now - 24h) AND status = 'suspended',
+        deletes the VM and sets status to 'terminated'.
+
+        Args:
+            session: Database session
+            grace_period_cutoff: Datetime threshold (now - 24 hours)
+        """
+        statement = select(VPSInstance).where(
+            VPSInstance.expires_at < grace_period_cutoff,
+            VPSInstance.status == "suspended",
+        )
+        suspended_vps_list = session.exec(statement).all()
+
+        if not suspended_vps_list:
+            logger.info(">>> Phase 2: No suspended VPS instances past grace period")
+            return
+
+        logger.info(
+            f">>> Phase 2: Found {len(suspended_vps_list)} suspended VPS instance(s) to terminate"
+        )
+
+        for vps in suspended_vps_list:
+            await self._terminate_vps(session, vps)
+
     async def _terminate_vps(self, session: Session, vps: VPSInstance):
         """
-        Terminate a single VPS instance.
+        Terminate a single VPS instance (delete VM from Proxmox).
 
         Args:
             session: Database session

@@ -10,6 +10,23 @@ export interface User {
     role: 'USER' | 'ADMIN';
     created_at: string;
     updated_at?: string;
+    account?: Account;
+}
+
+export interface Account {
+    id: string;
+    type: string;
+    provider: string;
+    provider_account_id: string;
+    refresh_token?: string;
+    access_token?: string;
+    expires_at?: number;
+    token_type?: string;
+    scope?: string;
+    id_token?: string;
+    session_state?: string;
+    created_at: string;
+    updated_at?: string;
 }
 
 export interface Login {
@@ -45,6 +62,113 @@ export interface PasswordChange {
     new_password: string;
 }
 
+export interface AdminUserCreate {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    address?: string;
+    role?: 'USER' | 'ADMIN';
+    verify_email?: boolean;
+}
+
+export interface AdminUserUpdate {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    role?: 'USER' | 'ADMIN';
+    verify_email?: boolean;
+}
+
+export interface UserStatistics {
+    total: number;
+    admins: number;
+    verified: number;
+}
+
+export interface VPSStatistics {
+    total: number;
+    active: number;
+    suspended: number;
+    terminated: number;
+    creating: number;
+    error: number;
+}
+
+export interface DashboardStats {
+    total_users: number;
+    user_growth: number;
+    active_vps: number;
+    vps_growth: number;
+    monthly_revenue: number;
+    revenue_growth: number;
+    monthly_orders: number;
+    order_growth: number;
+    vps_status: {
+        running: number;
+        stopped: number;
+        terminated: number;
+    };
+    recent_orders: RecentOrder[];
+    revenue_chart: { month: string; revenue: number }[];
+}
+
+export interface RecentOrder {
+    id: string;
+    order_number: string;
+    customer_name: string;
+    amount: number;
+    status: 'paid' | 'pending' | 'cancelled';
+    plan: string;
+    created_at: string;
+}
+
+export interface AnalyticsStats {
+    vps_by_plan: VPSByPlanData[];
+    vps_by_os: VPSByOSData[];
+    monthly_revenue: AnalyticsMonthlyRevenue[];
+    user_growth: UserGrowthData[];
+    payment_methods: PaymentMethodData[];
+    summary: AnalyticsSummary;
+}
+
+export interface VPSByPlanData {
+    plan: string;
+    count: number;
+    revenue: number;
+}
+
+export interface VPSByOSData {
+    os: string;
+    count: number;
+}
+
+export interface AnalyticsMonthlyRevenue {
+    month: string;
+    revenue: number;
+    orders: number;
+}
+
+export interface UserGrowthData {
+    month: string;
+    users: number;
+}
+
+export interface PaymentMethodData {
+    method: string;
+    count: number;
+    amount: number;
+}
+
+export interface AnalyticsSummary {
+    total_vps: number;
+    total_users: number;
+    yearly_revenue: number;
+    yearly_orders: number;
+}
+
+
 export interface VPSPlan {
     id: string;
     name: string;
@@ -62,6 +186,45 @@ export interface VPSPlan {
     max_ip_addresses?: number;
     created_at: string;
     updated_at?: string;
+}
+
+export interface VPSPlanCreate {
+    name: string;
+    description?: string;
+    category: 'basic' | 'standard' | 'premium';
+    use_case?: string[];
+    vcpu: number;
+    ram_gb: number;
+    storage_type: 'SSD' | 'NVMe';
+    storage_gb: number;
+    bandwidth_mbps: number;
+    monthly_price: number;
+    currency?: 'USD' | 'VND';
+    max_snapshots?: number;
+    max_ip_addresses?: number;
+}
+
+export interface VPSPlanUpdate {
+    name?: string;
+    description?: string;
+    category?: 'basic' | 'standard' | 'premium';
+    use_case?: string[];
+    vcpu?: number;
+    ram_gb?: number;
+    storage_type?: 'SSD' | 'NVMe';
+    storage_gb?: number;
+    bandwidth_mbps?: number;
+    monthly_price?: number;
+    currency?: 'USD' | 'VND';
+    max_snapshots?: number;
+    max_ip_addresses?: number;
+}
+
+export interface VPSPlanStatistics {
+    total: number;
+    basic: number;
+    standard: number;
+    premium: number;
 }
 
 export interface VMTemplate {
@@ -234,6 +397,38 @@ export interface OrderPaymentsResponse {
         status: string;
         created_at: string;
     }>;
+}
+
+export interface OrderStatistics {
+    total_orders: number;
+    paid_orders: number;
+    pending_orders: number;
+    cancelled_orders: number;
+    total_revenue: number;
+    pending_amount: number;
+    average_order: number;
+}
+
+export interface MonthlyRevenue {
+    month: string;
+    revenue: number;
+    orders: number;
+}
+
+export interface AdminOrder {
+    id: string;
+    order_number: string;
+    price: number;
+    status: 'pending' | 'paid' | 'cancelled';
+    payment_status?: string;
+    payment_method?: string;
+    billing_address?: string;
+    billing_phone?: string;
+    note?: string;
+    created_at: string;
+    updated_at: string;
+    user?: User;
+    order_items: OrderItemDetail[];
 }
 
 export interface CheckoutFormData {

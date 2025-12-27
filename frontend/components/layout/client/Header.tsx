@@ -52,7 +52,6 @@ const ClientHeader = () => {
                 <LanguageBadge />
 
                 <DropdownMenu>
-                    {/* bỏ focus ring */}
                     <DropdownMenuTrigger className="focus:outline-none">
                         <AnimatedCloudIcon size={36} />
                     </DropdownMenuTrigger>

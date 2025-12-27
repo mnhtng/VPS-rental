@@ -107,15 +107,71 @@ async def get_vps_plan(plan_id: uuid.UUID, session: Session = Depends(get_sessio
         )
 
 
+@router.post(
+    "/",
+    response_model=VPSPlanResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="[Admin] Create a new VPS plan",
+    description="Create a new VPS plan (Admin only)",
+)
+async def create_vps_plan(
+    plan_data: VPSPlanCreate,
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    Create a new VPS plan (Admin only)
+
+    Args:
+        plan_data (VPSPlanCreate): The data for the new VPS plan
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+
+    Raises:
+        HTTPException: 401 if the user is not authenticated
+        HTTPException: 403 if the user is not an admin
+        HTTPException: 500 if there is an error creating the VPS plan
+
+    Returns:
+        VPSPlan: The newly created VPS plan object.
+    """
+    try:
+        existing_plan = session.exec(
+            select(VPSPlan).where(VPSPlan.name == plan_data.name)
+        ).first()
+        
+        if existing_plan:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A plan with this name already exists",
+            )
+
+        plan = VPSPlan(**plan_data.model_dump())
+        session.add(plan)
+        session.commit()
+        session.refresh(plan)
+
+        return plan
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Error creating VPS plan: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error creating VPS plan",
+        )
+
+
 @router.put(
     "/{plan_id}",
     response_model=VPSPlanResponse,
     status_code=status.HTTP_200_OK,
-    summary="Update a VPS plan",
+    summary="[Admin] Update a VPS plan",
     description="Update the details of a VPS plan (Admin only)",
 )
 async def update_vps_plan(
-    plan_id: int,
+    plan_id: uuid.UUID,
     plan_update: VPSPlanUpdate,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
@@ -169,11 +225,11 @@ async def update_vps_plan(
 @router.delete(
     "/{plan_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete a VPS plan",
+    summary="[Admin] Delete a VPS plan",
     description="Delete a VPS plan (Admin only)",
 )
 async def delete_vps_plan(
-    plan_id: int,
+    plan_id: uuid.UUID,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
 ):

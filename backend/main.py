@@ -19,7 +19,9 @@ from backend.routes import (
     payment_router,
     vnc_websocket_router,
     orders_router,
+    orders_admin_router,
     support_router,
+    dashboard_admin_router,
 )
 
 
@@ -88,9 +90,11 @@ app.include_router(users_router, prefix=api_prefix)
 app.include_router(vps_plans_router, prefix=api_prefix)
 app.include_router(cart_router, prefix=api_prefix)
 app.include_router(orders_router, prefix=api_prefix)
+app.include_router(orders_admin_router, prefix=api_prefix)
 app.include_router(payment_router, prefix=api_prefix)
 app.include_router(promotion_router, prefix=api_prefix)
 app.include_router(support_router, prefix=api_prefix)
+app.include_router(dashboard_admin_router, prefix=api_prefix)
 app.include_router(vps_router, prefix=api_prefix)
 app.include_router(vps_admin_router, prefix=api_prefix)
 app.include_router(vnc_websocket_router, prefix=api_prefix)

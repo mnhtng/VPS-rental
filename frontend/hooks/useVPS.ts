@@ -196,8 +196,6 @@ const useVPS = () => {
                 };
             }
 
-            console.log('>>> Fetched VPS RRD data:', result);
-
             return {
                 message: 'Get VPS RRD data successful',
                 data: result,

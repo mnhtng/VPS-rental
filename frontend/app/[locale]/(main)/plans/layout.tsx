@@ -11,7 +11,8 @@ export async function generateMetadata({
     return generatePageMetadata({
         locale,
         page: 'plans',
-        path: '/plans'
+        path: '/plans',
+        robots: true
     });
 }
 

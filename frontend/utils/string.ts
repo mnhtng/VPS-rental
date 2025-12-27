@@ -40,7 +40,7 @@ export const generateOrderNumber = () => {
     return `VPS-${timestamp}-${randomStr}`;
 }
 
-export const formatDate = (date: Date, locale: string = 'en'): string => {
+export const formatDate = (date: Date, locale: string = 'vi'): string => {
     return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
         year: 'numeric',
         month: '2-digit',
@@ -48,7 +48,7 @@ export const formatDate = (date: Date, locale: string = 'en'): string => {
     }).format(date);
 };
 
-export const formatTime = (time: Date, locale: string = 'en'): string => {
+export const formatTime = (time: Date, locale: string = 'vi'): string => {
     return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
         hour: '2-digit',
         minute: '2-digit',
@@ -56,7 +56,7 @@ export const formatTime = (time: Date, locale: string = 'en'): string => {
     }).format(time);
 };
 
-export const formatDateTime = (datetime: Date, locale: string = 'en'): string => {
+export const formatDateTime = (datetime: Date, locale: string = 'vi'): string => {
     return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
         year: 'numeric',
         month: '2-digit',

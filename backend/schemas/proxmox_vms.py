@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from .proxmox_clusters import ProxmoxClusterPublic
     from .proxmox_nodes import ProxmoxNodePublic
     from .vm_templates import VMTemplatePublic
+    from .vps_instances import VPSInstancePublic
     from .vps_snapshots import VPSSnapshotPublic
 
 
@@ -271,6 +272,9 @@ class ProxmoxVMResponse(ProxmoxVMPublic):
     )
     template: Optional[VMTemplatePublic] = Field(
         None, description="Associated VM template information"
+    )
+    vps_instance: Optional[VPSInstancePublic] = Field(
+        None, description="Associated VPS instance information"
     )
     snapshots: Optional[list[VPSSnapshotPublic]] = Field(
         None, description="List of associated VPS snapshots"

@@ -11,7 +11,8 @@ export async function generateMetadata({
     return generatePageMetadata({
         locale,
         page: 'support',
-        path: '/support'
+        path: '/support',
+        robots: true
     });
 }
 

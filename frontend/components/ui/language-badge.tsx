@@ -19,7 +19,11 @@ const languages = (t: (key: string) => string) => {
     ]
 };
 
-export function LanguageBadge() {
+export function LanguageBadge({
+    minimal = false,
+}: {
+    minimal?: boolean
+}) {
     const locale = useLocale();
     const t = useTranslations('language');
 
@@ -54,12 +58,12 @@ export function LanguageBadge() {
                 >
                     {isPending ? (
                         <div className="flex items-center gap-2">
-                            <Globe className="h-3 w-3" />
+                            <Globe className={`h-3 w-3 ${minimal ? 'hidden' : ''}`} />
                             <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <Globe className="h-3 w-3" />
+                            <Globe className={`h-3 w-3 ${minimal ? 'hidden' : ''}`} />
                             <span className="text-xs">{currentLanguage?.shortName || 'EN'}</span>
                         </div>
                     )}

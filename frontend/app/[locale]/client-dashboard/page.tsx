@@ -213,7 +213,7 @@ export default function ClientDashboard() {
                     <div className="ml-4 space-y-1">
                       <p className="text-sm font-medium leading-none">VPS Initialized</p>
                       <p className="text-xs text-muted-foreground">
-                        {vps.vm?.hostname || "Configuring"} - {formatDateTime(new Date(vps.created_at), locale)}
+                        {vps.vm?.hostname || "Configuring"} - {formatDateTime(new Date(vps.created_at))}
                       </p>
                     </div>
                   </div>

@@ -3767,7 +3767,7 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).status.stop.post()
+            task = proxmox.nodes(node).qemu(vmid).status.stop.post(node=node, vmid=vmid)
             return {
                 "success": True,
                 "task": task,
@@ -3791,7 +3791,11 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).status.shutdown.post()
+            task = (
+                proxmox.nodes(node)
+                .qemu(vmid)
+                .status.shutdown.post(node=node, vmid=vmid)
+            )
             return {
                 "success": True,
                 "task": task,
@@ -3815,7 +3819,9 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).status.reboot.post()
+            task = (
+                proxmox.nodes(node).qemu(vmid).status.reboot.post(node=node, vmid=vmid)
+            )
             return {
                 "success": True,
                 "task": task,
@@ -3839,7 +3845,9 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).status.reset.post()
+            task = (
+                proxmox.nodes(node).qemu(vmid).status.reset.post(node=node, vmid=vmid)
+            )
             return {
                 "success": True,
                 "task": task,
@@ -3863,7 +3871,9 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).status.suspend.post()
+            task = (
+                proxmox.nodes(node).qemu(vmid).status.suspend.post(node=node, vmid=vmid)
+            )
             return {
                 "success": True,
                 "task": task,
@@ -3887,7 +3897,9 @@ class ProxmoxVMService:
             Task ID and success status
         """
         try:
-            task = proxmox.nodes(node).qemu(vmid).status.resume.post()
+            task = (
+                proxmox.nodes(node).qemu(vmid).status.resume.post(node=node, vmid=vmid)
+            )
             return {
                 "success": True,
                 "task": task,

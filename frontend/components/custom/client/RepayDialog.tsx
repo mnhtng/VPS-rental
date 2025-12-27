@@ -13,7 +13,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Loader2, CreditCard, Wallet, Receipt } from "lucide-react"
+import { Loader, CreditCard, Wallet, Receipt } from "lucide-react"
 import { Order } from "@/types/types"
 import { formatPrice } from "@/utils/currency"
 import { formatDateTime } from "@/utils/string"
@@ -232,7 +232,7 @@ export default function RepayDialog({
                     <Button onClick={handleRepay} disabled={isLoading || !canRepay}>
                         {isLoading ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader className="mr-2 h-4 w-4 animate-spin" />
                                 Processing...
                             </>
                         ) : (

@@ -2,7 +2,7 @@
 
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
 import { VPSRRDDataPoint } from "@/types/types"
-import { Loader2 } from "lucide-react"
+import { Loader } from "lucide-react"
 
 interface UsageChartProps {
   data: VPSRRDDataPoint[];
@@ -33,7 +33,7 @@ export function UsageChart({ data, loading = false }: UsageChartProps) {
         {/* Loading Overlay */}
         <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/50 backdrop-blur-sm rounded-lg">
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            <Loader className="h-8 w-8 text-primary animate-spin" />
             <p className="text-sm text-muted-foreground font-medium">Loading chart data...</p>
           </div>
         </div>

@@ -74,10 +74,10 @@ class VPSService:
                 detail="You don't have permission to access this VPS",
             )
 
-        if vps.status == "terminated":
+        if vps.status in ["terminated", "error"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS has been terminated",
+                detail="VPS has been terminated or is in error state",
             )
 
         if not vps.vm_id:

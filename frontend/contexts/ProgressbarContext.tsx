@@ -1,6 +1,6 @@
 'use client';
 
-import { colorsHex } from '@/utils/color';
+import { colorsRGB } from '@/utils/color';
 import { ProgressProvider } from '@bprogress/next/app';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -22,7 +22,7 @@ const BProgressProviders = ({
     return (
         <ProgressProvider
             height="4px"
-            color={`${theme === 'dark' ? `rgb(${colorsHex.gold})` : `rgb(${colorsHex.purple})`}`}
+            color={`${theme === 'dark' ? `rgb(${colorsRGB.gold})` : `rgb(${colorsRGB.purple})`}`}
             options={{ showSpinner: false }}
             shallowRouting
         >

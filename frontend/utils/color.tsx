@@ -1,6 +1,6 @@
 "use client"
 
-export const colorsHex = {
+export const colorsRGB = {
     blue: '0 123 255',
     green: '40 167 69',
     yellow: '255 193 7',
@@ -31,6 +31,30 @@ export const colorsHex = {
     stone: '186 186 186',
     emerald: '4 211 97',
     sky: '96 165 250',
+}
+
+// Hex colors for charts and data visualization (one main color per group)
+export const colorsHex = {
+    green: '#22c55e',
+    blue: '#3b82f6',
+    violet: '#8b5cf6',
+    amber: '#f59e0b',
+    red: '#ef4444',
+    cyan: '#06b6d4',
+    pink: '#ec4899',
+    teal: '#14b8a6',
+    orange: '#f97316',
+    indigo: '#6366f1',
+    lime: '#84cc16',
+    purple: '#a855f7',
+    emerald: '#10b981',
+    rose: '#f43f5e',
+    sky: '#0ea5e9',
+    fuchsia: '#d946ef',
+    yellow: '#eab308',
+    slate: '#64748b',
+    gray: '#6b7280',
+    zinc: '#71717a',
 }
 
 export const colors = {

@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, or_, select, func
 from sqlalchemy.orm import selectinload
@@ -27,7 +28,7 @@ router = APIRouter(prefix="/users", tags=["User"])
     "/",
     response_model=List[UserResponse],
     status_code=status.HTTP_200_OK,
-    summary="Get a list of users",
+    summary="[Admin] Get a list of users",
     description="Retrieve a list of users with optional pagination (Admin only)",
 )
 async def get_users(
@@ -126,8 +127,8 @@ async def get_user(
     "/email/{email}",
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
-    summary="Get a user by email",
-    description="Retrieve a user by their email address",
+    summary="[Admin] Get a user by email",
+    description="Retrieve a user by their email address (Admin only)",
 )
 async def get_user_by_email(
     email: str,
@@ -173,7 +174,7 @@ async def get_user_by_email(
     "/count/",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
-    summary="Get total number of users",
+    summary="[Admin] Get total number of users",
     description="Retrieve the total count of users (Admin only)",
 )
 async def get_user_count(
@@ -210,7 +211,7 @@ async def get_user_count(
     "/",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create a new user",
+    summary="[Admin] Create a new user",
     description="Create a new user (Admin only)",
 )
 async def create_user(
@@ -246,8 +247,11 @@ async def create_user(
 
         hashed_password = hash_password(user_data.password)
 
-        user_dict = user_data.model_dump()
+        user_dict = user_data.model_dump(exclude={"verify_email"})
         user_dict["password"] = hashed_password
+
+        if user_data.verify_email:
+            user_dict["email_verified"] = datetime.now(timezone.utc)
 
         user = User(**user_dict)
         session.add(user)
@@ -270,7 +274,7 @@ async def create_user(
     "/{user_id}",
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
-    summary="Update a user",
+    summary="[Admin] Update a user",
     description="Update user information (Admin only)",
 )
 async def update_user(
@@ -313,9 +317,15 @@ async def update_user(
                     detail="Email already in use",
                 )
 
-        user_dict = user_data.model_dump(exclude_unset=True)
+        user_dict = user_data.model_dump(exclude_unset=True, exclude={"verify_email"})
         for key, value in user_dict.items():
             setattr(user, key, value)
+
+        # Handle email verification
+        if user_data.verify_email is True:
+            user.email_verified = datetime.now(timezone.utc)
+        elif user_data.verify_email is False:
+            user.email_verified = None
 
         session.add(user)
         session.commit()
@@ -336,7 +346,7 @@ async def update_user(
 @router.delete(
     "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete a user",
+    summary="[Admin] Delete a user",
     description="Delete user by ID (Admin only)",
 )
 async def delete_user(
@@ -385,7 +395,7 @@ async def delete_user(
     "/search/",
     response_model=List[UserResponse],
     status_code=status.HTTP_200_OK,
-    summary="Search users",
+    summary="[Admin] Search users",
     description="Search users by name, email, phone, address, or role (Admin only)",
 )
 async def search_users(

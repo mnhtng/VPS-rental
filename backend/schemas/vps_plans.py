@@ -49,7 +49,7 @@ class VPSPlanBase(BaseModel):
     bandwidth_mbps: int = Field(..., description="Bandwidth in Mbps")
     monthly_price: float = Field(..., description="Monthly price")
     currency: Currency = Field(default=Currency.VND, description="Currency")
-    max_snapshots: int = Field(default=3, description="Maximum snapshots allowed")
+    max_snapshots: int = Field(default=1, description="Maximum snapshots allowed")
     max_ip_addresses: int = Field(default=1, description="Maximum IP addresses")
 
     @field_validator("name")

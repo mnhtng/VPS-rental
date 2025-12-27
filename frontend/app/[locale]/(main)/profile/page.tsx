@@ -29,11 +29,9 @@ import ProfilePlaceholder from '@/components/custom/placeholder/profile';
 import useMember from '@/hooks/useMember';
 import { useSession } from 'next-auth/react';
 import { formatDate } from '@/utils/string';
-import { useLocale } from 'next-intl';
 
 const ProfilePage = () => {
     const { data: session } = useSession();
-    const locale = useLocale();
     const { getProfile, updateProfile, changePassword } = useMember();
 
     const [userInfo, setUserInfo] = useState<Profile | null>(null);
@@ -301,7 +299,7 @@ const ProfilePage = () => {
                                     </div>
 
                                     <p className="text-sm text-muted-foreground">
-                                        Member since {originalUserInfo?.joinedDate ? formatDate(new Date(originalUserInfo.joinedDate), locale) : 'N/A'}
+                                        Member since {originalUserInfo?.joinedDate ? formatDate(new Date(originalUserInfo.joinedDate)) : 'N/A'}
                                     </p>
                                 </div>
                             </div>
@@ -364,7 +362,7 @@ const ProfilePage = () => {
                                             id="joinedDate"
                                             name="joinedDate"
                                             placeholder='N/A'
-                                            value={userInfo?.joinedDate ? formatDate(new Date(userInfo.joinedDate), locale) : ''}
+                                            value={userInfo?.joinedDate ? formatDate(new Date(userInfo.joinedDate)) : ''}
                                             disabled
                                         />
                                     </div>

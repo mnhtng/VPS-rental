@@ -57,7 +57,7 @@ export interface PieChartProps {
     }
 }
 
-export function PieChartComponent({
+export const PieChartComponent = ({
     title,
     description,
     data,
@@ -76,7 +76,7 @@ export function PieChartComponent({
     showTooltip = true,
     showActiveSection = false,
     footerContent
-}: PieChartProps) {
+}: PieChartProps) => {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null)
 
     const activeIndex = useMemo(() => {
@@ -135,13 +135,13 @@ export function PieChartComponent({
                         config={chartConfig}
                         className="flex justify-center items-center"
                         style={{
-                            width: `${(outerRadius + strokeWidth) * 2 + 50}px`,
-                            height: `${(outerRadius + strokeWidth) * 2 + 50}px`
+                            width: `${(outerRadius + strokeWidth) * 2 + 100}px`,
+                            height: `${(outerRadius + strokeWidth) * 2 + 100}px`
                         }}
                     >
                         <PieChart
-                            width={(outerRadius + strokeWidth) * 2 + 50}
-                            height={(outerRadius + strokeWidth) * 2 + 50}
+                            width={(outerRadius + strokeWidth) * 2 + 100}
+                            height={(outerRadius + strokeWidth) * 2 + 100}
                         >
                             {showTooltip && (
                                 <ChartTooltip
@@ -260,163 +260,69 @@ export function PieChartComponent({
 }
 
 
-// const desktopData = [
-//     { month: "january", desktop: 186, fill: "var(--color-january)" },
-//     { month: "february", desktop: 305, fill: "var(--color-february)" },
-//     { month: "march", desktop: 237, fill: "var(--color-march)" },
-//     { month: "april", desktop: 173, fill: "var(--color-april)" },
-//     { month: "may", desktop: 209, fill: "var(--color-may)" },
-// ]
-// const chartConfig = {
-//     visitors: {
-//         label: "Visitors",
-//     },
-//     desktop: {
-//         label: "Desktop",
-//     },
-//     mobile: {
-//         label: "Mobile",
-//     },
-//     january: {
-//         label: "January",
-//         color: "var(--chart-1)",
-//     },
-//     february: {
-//         label: "February",
-//         color: "var(--chart-2)",
-//     },
-//     march: {
-//         label: "March",
-//         color: "var(--chart-3)",
-//     },
-//     april: {
-//         label: "April",
-//         color: "var(--chart-4)",
-//     },
-//     may: {
-//         label: "May",
-//         color: "var(--chart-5)",
-//     },
-// } satisfies ChartConfig
-// export function ChartPieInteractive() {
-//     const id = "pie-interactive"
-//     const [activeMonth, setActiveMonth] = React.useState(desktopData[0].month)
-//     const activeIndex = React.useMemo(
-//         () => desktopData.findIndex((item) => item.month === activeMonth),
-//         [activeMonth]
-//     )
-//     const months = React.useMemo(() => desktopData.map((item) => item.month), [])
-//
-//     return (
-//         <Card data-chart={id} className="flex flex-col">
-//             <ChartStyle id={id} config={chartConfig} />
-//
-//             <CardHeader className="flex-row items-start space-y-0 pb-0">
-//                 <div className="grid gap-1">
-//                     <CardTitle>Pie Chart - Interactive</CardTitle>
-//                     <CardDescription>January - June 2024</CardDescription>
-//                 </div>
-//
-//                 <Select value={activeMonth} onValueChange={setActiveMonth}>
-//                     <SelectTrigger
-//                         className="ml-auto h-7 w-[130px] rounded-lg pl-2.5"
-//                         aria-label="Select a value"
-//                     >
-//                         <SelectValue placeholder="Select month" />
-//                     </SelectTrigger>
-//                     <SelectContent align="end" className="rounded-xl">
-//                         {months.map((key) => {
-//                             const config = chartConfig[key as keyof typeof chartConfig]
-//                             if (!config) {
-//                                 return null
-//                             }
-//                             return (
-//                                 <SelectItem
-//                                     key={key}
-//                                     value={key}
-//                                     className="rounded-lg [&_span]:flex"
-//                                 >
-//                                     <div className="flex items-center gap-2 text-xs">
-//                                         <span
-//                                             className="flex h-3 w-3 shrink-0 rounded-xs"
-//                                             style={{
-//                                                 backgroundColor: `var(--color-${key})`,
-//                                             }}
-//                                         />
-//                                         {config?.label}
-//                                     </div>
-//                                 </SelectItem>
-//                             )
-//                         })}
-//                     </SelectContent>
-//                 </Select>
-//             </CardHeader>
-//
-//             <CardContent className="flex flex-1 justify-center pb-0">
-//                 <ChartContainer
-//                     id={id}
-//                     config={chartConfig}
-//                     className="mx-auto aspect-square w-full max-w-[300px]"
-//                 >
-//                     <PieChart>
-//                         <ChartTooltip
-//                             cursor={false}
-//                             content={<ChartTooltipContent hideLabel />}
-//                         />
-//                         <Pie
-//                             data={desktopData}
-//                             dataKey="desktop"
-//                             nameKey="month"
-//                             innerRadius={60}
-//                             strokeWidth={5}
-//                             activeIndex={activeIndex}
-//                             activeShape={({
-//                                 outerRadius = 0,
-//                                 ...props
-//                             }: PieSectorDataItem) => (
-//                                 <g>
-//                                     <Sector {...props} outerRadius={outerRadius + 10} />
-//                                     <Sector
-//                                         {...props}
-//                                         outerRadius={outerRadius + 25}
-//                                         innerRadius={outerRadius + 12}
-//                                     />
-//                                 </g>
-//                             )}
-//                         >
-//                             <Label
-//                                 content={({ viewBox }) => {
-//                                     if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-//                                         return (
-//                                             <text
-//                                                 x={viewBox.cx}
-//                                                 y={viewBox.cy}
-//                                                 textAnchor="middle"
-//                                                 dominantBaseline="middle"
-//                                             >
-//                                                 <tspan
-//                                                     x={viewBox.cx}
-//                                                     y={viewBox.cy}
-//                                                     className="fill-foreground text-3xl font-bold"
-//                                                 >
-//                                                     {desktopData[activeIndex].desktop.toLocaleString()}
-//                                                 </tspan>
-//                                                 <tspan
-//                                                     x={viewBox.cx}
-//                                                     y={(viewBox.cy || 0) + 24}
-//                                                     className="fill-muted-foreground"
-//                                                 >
-//                                                     Visitors
-//                                                 </tspan>
-//                                             </text>
-//                                         )
-//                                     }
-//                                 }}
-//                             />
-//                         </Pie>
-//                     </PieChart>
-//                 </ChartContainer>
-//             </CardContent>
-//         </Card>
-//     )
-// }
+// ========================================================================================
+// Pie Chart Example
+// ========================================================================================
+export const PieChartExample = () => {
+    const rawData = [
+        { intent: "product_inquiry", interactions: 1250, fill: "var(--chart-1)" },
+        { intent: "technical_support", interactions: 892, fill: "var(--chart-2)" },
+        { intent: "pricing_question", interactions: 654, fill: "var(--chart-3)" },
+        { intent: "booking_service", interactions: 487, fill: "var(--chart-4)" },
+        { intent: "general_greeting", interactions: 398, fill: "var(--chart-5)" },
+        { intent: "complaint_feedback", interactions: 234, fill: "var(--chart-6)" },
+    ]
+    const total = rawData.reduce((sum, d) => sum + d.interactions, 0)
+    const data = rawData.map(d => ({
+        category: d.intent,
+        value: d.interactions,
+        percentage: Math.round((d.interactions / total) * 1000) / 10, // 1 chữ số thập phân
+        fill: d.fill
+    }))
+
+    const chartConfig = {
+        interactions: {
+            label: "Interactions",
+        },
+        product_inquiry: {
+            label: "Product",
+            color: "var(--chart-1)",
+        },
+        technical_support: {
+            label: "Technical Support",
+            color: "var(--chart-2)",
+        },
+        pricing_question: {
+            label: "Pricing Questions",
+            color: "var(--chart-3)",
+        },
+        booking_service: {
+            label: "Booking Service",
+            color: "var(--chart-4)",
+        },
+        general_greeting: {
+            label: "General Greeting",
+            color: "var(--chart-5)",
+        },
+        complaint_feedback: {
+            label: "Complaints & Feedback",
+            color: "var(--chart-6)",
+        },
+    } satisfies ChartConfig
+
+    return (
+        <PieChartComponent
+            title="Top Popular Intent"
+            description="Most frequently detected intents from recent user interactions"
+            data={data}
+            chartConfig={chartConfig}
+            innerRadius={80}
+            outerRadius={120}
+            paddingAngle={2}
+            cornerRadius={3}
+            showLegend={true}
+            showTooltip={false}
+            showActiveSection={true}
+        />
+    )
+}

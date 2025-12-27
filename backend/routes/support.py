@@ -3,7 +3,7 @@ import logging
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlmodel import Session, select
 
 from backend.db import get_session
@@ -190,8 +190,8 @@ async def create_ticket(
     description="Update an existing support ticket",
 )
 async def update_ticket(
-    ticket_id: uuid.UUID,
     ticket_data: SupportTicketUpdate,
+    ticket_id: uuid.UUID = Path(..., description="The ticket UUID"),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
@@ -249,8 +249,8 @@ async def update_ticket(
     description="Add a reply to an existing support ticket",
 )
 async def add_reply_to_ticket(
-    ticket_id: uuid.UUID,
     reply_data: AddReplyRequest,
+    ticket_id: uuid.UUID = Path(..., description="The ticket UUID"),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
@@ -297,7 +297,6 @@ async def add_reply_to_ticket(
         )
 
         session.add(reply)
-        ticket.updated_at = datetime.now(timezone.utc)
         session.add(ticket)
         session.commit()
         session.refresh(reply)
@@ -320,6 +319,108 @@ async def add_reply_to_ticket(
 # ========================================================================
 
 
+@router.get(
+    "/admin/tickets",
+    response_model=List[SupportTicketResponse],
+    status_code=status.HTTP_200_OK,
+    summary="[Admin] Get all tickets",
+    description="Get all support tickets from all users (admin only)",
+)
+async def admin_get_all_tickets(
+    status_filter: Optional[str] = Query(None, alias="status"),
+    priority_filter: Optional[str] = Query(None, alias="priority"),
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    Get all tickets for admin management.
+
+    Args:
+        status_filter: Filter by status
+        priority_filter: Filter by priority
+        session: Database session
+        admin_user: The authenticated admin user
+
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 403 if not admin
+        HTTPException: 500 if fetching tickets fails
+
+    Returns:
+        List of all tickets
+    """
+    try:
+        statement = select(SupportTicket)
+
+        if status_filter and status_filter != "all":
+            statement = statement.where(SupportTicket.status == status_filter)
+        if priority_filter and priority_filter != "all":
+            statement = statement.where(SupportTicket.priority == priority_filter)
+
+        statement = statement.order_by(SupportTicket.created_at.desc())
+
+        tickets = session.exec(statement).all()
+
+        return tickets
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Error fetching all tickets: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch tickets",
+        )
+
+
+@router.get(
+    "/admin/tickets/statistics",
+    response_model=TicketStatisticsResponse,
+    status_code=status.HTTP_200_OK,
+    summary="[Admin] Get all ticket statistics",
+    description="Get ticket statistics for all users (admin only)",
+)
+async def admin_get_ticket_statistics(
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    Get ticket statistics for all tickets (admin only).
+
+    Args:
+        session: Database session
+        admin_user: The authenticated admin user
+
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 403 if not admin
+        HTTPException: 500 if fetching statistics fails
+
+    Returns:
+        Ticket statistics
+    """
+    try:
+        statement = select(SupportTicket)
+        tickets = session.exec(statement).all()
+
+        stats = {
+            "total": len(tickets),
+            "open": len([t for t in tickets if t.status == "open"]),
+            "in_progress": len([t for t in tickets if t.status == "in_progress"]),
+            "resolved": len([t for t in tickets if t.status == "resolved"]),
+            "closed": len([t for t in tickets if t.status == "closed"]),
+        }
+
+        return stats
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Error fetching ticket statistics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve statistics",
+        )
+
+
 @router.put(
     "/admin/tickets/{ticket_id}/status",
     response_model=SupportTicketResponse,
@@ -328,8 +429,8 @@ async def add_reply_to_ticket(
     description="Update the status of any ticket (admin only)",
 )
 async def admin_update_ticket_status(
-    ticket_id: uuid.UUID,
     status_data: UpdateTicketStatusRequest,
+    ticket_id: uuid.UUID = Path(..., description="The ticket UUID"),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
 ):
@@ -355,7 +456,6 @@ async def admin_update_ticket_status(
             )
 
         ticket.status = status_data.status
-        ticket.updated_at = datetime.now(timezone.utc)
         session.add(ticket)
         session.commit()
         session.refresh(ticket)
@@ -374,14 +474,14 @@ async def admin_update_ticket_status(
 
 @router.post(
     "/admin/tickets/{ticket_id}/replies",
-    response_model=SupportTicketReplyResponse,
+    response_model=SupportTicketResponse,
     status_code=status.HTTP_201_CREATED,
     summary="[Admin] Add reply to ticket",
     description="Add an admin reply to any support ticket",
 )
 async def admin_add_reply_to_ticket(
-    ticket_id: uuid.UUID,
     reply_data: AddReplyRequest,
+    ticket_id: uuid.UUID = Path(..., description="The ticket UUID"),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
 ):
@@ -429,12 +529,12 @@ async def admin_add_reply_to_ticket(
         )
 
         session.add(reply)
-        ticket.updated_at = datetime.now(timezone.utc)
         session.add(ticket)
         session.commit()
         session.refresh(reply)
+        session.refresh(ticket)
 
-        return reply
+        return ticket
     except HTTPException:
         raise
     except Exception as e:

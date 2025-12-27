@@ -1,570 +1,508 @@
 "use client"
 
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Eye, EyeClosed, PlusIcon, Search } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { colors } from "@/utils/color"
-import { UserDataTable } from "@/components/custom/table/user-data-table"
+import { Search, Mail, Shield, Trash2, Users, RefreshCw, Loader } from "lucide-react"
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
+} from "@/components/ui/select"
 import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from '@/components/ui/sheet'
-import { useEffect, useState } from "react"
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import debounce from "@/utils/performanceUtil/debounce"
-import { normalizeString } from "@/utils/string"
-import { UserDataType } from "@/types/data-table-types"
+import { formatDate, normalizeString } from "@/utils/string"
+import useUsers from "@/hooks/useUsers"
+import { User, UserStatistics, AdminUserCreate, AdminUserUpdate } from "@/types/types"
+import Pagination from "@/components/ui/pagination"
+import { UserDetailSheet, CreateUserSheet } from "@/components/custom/admin/users/UserDetail"
 
-interface Validation {
-    error: string
-    loading: boolean
-}
+const UsersPage = () => {
+    const {
+        getUsers,
+        getUserStatistics,
+        createUser,
+        updateUser,
+        deleteUser,
+    } = useUsers()
 
-interface PasswordVisibleProps {
-    element: string
-    isVisible: boolean
-}
+    const [users, setUsers] = useState<User[]>([])
+    const [filteredUsers, setFilteredUsers] = useState<User[]>([])
+    const [statistics, setStatistics] = useState<UserStatistics | null>(null)
 
-const dataFile = [
-    {
-        "id": '1123121',
-        "name": "Eddie Lake",
-        "email": "alex@gmail.com",
-        "role": "admin",
-        "provider": "Google",
-        "createdAt": "2023-10-01T12:34:56Z",
-        "status": "online",
-    },
-    {
-        "id": '1123122',
-        "name": "Alex Johnson",
-        "email": "stadj@gmail.com",
-        "role": "user",
-        "provider": "Github",
-        "createdAt": "2023-10-02T14:20:30Z",
-        "status": "offline",
-    },
-    {
-        "id": '1123123',
-        "name": "Maria Smith",
-        "email": "maria.smith@example.com",
-        "role": "user",
-        "provider": "Email",
-        "createdAt": "2023-10-03T09:15:00Z",
-        "status": "online",
-    },
-    {
-        "id": '1123124',
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "role": "moderator",
-        "provider": "Google",
-        "createdAt": "2023-10-04T16:45:10Z",
-        "status": "offline",
-    },
-    {
-        "id": '1123125',
-        "name": "Eddie Lake",
-        "email": "alex@gmail.com",
-        "role": "admin",
-        "provider": "Google",
-        "createdAt": "2023-10-01T12:34:56Z",
-        "status": "online",
-    },
-    {
-        "id": '1123126',
-        "name": "Alex Johnson",
-        "email": "stadj@gmail.com",
-        "role": "user",
-        "provider": "Github",
-        "createdAt": "2023-10-02T14:20:30Z",
-        "status": "offline",
-    },
-    {
-        "id": '1123127',
-        "name": "Maria Smith",
-        "email": "maria.smith@example.com",
-        "role": "user",
-        "provider": "Email",
-        "createdAt": "2023-10-03T09:15:00Z",
-        "status": "online",
-    },
-    {
-        "id": '1123128',
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "role": "moderator",
-        "provider": "Google",
-        "createdAt": "2023-10-04T16:45:10Z",
-        "status": "offline",
-    },
-    {
-        "id": '1123129',
-        "name": "Eddie Lake",
-        "email": "alex@gmail.com",
-        "role": "admin",
-        "provider": "Google",
-        "createdAt": "2023-10-01T12:34:56Z",
-        "status": "online",
-    },
-    {
-        "id": '1123130',
-        "name": "Alex Johnson",
-        "email": "stadj@gmail.com",
-        "role": "user",
-        "provider": "Github",
-        "createdAt": "2023-10-02T14:20:30Z",
-        "status": "offline",
-    },
-    {
-        "id": '1123131',
-        "name": "Maria Smith",
-        "email": "maria.smith@example.com",
-        "role": "user",
-        "provider": "Email",
-        "createdAt": "2023-10-03T09:15:00Z",
-        "status": "online",
-    },
-    {
-        "id": '1123112314',
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "role": "moderator",
-        "provider": "Google",
-        "createdAt": "2023-10-04T16:45:10Z",
-        "status": "offline",
-    },
-    {
-        "id": '11231221',
-        "name": "Eddie Lake",
-        "email": "alex@gmail.com",
-        "role": "admin",
-        "provider": "Google",
-        "createdAt": "2023-10-01T12:34:56Z",
-        "status": "online",
-    },
-    {
-        "id": '11234234122',
-        "name": "Alex Johnson",
-        "email": "stadj@gmail.com",
-        "role": "user",
-        "provider": "Github",
-        "createdAt": "2023-10-02T14:20:30Z",
-        "status": "offline",
-    },
-    {
-        "id": '11231623',
-        "name": "Maria Smith",
-        "email": "maria.smith@example.com",
-        "role": "user",
-        "provider": "Email",
-        "createdAt": "2023-10-03T09:15:00Z",
-        "status": "online",
-    },
-    {
-        "id": '11231274',
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "role": "moderator",
-        "provider": "Google",
-        "createdAt": "2023-10-04T16:45:10Z",
-        "status": "offline",
-    },
-    {
-        "id": '112318821',
-        "name": "Eddie Lake",
-        "email": "alex@gmail.com",
-        "role": "admin",
-        "provider": "Google",
-        "createdAt": "2023-10-01T12:34:56Z",
-        "status": "online",
-    },
-    {
-        "id": '112312222',
-        "name": "Alex Johnson",
-        "email": "stadj@gmail.com",
-        "role": "user",
-        "provider": "Github",
-        "createdAt": "2023-10-02T14:20:30Z",
-        "status": "offline",
-    },
-    {
-        "id": '113423123',
-        "name": "Maria Smith",
-        "email": "maria.smith@example.com",
-        "role": "user",
-        "provider": "Email",
-        "createdAt": "2023-10-03T09:15:00Z",
-        "status": "online",
-    },
-    {
-        "id": '112355124',
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "role": "moderator",
-        "provider": "Google",
-        "createdAt": "2023-10-04T16:45:10Z",
-        "status": "offline",
-    },
-    {
-        "id": '112312331',
-        "name": "Eddie Lake",
-        "email": "alex@gmail.com",
-        "role": "admin",
-        "provider": "Google",
-        "createdAt": "2023-10-01T12:34:56Z",
-        "status": "online",
-    },
-    {
-        "id": '112312232',
-        "name": "Alex Johnson",
-        "email": "stadj@gmail.com",
-        "role": "user",
-        "provider": "Github",
-        "createdAt": "2023-10-02T14:20:30Z",
-        "status": "offline",
-    },
-    {
-        "id": '112312233',
-        "name": "Maria Smith",
-        "email": "maria.smith@example.com",
-        "role": "user",
-        "provider": "Email",
-        "createdAt": "2023-10-03T09:15:00Z",
-        "status": "online",
-    },
-    {
-        "id": '1123123424',
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "role": "moderator",
-        "provider": "Google",
-        "createdAt": "2023-10-04T16:45:10Z",
-        "status": "offline",
-    },
-    {
-        "id": '11231',
-        "name": "Eddie Lake",
-        "email": "alex@gmail.com",
-        "role": "admin",
-        "provider": "Google",
-        "createdAt": "2023-10-01T12:34:56Z",
-        "status": "online",
-    },
-    {
-        "id": '112122',
-        "name": "Alex Johnson",
-        "email": "stadj@gmail.com",
-        "role": "user",
-        "provider": "Github",
-        "createdAt": "2023-10-02T14:20:30Z",
-        "status": "offline",
-    },
-    {
-        "id": '11233123',
-        "name": "Maria Smith",
-        "email": "maria.smith@example.com",
-        "role": "user",
-        "provider": "Email",
-        "createdAt": "2023-10-03T09:15:00Z",
-        "status": "online",
-    },
-    {
-        "id": '11231sd24',
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "role": "moderator",
-        "provider": "Google",
-        "createdAt": "2023-10-04T16:45:10Z",
-        "status": "offline",
-    },
-]
+    const [isLoading, setIsLoading] = useState(true)
+    const [isCreating, setIsCreating] = useState(false)
+    const [isUpdating, setIsUpdating] = useState(false)
+    const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
-export default function UsersPage() {
-    const [users, setUsers] = useState<UserDataType[]>([])
-    const [validation, setValidation] = useState<Validation>({
-        error: "",
-        loading: false
-    })
-    const [passwordVisible, setPasswordVisible] = useState<PasswordVisibleProps[]>([])
+    const [roleFilter, setRoleFilter] = useState<string>("all")
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
 
-    const handleTogglePassword = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        const passwordInput = e.currentTarget.parentElement?.querySelector('input')?.name
+    const searchRef = useRef<HTMLInputElement>(null)
 
-        const currentPasswordVisible = passwordVisible.find(pv => pv.element === passwordInput)
-
-        if (!(currentPasswordVisible?.element === passwordInput)) {
-            setPasswordVisible(prevState => [
-                ...prevState.filter(pv => pv.element !== passwordInput),
-                { element: passwordInput || "", isVisible: true }
-            ])
-            return
-        }
-
-        if (currentPasswordVisible?.isVisible === false) {
-            setPasswordVisible(prevState => [
-                ...prevState.filter(pv => pv.element !== passwordInput),
-                { element: passwordInput || "", isVisible: true }
-            ])
-            return
-        }
-
-        setPasswordVisible(prevState => [
-            ...prevState.filter(pv => pv.element !== passwordInput),
-            { element: passwordInput || "", isVisible: false }
-        ])
-    }
-
-    const handleAddUser = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-
-        const formData = new FormData(e.currentTarget);
-        const name = formData.get('name') as string;
-        const email = formData.get('email') as string;
-        const password = formData.get('password') as string;
-        const role = formData.get('role') as string;
-
+    const fetchUsers = async (signal?: AbortSignal) => {
         try {
-            setValidation((prev) => {
-                return {
-                    ...prev,
-                    error: "",
-                    loading: true
-                }
-            })
+            setIsLoading(true)
 
-            console.log('Adding user:', { name, email, password, role })
-            toast.success('User added successfully!')
-        } catch {
-            setValidation({
-                error: 'Failed to add user. Please try again.',
-                loading: false
-            })
+            const [usersRes, statsRes] = await Promise.all([
+                getUsers(0, undefined, signal),
+                getUserStatistics(signal),
+            ])
 
-            toast.error('Failed to add user. Please try again.')
+            if (signal?.aborted) return
+
+            if (usersRes.error || statsRes.error) {
+                toast.error(usersRes?.message || statsRes?.message, {
+                    description: usersRes?.error?.detail || statsRes?.error?.detail,
+                })
+            } else {
+                setUsers(usersRes.data || [])
+                setFilteredUsers(usersRes.data || [])
+                setStatistics(statsRes.data || null)
+            }
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return
+
+            toast.error('Failed to fetch users', {
+                description: "Please try again later",
+            })
         } finally {
-            setValidation((prev) => {
-                return {
-                    ...prev,
-                    error: "",
-                    loading: false
-                }
-            })
+            setIsLoading(false)
         }
     }
 
     useEffect(() => {
-        if (dataFile) {
-            setUsers(dataFile as UserDataType[])
+        const controller = new AbortController()
+
+        fetchUsers(controller.signal)
+
+        return () => {
+            controller.abort()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    const getProviderBadge = (provider?: string) => {
+        switch (provider) {
+            case 'google':
+                return <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30">Google</Badge>
+            case 'github':
+                return <Badge variant="outline" className="bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30">GitHub</Badge>
+            default:
+                return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Email</Badge>
+        }
+    }
+
+    useEffect(() => {
+        let filtered = users
+        if (roleFilter !== 'all') {
+            filtered = users.filter(u => u.role === roleFilter)
+        }
+
+        if (searchRef.current?.value) {
+            const query = normalizeString(searchRef.current.value)
+            filtered = filtered.filter(user =>
+                normalizeString(user.name || '').includes(query) ||
+                normalizeString(user.email).includes(query) ||
+                normalizeString(user.phone || '').includes(query)
+            )
+        }
+
+        setFilteredUsers(filtered)
+        setCurrentPage(1)
+    }, [roleFilter, users])
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = normalizeString(e.target.value)
 
+        let filtered = users
+        if (roleFilter !== 'all') {
+            filtered = users.filter(u => u.role === roleFilter)
+        }
+
         if (!query) {
-            setUsers(dataFile as UserDataType[])
+            setFilteredUsers(filtered)
             return
         }
 
-        const filteredData = dataFile.filter(user => {
-            return (
-                normalizeString(user.name).includes(query) ||
-                normalizeString(user.email).includes(query) ||
-                normalizeString(user.role).includes(query) ||
-                normalizeString(user.provider).includes(query) ||
-                normalizeString(user.createdAt).includes(query) ||
-                normalizeString(user.status).includes(query)
-            )
-        })
+        filtered = filtered.filter(user =>
+            normalizeString(user.name || '').includes(query) ||
+            normalizeString(user.email).includes(query) ||
+            normalizeString(user.phone || '').includes(query)
+        )
 
-        setUsers(filteredData as UserDataType[])
+        setFilteredUsers(filtered)
+        setCurrentPage(1)
     }
 
-    return (
-        <>
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-5 mb-4">
-                <div className="relative lg:w-1/2 w-full h-max">
-                    <Search className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    const handleCreateUser = async (data: AdminUserCreate) => {
+        try {
+            setIsCreating(true)
+            const result = await createUser(data)
 
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.detail,
+                })
+            } else {
+                toast.success('User created successfully')
+                fetchUsers()
+            }
+        } catch {
+            toast.error('Failed to create user', {
+                description: "Please try again later",
+            })
+        } finally {
+            setIsCreating(false)
+        }
+    }
+
+    const handleUpdateUser = async (userId: string, data: AdminUserUpdate) => {
+        try {
+            setIsUpdating(true)
+            const result = await updateUser(userId, data)
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.detail,
+                })
+            } else {
+                toast.success('User updated successfully')
+                setUsers(prev => prev.map(u => u.id === userId ? result.data : u))
+                setFilteredUsers(prev => prev.map(u => u.id === userId ? result.data : u))
+
+                const statsRes = await getUserStatistics()
+                if (!statsRes.error) {
+                    setStatistics(statsRes.data)
+                }
+            }
+        } catch {
+            toast.error('Failed to update user', {
+                description: "Please try again later",
+            })
+        } finally {
+            setIsUpdating(false)
+        }
+    }
+
+    const handleDeleteUser = async (userId: string) => {
+        try {
+            setIsDeleting(userId)
+            const result = await deleteUser(userId)
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.detail,
+                })
+            } else {
+                toast.success('User deleted successfully')
+                setUsers(prev => prev.filter(u => u.id !== userId))
+                setFilteredUsers(prev => prev.filter(u => u.id !== userId))
+
+                const statsRes = await getUserStatistics()
+                if (!statsRes.error) {
+                    setStatistics(statsRes.data)
+                }
+            }
+        } catch {
+            toast.error('Failed to delete user', {
+                description: "Please try again later",
+            })
+        } finally {
+            setIsDeleting(null)
+        }
+    }
+
+    // Pagination
+    const totalItems = filteredUsers.length
+    const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
+
+    return (
+        <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card className="animate-in fade-in slide-in-from-bottom-4 hover:shadow-lg transition-all duration-300" style={{ animationDelay: '0ms' }}>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Total Users</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-12" />
+                                ) : (
+                                    <p className="text-2xl font-bold">{statistics?.total || 0}</p>
+                                )}
+                            </div>
+                            <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                <Users className="h-5 w-5 text-blue-500" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 hover:shadow-lg transition-all duration-300" style={{ animationDelay: '50ms' }}>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Administrators</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-12" />
+                                ) : (
+                                    <p className="text-2xl font-bold text-orange-600">{statistics?.admins || 0}</p>
+                                )}
+                            </div>
+                            <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center">
+                                <Shield className="h-5 w-5 text-orange-500" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 hover:shadow-lg transition-all duration-300" style={{ animationDelay: '100ms' }}>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Email Verified</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-12" />
+                                ) : (
+                                    <p className="text-2xl font-bold text-green-600">{statistics?.verified || 0}</p>
+                                )}
+                            </div>
+                            <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                                <Mail className="h-5 w-5 text-green-500" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="relative w-full sm:w-80">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        id="search-users"
-                        name="search-users"
-                        type="search"
+                        ref={searchRef}
                         placeholder="Search users..."
-                        className="md:pr-10 pr-8"
-                        onChange={debounce(handleSearch, 500)}
+                        className="pl-10"
+                        onChange={debounce(handleSearch, 400)}
                     />
                 </div>
 
-                <div className="flex justify-between items-center gap-4 md:gap-2 w-full lg:w-auto">
-                    <div className={cn(
-                        "flex items-center gap-2 p-2 rounded-lg",
-                        colors.green.active
-                    )}>
-                        <div className="relative">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                        </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <Select value={roleFilter} onValueChange={setRoleFilter}>
+                        <SelectTrigger className="w-full sm:w-40">
+                            <SelectValue placeholder="Filter by role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            <SelectItem value="USER">Users</SelectItem>
+                            <SelectItem value="ADMIN">Admins</SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                        <span className={cn(
-                            "text-sm font-medium",
-                            colors.green.text
-                        )}>
-                            4 users online
-                        </span>
-                    </div>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => fetchUsers()}
+                        disabled={isLoading}
+                        title="Refresh"
+                    >
+                        <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                    </Button>
 
-                    {/* Ađ new user */}
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button
-                                variant="default"
-                                size="sm"
-                            >
-                                <PlusIcon />
-                                <span>Add User</span>
-                            </Button>
-                        </SheetTrigger>
-
-                        <SheetContent
-                            side="right"
-                            onInteractOutside={e => {
-                                e.preventDefault()
-                            }}
-                            className="flex flex-col z-1000"
-                        >
-                            <SheetHeader className="gap-1">
-                                <SheetTitle>Add User</SheetTitle>
-
-                                <SheetDescription>
-                                    Fill out the form below to add a new user. Make sure to provide all the required information.
-                                </SheetDescription>
-                            </SheetHeader>
-
-                            <Separator />
-
-                            <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 text-sm">
-                                <form
-                                    onSubmit={handleAddUser}
-                                    className="flex flex-1 h-full"
-                                >
-                                    <div className="flex flex-1 flex-col justify-between items-stretch gap-4 overflow-y-auto p-4 text-sm">
-                                        <div className="flex flex-col gap-4 flex-1">
-                                            <div className="flex flex-col gap-3">
-                                                <Label htmlFor="name">Name</Label>
-                                                <Input
-                                                    id="name"
-                                                    name="name"
-                                                    type="text"
-                                                    placeholder="User name..."
-                                                    required
-                                                    disabled={validation.loading}
-                                                />
-                                            </div>
-
-                                            <div className="flex flex-col gap-3">
-                                                <Label htmlFor="email">Email</Label>
-                                                <Input
-                                                    id="email"
-                                                    name="email"
-                                                    type="email"
-                                                    placeholder="User email..."
-                                                    required
-                                                    disabled={validation.loading}
-                                                />
-                                            </div>
-
-                                            <div className="relative flex flex-col gap-3">
-                                                <Label htmlFor="password">Password</Label>
-                                                <Input
-                                                    id="password"
-                                                    name="password"
-                                                    type={passwordVisible.find(pv => pv.element === 'password')?.isVisible ? 'text' : 'password'}
-                                                    placeholder="••••••••"
-                                                    className="pr-10"
-                                                    required
-                                                    disabled={validation.loading}
-                                                />
-                                                <Button
-                                                    variant='ghost'
-                                                    size='icon'
-                                                    type='button'
-                                                    className='absolute top-[50%] right-0 -translate-y-1 cursor-pointer'
-                                                    onClick={(e) => handleTogglePassword(e)}
-                                                >
-                                                    {passwordVisible.find(pv => pv.element === 'password')?.isVisible ?
-                                                        <Eye size={20} />
-                                                        :
-                                                        <EyeClosed size={20} />
-                                                    }
-                                                </Button>
-                                            </div>
-
-                                            <div className="flex flex-col gap-3">
-                                                <Label htmlFor="role">Role</Label>
-
-                                                <Select name="role" disabled={validation.loading}>
-                                                    <SelectTrigger id="role" className="w-full">
-                                                        <SelectValue placeholder="Select a role..." />
-                                                    </SelectTrigger>
-
-                                                    <SelectContent className="z-1001">
-                                                        <SelectItem value="admin">Admin</SelectItem>
-                                                        <SelectItem value="user">User</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </div>
-
-                                        <SheetFooter className="mt-auto flex flex-col gap-4 md:flex-row px-0">
-                                            <Button
-                                                type="submit"
-                                                className="flex-1 w-full"
-                                                disabled={validation.loading}
-                                            >
-                                                Submit
-                                            </Button>
-
-                                            <SheetClose asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className="flex-1 w-full"
-                                                    disabled={validation.loading}
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            </SheetClose>
-                                        </SheetFooter>
-                                    </div>
-                                </form>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                    <CreateUserSheet onCreate={handleCreateUser} isCreating={isCreating} />
                 </div>
             </div>
 
-            <div className="relative mb-4">
-                <UserDataTable
-                    initialData={users}
+            {/* Table */}
+            <Card className="overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-blue-500" />
+                        Users List
+                    </CardTitle>
+                </CardHeader>
+                <div className="overflow-x-auto px-3">
+                    <Table>
+                        <TableHeader className="bg-secondary">
+                            <TableRow>
+                                <TableHead>User</TableHead>
+                                <TableHead className="hidden md:table-cell">Email</TableHead>
+                                <TableHead className="hidden sm:table-cell">Provider</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead className="hidden xl:table-cell">Joined</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow
+                                        key={i}
+                                        className="animate-in fade-in slide-in-from-left-4"
+                                        style={{ animationDelay: `${i * 80}ms` }}
+                                    >
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Skeleton className="h-10 w-10 rounded-full" />
+                                                <div className="space-y-1">
+                                                    <Skeleton className="h-4 w-32" />
+                                                    <Skeleton className="h-3 w-24" />
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            <div className="flex items-center gap-2">
+                                                <Skeleton className="h-4 w-48" />
+                                                <Skeleton className="h-5 w-5 rounded" />
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="hidden sm:table-cell">
+                                            <Skeleton className="h-6 w-20 rounded-full" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Skeleton className="h-6 w-16 rounded-full" />
+                                        </TableCell>
+                                        <TableCell className="hidden xl:table-cell">
+                                            <Skeleton className="h-4 w-24" />
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Skeleton className="h-8 w-8 rounded ml-auto" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : filteredUsers.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                                        No users found
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                paginatedUsers.map((user, index) => (
+                                    <TableRow
+                                        key={user.id}
+                                        className="hover:bg-accent/50 dark:hover:bg-accent/10 transition-colors animate-in fade-in slide-in-from-left-4"
+                                        style={{ animationDelay: `${index * 30}ms` }}
+                                    >
+                                        <TableCell>
+                                            <UserDetailSheet user={user} onUpdate={handleUpdateUser} isUpdating={isUpdating} />
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm truncate max-w-50">{user.email}</span>
+                                                {user.email_verified && (
+                                                    <Badge variant="outline" className="text-green-600 border-green-600 text-xs shrink-0">
+                                                        ✓
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="hidden sm:table-cell">
+                                            {getProviderBadge(user?.account?.provider)}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
+                                                {user.role === 'ADMIN' ? 'Admin' : 'User'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground hidden xl:table-cell">
+                                            {formatDate(new Date(user.created_at))}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <AlertDialog>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                                                                disabled={user.role === 'ADMIN' || isDeleting === user.id}
+                                                            >
+                                                                {isDeleting === user.id ? (
+                                                                    <Loader className="h-4 w-4 animate-spin" />
+                                                                ) : (
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                )}
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        {user.role === 'ADMIN' ? 'Cannot delete admin' : 'Delete user'}
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Confirm Delete User</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Are you sure you want to delete <strong>{user.name || user.email}</strong>?
+                                                            This action cannot be undone.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            onClick={() => handleDeleteUser(user.id)}
+                                                            className="bg-red-600 hover:bg-red-700"
+                                                        >
+                                                            Delete
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </Card>
+
+            {/* Pagination */}
+            {totalItems > 0 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    startIndex={startIndex}
+                    endIndex={Math.min(endIndex, totalItems)}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                    itemLabel="users"
                 />
-            </div>
-        </>
+            )}
+        </div>
     )
-} 
+}
+
+export default UsersPage

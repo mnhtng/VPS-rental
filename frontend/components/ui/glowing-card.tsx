@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { colorsHex } from '@/utils/color';
+import { colorsRGB } from '@/utils/color';
 import styles from '@/styles/glowing-card.module.css';
 
 export interface GlowingCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -86,17 +86,17 @@ const GlowingCard = ({
                 style={{
                     '--mouse-x': `${mousePosition.x}px`,
                     '--mouse-y': `${mousePosition.y}px`,
-                    '--glow-color': Array.isArray(colorsHex[color])
-                        ? `linear-gradient(135deg, rgb(${colorsHex[color][0]} / 5%), rgb(${colorsHex[color][1]} / 5%))`
-                        : `rgb(${colorsHex[color]} / 5%)`,
+                    '--glow-color': Array.isArray(colorsRGB[color])
+                        ? `linear-gradient(135deg, rgb(${colorsRGB[color][0]} / 5%), rgb(${colorsRGB[color][1]} / 5%))`
+                        : `rgb(${colorsRGB[color]} / 5%)`,
                     '--glow-size': `${glowArea}px`,
                     '--glow-blur': `${glowArea * 2}px`,
                     '--glow-spread': `${glowArea}px`,
-                    borderImage: Array.isArray(colorsHex[color])
-                        ? `linear-gradient(135deg, rgb(${colorsHex[color][0]}), rgb(${colorsHex[color][1]}))`
+                    borderImage: Array.isArray(colorsRGB[color])
+                        ? `linear-gradient(135deg, rgb(${colorsRGB[color][0]}), rgb(${colorsRGB[color][1]}))`
                         : undefined,
-                    '--border-color': !Array.isArray(colorsHex[color])
-                        ? `rgb(${colorsHex[color]})`
+                    '--border-color': !Array.isArray(colorsRGB[color])
+                        ? `rgb(${colorsRGB[color]})`
                         : undefined,
                 } as React.CSSProperties}
             />

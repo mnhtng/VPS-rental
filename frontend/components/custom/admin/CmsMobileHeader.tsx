@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
-import { BotIcon } from 'lucide-react'
 import { useCms } from '@/contexts/CmsContext'
 
 const CmsMobileHeader = () => {
@@ -15,12 +14,6 @@ const CmsMobileHeader = () => {
                 <header className="sticky top-0 z-50 bg-background flex justify-between pr-3 h-16 shrink-0 items-center gap-2 border-b">
                     <div className="flex items-center gap-2 px-3">
                         <SidebarTrigger />
-
-                        <div className="flex items-stretch gap-2 justify-center p-2 text-foreground">
-                            <BotIcon stroke='#8497FD' />
-
-                            <h1 className="text-xl font-semibold">AI Assistant</h1>
-                        </div>
                     </div>
 
                     <div className="flex items-center gap-2">

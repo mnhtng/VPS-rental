@@ -85,7 +85,7 @@ async def list_my_vps(
         statement = (
             select(VPSInstance)
             .where(VPSInstance.user_id == current_user.id)
-            .where(VPSInstance.status != "terminated")
+            .where(VPSInstance.status.notin_(["terminated", "error"]))
             .order_by(VPSInstance.created_at.desc())
             .offset(skip)
         )
@@ -378,11 +378,6 @@ async def get_vps_vnc_access(
         )
 
 
-# ============================================================================
-# User Endpoints - Snapshot Management
-# ============================================================================
-
-
 @router.get(
     "/{vps_id}/snapshots",
     response_model=SnapshotListResponse,
@@ -661,6 +656,236 @@ async def delete_vps_snapshot(
 # ============================================================================
 # Admin Endpoints - VM Creation and Management
 # ============================================================================
+
+
+@admin_router.get(
+    "/",
+    response_model=List[VPSInstanceResponse],
+    status_code=status.HTTP_200_OK,
+    summary="[Admin] List All VPS Instances",
+    description="Retrieve a list of all VPS instances for admin management (Admin Only)",
+)
+async def admin_list_all_vps(
+    skip: int = Query(0, description="Number of records to skip"),
+    limit: int = Query(None, description="Maximum number of records to return"),
+    status_filter: Optional[str] = Query(
+        None, alias="status", description="Filter by VPS status"
+    ),
+    admin_user: User = Depends(get_admin_user),
+    session: Session = Depends(get_session),
+):
+    """
+    List all VPS instances for admin management
+
+    Args:
+        skip: Number of records to skip for pagination
+        limit: Maximum number of records to return
+        status_filter: Optional filter by VPS status (active, stopped, terminated, etc.)
+        admin_user: Current admin user
+        session: Database session
+
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 403 if not admin
+        HTTPException: 500 if retrieval fails
+
+    Returns:
+        List of VPS instances with user, plan, and VM details
+    """
+    try:
+        statement = select(VPSInstance).order_by(VPSInstance.created_at.desc())
+
+        if status_filter:
+            statement = statement.where(VPSInstance.status == status_filter)
+
+        if skip is not None:
+            statement = statement.offset(skip)
+        if limit is not None:
+            statement = statement.limit(limit)
+
+        vps_list = session.exec(statement).all()
+        return vps_list
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Failed to list all VPS: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve VPS instances",
+        )
+
+
+@admin_router.get(
+    "/statistics",
+    status_code=status.HTTP_200_OK,
+    summary="[Admin] Get VPS Statistics",
+    description="Get VPS instance statistics for admin dashboard (Admin Only)",
+)
+async def admin_get_vps_statistics(
+    admin_user: User = Depends(get_admin_user),
+    session: Session = Depends(get_session),
+):
+    """
+    Get VPS instance statistics for admin dashboard
+
+    Args:
+        admin_user (User, optional): Current admin user. Defaults to Depends(get_admin_user).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 403 if not admin
+        HTTPException: 500 if retrieval fails
+
+    Returns:
+        Dict[str, int]: VPS statistics including total, running, stopped, terminated, creating, and error counts
+    """
+    try:
+        statement = select(VPSInstance)
+        all_vps = session.exec(statement).all()
+
+        total = len(all_vps)
+        active = sum(1 for v in all_vps if v.status == "active")
+        suspended = sum(1 for v in all_vps if v.status == "suspended")
+        terminated = sum(1 for v in all_vps if v.status == "terminated")
+        creating = sum(1 for v in all_vps if v.status == "creating")
+        error = sum(1 for v in all_vps if v.status == "error")
+
+        return {
+            "total": total,
+            "active": active,
+            "suspended": suspended,
+            "terminated": terminated,
+            "creating": creating,
+            "error": error,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Failed to get VPS statistics: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get VPS statistics",
+        )
+
+
+@admin_router.post(
+    "/{vps_id}/power",
+    response_model=OperationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Admin VPS Power Control",
+    description="Control VPS power state as admin (start, stop, reboot)",
+)
+async def admin_control_vps_power(
+    vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
+    power_request: VMPowerActionRequest = Body(..., description="Power action request"),
+    admin_user: User = Depends(get_admin_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
+    session: Session = Depends(get_session),
+):
+    """
+    Control VPS power state as admin (no ownership check)
+
+    Available actions:
+    - start: Start the VPS
+    - stop: Force stop (immediate)
+    - shutdown: Graceful shutdown
+    - reboot: Graceful reboot
+    - reset: Force reset
+
+    Args:
+        vps_id (uuid.UUID): VPS instance ID
+        power_request (VMPowerActionRequest): Power action request
+        admin_user (User): Current admin user
+        proxmox (ProxmoxConnection): Proxmox connection instance
+        session (Session): Database session
+
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 403 if not admin
+        HTTPException: 404 if VPSInstance, ProxmoxVM, or ProxmoxNode not found
+        HTTPException: 400 if invalid action or VPS is terminated
+        HTTPException: 500 if operation fails
+
+    Returns:
+        OperationResponse: Result of the power action
+    """
+    try:
+        vps = session.get(VPSInstance, vps_id)
+        if not vps:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="VPS instance not found",
+            )
+
+        if vps.status == "terminated":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot control terminated VPS",
+            )
+
+        vm = session.get(ProxmoxVM, vps.vm_id)
+        if not vm:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Proxmox VM not found",
+            )
+
+        node = session.get(ProxmoxNode, vm.node_id)
+        if not node:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Proxmox node not found",
+            )
+
+        action = power_request.action
+        result = None
+
+        if action == "start":
+            result = await ProxmoxVMService.start_vm(proxmox, node.name, vm.vmid)
+        elif action == "stop":
+            result = await ProxmoxVMService.stop_vm(proxmox, node.name, vm.vmid)
+        elif action == "shutdown":
+            result = await ProxmoxVMService.shutdown_vm(proxmox, node.name, vm.vmid)
+        elif action == "reboot":
+            result = await ProxmoxVMService.reboot_vm(proxmox, node.name, vm.vmid)
+        elif action == "reset":
+            result = await ProxmoxVMService.reset_vm(proxmox, node.name, vm.vmid)
+        elif action == "suspend":
+            result = await ProxmoxVMService.suspend_vm(proxmox, node.name, vm.vmid)
+        elif action == "resume":
+            result = await ProxmoxVMService.resume_vm(proxmox, node.name, vm.vmid)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid power action",
+            )
+
+        if action in ["start", "resume"]:
+            vm.power_status = "running"
+        elif action in ["stop", "shutdown"]:
+            vm.power_status = "stopped"
+        elif action == "suspend":
+            vm.power_status = "suspended"
+
+        session.add(vm)
+        session.commit()
+        session.refresh(vm)
+        print(">>> Status after: ", vm.power_status)
+
+        return OperationResponse(
+            success=result.get("success", False),
+            message=result.get("message", f"Power action '{action}' executed"),
+            task_id=result.get("task"),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f">>> Failed to control VPS power: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to control VPS power",
+        )
 
 
 @admin_router.post("/deploy", response_model=VMDeploymentResponse)

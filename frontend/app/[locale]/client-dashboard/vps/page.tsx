@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Search, Plus, Server } from "lucide-react"
+import { Search, Plus, Server, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import useVPS from "@/hooks/useVPS"
 import { useLocale } from "next-intl"
@@ -140,60 +140,84 @@ export default function VPSListPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedVpsList.map((vps, index) => (
-                      <TableRow
-                        key={vps.id}
-                        className="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors animate-in fade-in slide-in-from-left-4"
-                        style={{ animationDelay: `${index * 30}ms` }}
-                      >
-                        <TableCell>
-                          <div
-                            className={`h-2 w-2 rounded-full animate-pulse ${vps.vm?.power_status === "running"
-                              ? "bg-green-500"
-                              : vps.vm?.power_status === "stopped"
-                                ? "bg-red-500"
-                                : "bg-yellow-500"
-                              }`}
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {vps.vm?.hostname || "Configuring..."}
-                        </TableCell>
-                        <TableCell className="font-mono text-muted-foreground">
-                          {vps.vm?.ip_address || "Waiting for IP"}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {vps.vm?.vcpu && vps.vm?.ram_gb ? (
-                            <>
-                              {vps.vm?.vcpu} vCPU • {vps.vm?.ram_gb}GB RAM
-                              {vps.vm?.storage_gb && (
-                                <>
-                                  <br />
-                                  {vps.vm?.storage_gb}GB {vps.vm?.storage_type || "Disk"}
-                                </>
+                    {paginatedVpsList.map((vps, index) => {
+                      const isSuspended = vps.status === 'suspended'
+
+                      return (
+                        <TableRow
+                          key={vps.id}
+                          className={`hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors animate-in fade-in slide-in-from-left-4 ${isSuspended ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''}`}
+                          style={{ animationDelay: `${index * 30}ms` }}
+                        >
+                          <TableCell>
+                            <div
+                              className={`h-2 w-2 rounded-full ${isSuspended
+                                ? "bg-amber-500"
+                                : vps.vm?.power_status === "running"
+                                  ? "bg-green-500 animate-pulse"
+                                  : vps.vm?.power_status === "stopped"
+                                    ? "bg-red-500"
+                                    : "bg-yellow-500 animate-pulse"
+                                }`}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {vps.vm?.hostname || "Configuring..."}
+                              {isSuspended && (
+                                <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-0 text-xs">
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                  Suspended
+                                </Badge>
                               )}
-                            </>
-                          ) : (
-                            "N/A"
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="font-normal">
-                            {vps.vps_plan?.name || "N/A"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            asChild
-                            className="hover:bg-blue-50 hover:text-blue-600 dark:hover:text-blue-400 border dark:border-gray-700 hover:border-blue-300 hover:scale-105 transition-all"
-                          >
-                            <Link href={`/${locale}/client-dashboard/vps/${vps.id}`}>Manage</Link>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-muted-foreground">
+                            {vps.vm?.ip_address || "Waiting for IP"}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {vps.vm?.vcpu && vps.vm?.ram_gb ? (
+                              <>
+                                {vps.vm?.vcpu} vCPU • {vps.vm?.ram_gb}GB RAM
+                                {vps.vm?.storage_gb && (
+                                  <>
+                                    <br />
+                                    {vps.vm?.storage_gb}GB {vps.vm?.storage_type || "Disk"}
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              "N/A"
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="font-normal">
+                              {vps.vps_plan?.name || "N/A"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {isSuspended ? (
+                              <Button
+                                size="sm"
+                                asChild
+                                className="bg-amber-500 hover:bg-amber-600 text-white hover:scale-105 transition-all"
+                              >
+                                <Link href={`/${locale}/client-dashboard/billing`}>Renew</Link>
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className="hover:bg-blue-50 hover:text-blue-600 dark:hover:text-blue-400 border dark:border-gray-700 hover:border-blue-300 hover:scale-105 transition-all"
+                              >
+                                <Link href={`/${locale}/client-dashboard/vps/${vps.id}`}>Manage</Link>
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
                   </TableBody>
                 </Table>
 

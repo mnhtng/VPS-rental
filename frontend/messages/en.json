@@ -35,71 +35,69 @@
         "profile": {
             "title": "My Profile - PCloud",
             "description": "Manage your PCloud account settings, billing information, and VPS services from your profile dashboard.",
-            "keywords": "VPS profile, account settings, billing management, server management"
+            "keywords": ""
         },
         "orders": {
             "title": "My Orders - PCloud",
             "description": "View and manage your VPS hosting orders, invoices, and billing history in your PCloud account.",
-            "keywords": "VPS orders, billing history, invoices, order management"
+            "keywords": ""
         },
         "tickets": {
             "title": "Support Tickets - PCloud",
             "description": "View and manage your support tickets. Get help from our technical support team for your VPS hosting services.",
-            "keywords": "VPS support tickets, technical support, ticket management, hosting help"
+            "keywords": ""
         },
         "cart": {
             "title": "Shopping Cart - PCloud",
             "description": "Review your selected VPS hosting plans and proceed to checkout to complete your purchase.",
-            "keywords": "VPS cart, checkout, purchase VPS, hosting plans"
+            "keywords": ""
         },
         "checkout": {
             "title": "Checkout - PCloud",
             "description": "Complete your purchase of VPS hosting plans with secure payment options and instant setup.",
-            "keywords": "VPS checkout, secure payment, purchase VPS, hosting plans"
+            "keywords": ""
         },
         "vnpay-return": {
             "title": "VNPAY Return - PCloud",
             "description": "Return from VNPAY payment gateway.",
-            "keywords": "VNPAY return, payment gateway, VNPAY return page"
+            "keywords": ""
         },
         "momo-return": {
             "title": "MOMO Return - PCloud",
             "description": "Return from MOMO payment gateway.",
-            "keywords": "MOMO return, payment gateway, MOMO return page"
+            "keywords": ""
         },
         "admin": {
             "title": "Admin Dashboard - PCloud",
-            "home": {
-                "description": "Access the admin dashboard to manage users, VPS plans, and site settings for your PCloud hosting services.",
-                "keywords": "VPS admin, hosting management, user management, server administration"
-            }
+            "description": "Access the admin dashboard to manage users, VPS plans, and site settings for your PCloud hosting services.",
+            "keywords": ""
         },
         "client-dashboard": {
             "title": "Client Dashboard - PCloud",
             "description": "Manage your VPS hosting services, billing, and account settings from the client dashboard.",
-            "keywords": "VPS client dashboard, hosting management, account settings, billing management"
+            "keywords": ""
         },
         "vps": {
             "title": "My VPS Servers - PCloud",
             "description": "View and manage your VPS servers, monitor performance, and configure settings from your PCloud account.",
-            "keywords": "VPS management, server monitoring, VPS control panel, server settings"
+            "keywords": ""
         },
         "vps_detail": {
             "title": "{hostname} - VPS Management | PCloud",
             "title_fallback": "VPS Management - PCloud",
             "description": "Manage your VPS {hostname} with {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type}. Running {os}.",
             "description_fallback": "Manage your VPS server with PCloud. Monitor performance, configure settings, and access your server console.",
-            "keywords": "VPS management, server control panel, VPS console, server monitoring"
+            "keywords": ""
         },
         "billing": {
             "title": "Billing & Invoices - PCloud",
             "description": "Manage your billing information, view invoices, and track payments for your VPS hosting services.",
-            "keywords": "VPS billing, invoice management, payment tracking, hosting billing"
+            "keywords": ""
         },
         "renewal": {
             "title": "Renewal - PCloud",
             "description": "Renew your VPS hosting services and extend your subscription.",
-            "keywords": "VPS renewal, subscription renewal, VPS hosting renewal, hosting renewal"
+            "keywords": ""
         }
     },
     "header": {

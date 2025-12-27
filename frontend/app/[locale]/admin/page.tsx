@@ -1,280 +1,357 @@
 "use client"
 
+import { useState, useEffect, useMemo } from "react"
 import { colors } from "@/utils/color"
 import CountUp from "@/components/ui/count-up"
 import GlowingCard from "@/components/ui/glowing-card"
 import {
-  BotMessageSquare,
-  Hourglass,
-  MessageSquare,
-  Send,
-  ThumbsUp,
-  TrendingDown,
-  TrendingUp,
   Users,
+  Server,
+  DollarSign,
+  ShoppingCart,
+  TrendingUp,
+  TrendingDown,
+  Clock,
 } from "lucide-react"
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
-import UserPromptChart from "@/components/custom/admin/chart/user-prompt-chart"
-import ReEngagementChart from "@/components/custom/admin/chart/re-engagement-chart"
-import TopIntentChart from "@/components/custom/admin/chart/top-intent-chart"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  ChartConfig,
+} from "@/components/ui/chart"
+import { AreaChartComponent } from "@/components/custom/chart/area-chart"
+import { PieChartComponent } from "@/components/custom/chart/pie-chart"
+import useAdminDashboard from "@/hooks/useAdminDashboard"
+import { DashboardStats, RecentOrder } from "@/types/types"
+import { toast } from "sonner"
+import { formatPrice } from "@/utils/currency"
+import { formatDate } from "@/utils/string"
+import { DashboardPlaceholder } from "@/components/custom/placeholder/admin/dashboard"
 
-export default function Dashboard() {
-  const { resolvedTheme } = useTheme()
+const Dashboard = () => {
+  const { getDashboardStats } = useAdminDashboard()
+  const [isLoading, setIsLoading] = useState(true)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
 
-  const [theme, setTheme] = useState('')
+  const fetchData = async (signal?: AbortSignal) => {
+    setIsLoading(true)
+    try {
+      const result = await getDashboardStats(signal)
+
+      if (signal?.aborted) return
+
+      if (result.error) {
+        toast.error(result.message, {
+          description: result.error.detail,
+        })
+        return
+      }
+
+      setStats(result.data)
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return
+
+      toast.error("Failed to load dashboard data", {
+        description: "Please try again later",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    setTheme(resolvedTheme as string);
-  }, [resolvedTheme])
+    const controller = new AbortController()
+
+    fetchData(controller.signal)
+
+    return () => {
+      controller.abort()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const revenueChartConfig = {
+    revenue: {
+      label: "Revenue",
+      color: "#22c55e",
+    },
+  } satisfies ChartConfig
+
+  const vpsStatusChartConfig = {
+    running: {
+      label: "Running",
+      color: "#22c55e",
+    },
+    stopped: {
+      label: "Stopped",
+      color: "#f59e0b",
+    },
+    terminated: {
+      label: "Terminated",
+      color: "#ef4444",
+    },
+  } satisfies ChartConfig
+
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMinutes = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+
+    if (diffMinutes < 60) return `${diffMinutes} min ago`
+    if (diffHours < 24) return `${diffHours} hours ago`
+    return formatDate(new Date(dateString))
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-0">Paid</Badge>
+      case 'pending':
+        return <Badge className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 border-0">Pending</Badge>
+      case 'cancelled':
+        return <Badge className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0">Cancelled</Badge>
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  // Transform data for charts
+  const vpsStatusPieData = useMemo(() => {
+    if (!stats) return []
+    const total = stats.vps_status.running + stats.vps_status.stopped + stats.vps_status.terminated
+    return [
+      { category: "running", value: stats.vps_status.running, percentage: total > 0 ? Math.round((stats.vps_status.running / total) * 100) : 0, fill: "#22c55e" },
+      { category: "stopped", value: stats.vps_status.stopped, percentage: total > 0 ? Math.round((stats.vps_status.stopped / total) * 100) : 0, fill: "#f59e0b" },
+      { category: "terminated", value: stats.vps_status.terminated, percentage: total > 0 ? Math.round((stats.vps_status.terminated / total) * 100) : 0, fill: "#ef4444" },
+    ]
+  }, [stats])
+
+  const revenueChartData = useMemo(() => {
+    if (!stats) return []
+    return stats.revenue_chart
+  }, [stats])
+
+  if (isLoading) {
+    return (
+      <DashboardPlaceholder />
+    )
+  }
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center min-h-100">
+        <p className="text-muted-foreground">Failed to load dashboard data</p>
+      </div>
+    )
+  }
 
   return (
-    <>
-      <div className="flex flex-wrap items-stretch justify-center md:gap-10 gap-5">
-        <GlowingCard
-          color={theme && theme === 'dark' ? 'gold' : 'red'}
-        >
+    <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <GlowingCard color={'blue'} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '0ms' }}>
           <div className="flex justify-between items-center gap-3">
-            <span>Total conversations</span>
-
+            <span className="text-sm text-muted-foreground">Total Users</span>
             <div className={`p-2 ${colors.blue.active} rounded-lg`}>
-              <MessageSquare size={20} />
-            </div>
-          </div>
-
-          <p className="text-2xl font-bold">
-            <CountUp
-              from={0}
-              to={1234567}
-              separator=","
-              direction="up"
-              duration={1}
-              className="count-up-text"
-            />
-          </p>
-
-          <div className="flex justify-between items-center gap-3 mt-1">
-            <div className="flex items-center gap-1.5">
-              <TrendingUp size={16} className={`text-sm ${colors.green.text}`} />
-              <span className={`text-sm ${colors.green.text}`}>
-                Up by 50% for last month
-              </span>
-            </div>
-
-            <span className="text-sm text-muted-foreground">
-              +20
-            </span>
-          </div>
-        </GlowingCard>
-
-        <GlowingCard
-          color={theme && theme === 'dark' ? 'gold' : 'red'}
-        >
-          <div className="flex justify-between items-center gap-3">
-            <span>Active User</span>
-
-            <div className={`p-2 ${colors.green.active} rounded-lg`}>
               <Users size={20} />
             </div>
           </div>
-
-          <p className="text-2xl font-bold">
+          <p className="text-2xl font-bold mt-2">
             <CountUp
               from={0}
-              to={8734}
+              to={stats.total_users}
               separator=","
               direction="up"
               duration={1}
-              className="count-up-text"
             />
           </p>
-
-          <div className="flex justify-between items-center gap-3 mt-1">
-            <div className="flex items-center gap-1.5">
-              <TrendingUp size={16} className={`text-sm ${colors.green.text}`} />
-              <span className={`text-sm ${colors.green.text}`}>
-                Up by 30% for last month
-              </span>
-            </div>
-
-            <span className="text-sm text-muted-foreground">
-              +111
+          <div className="flex items-center gap-1.5 mt-2">
+            {stats.user_growth >= 0 ? (
+              <TrendingUp size={16} className={colors.green.text} />
+            ) : (
+              <TrendingDown size={16} className={colors.red.text} />
+            )}
+            <span className={`text-sm ${stats.user_growth >= 0 ? colors.green.text : colors.red.text}`}>
+              {stats.user_growth >= 0 ? '+' : ''}{stats.user_growth}% this month
             </span>
           </div>
         </GlowingCard>
 
-        <GlowingCard
-          color={theme && theme === 'dark' ? 'gold' : 'red'}
-        >
+        <GlowingCard color={'green'} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '50ms' }}>
           <div className="flex justify-between items-center gap-3">
-            <span>Total Messages</span>
-
-            <div className={`p-2 ${colors.yellow.active} rounded-lg`}>
-              <Send size={20} />
+            <span className="text-sm text-muted-foreground">Active VPS</span>
+            <div className={`p-2 ${colors.green.active} rounded-lg`}>
+              <Server size={20} />
             </div>
           </div>
-
-          <p className="text-2xl font-bold">
+          <p className="text-2xl font-bold mt-2">
             <CountUp
               from={0}
-              to={100}
+              to={stats.active_vps}
               separator=","
               direction="up"
               duration={1}
-              className="count-up-text"
             />
           </p>
-
-          <div className="flex justify-between items-center gap-3 mt-1">
-            <div className="flex items-center gap-1.5">
-              <TrendingDown size={16} className={`text-sm ${colors.red.text}`} />
-              <span className={`text-sm ${colors.red.text}`}>
-                Decline by 20% for last month
-              </span>
-            </div>
-
-            <span className="text-sm text-muted-foreground">
-              -74
+          <div className="flex items-center gap-1.5 mt-2">
+            {stats.vps_growth >= 0 ? (
+              <TrendingUp size={16} className={colors.green.text} />
+            ) : (
+              <TrendingDown size={16} className={colors.red.text} />
+            )}
+            <span className={`text-sm ${stats.vps_growth >= 0 ? colors.green.text : colors.red.text}`}>
+              {stats.vps_growth >= 0 ? '+' : ''}{stats.vps_growth}% this month
             </span>
           </div>
         </GlowingCard>
 
-        <GlowingCard
-          color={theme && theme === 'dark' ? 'gold' : 'red'}
-        >
+        <GlowingCard color={'gold'} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '100ms' }}>
           <div className="flex justify-between items-center gap-3">
-            <span>Total Articles</span>
-
+            <span className="text-sm text-muted-foreground">Monthly Revenue</span>
             <div className={`p-2 ${colors.orange.active} rounded-lg`}>
-              <BotMessageSquare size={20} />
+              <DollarSign size={20} />
             </div>
           </div>
-
-          <p className="text-2xl font-bold">
+          <p className="text-2xl font-bold mt-2">
             <CountUp
               from={0}
-              to={1234567}
+              to={stats.monthly_revenue / 1000000}
               separator=","
               direction="up"
               duration={1}
-              className="count-up-text"
-            />
-          </p>
-
-          <div className="flex justify-between items-center gap-3 mt-1">
-            <div className="flex items-center gap-1.5">
-              <TrendingUp size={16} className={`text-sm ${colors.green.text}`} />
-              <span className={`text-sm ${colors.green.text}`}>
-                Up by 12% for last month
-              </span>
-            </div>
-
-            <span className="text-sm text-muted-foreground">
-              +15
-            </span>
-          </div>
-        </GlowingCard>
-
-        <GlowingCard
-          color={theme && theme === 'dark' ? 'gold' : 'red'}
-        >
-          <div className="flex justify-between items-center gap-3">
-            <span>Average Response Time</span>
-
-            <div className={`p-2 ${colors.violet.active} rounded-lg`}>
-              <Hourglass size={20} />
-            </div>
-          </div>
-
-          <p className="text-2xl font-bold">
-            <CountUp
-              from={0}
-              to={1.2}
               decimalPlaces={1}
-              separator=","
-              direction="up"
-              duration={1}
-              className="count-up-text"
             />
-            s
+            <span className="text-lg">M</span>
           </p>
-
-          <div className="flex justify-between items-center gap-3 mt-1">
-            <div className="flex items-center gap-1.5">
-              <TrendingUp size={16} className={`text-sm ${colors.green.text}`} />
-              <span className={`text-sm ${colors.green.text}`}>
-                Up by 12% for last month
-              </span>
-            </div>
-
-            <span className="text-sm text-muted-foreground">
-              +15
+          <div className="flex items-center gap-1.5 mt-2">
+            {stats.revenue_growth >= 0 ? (
+              <TrendingUp size={16} className={colors.green.text} />
+            ) : (
+              <TrendingDown size={16} className={colors.red.text} />
+            )}
+            <span className={`text-sm ${stats.revenue_growth >= 0 ? colors.green.text : colors.red.text}`}>
+              {stats.revenue_growth >= 0 ? '+' : ''}{stats.revenue_growth}% vs last month
             </span>
           </div>
         </GlowingCard>
 
-        <GlowingCard
-          color={theme && theme === 'dark' ? 'gold' : 'red'}
-        >
+        <GlowingCard color={'purple'} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '150ms' }}>
           <div className="flex justify-between items-center gap-3">
-            <span>Satisfaction Rate</span>
-
-            <div className={`p-2 ${colors.pink.active} rounded-lg`}>
-              <ThumbsUp size={20} />
+            <span className="text-sm text-muted-foreground">Monthly Orders</span>
+            <div className={`p-2 ${colors.violet.active} rounded-lg`}>
+              <ShoppingCart size={20} />
             </div>
           </div>
-
-          <p className="text-2xl font-bold">
+          <p className="text-2xl font-bold mt-2">
             <CountUp
               from={0}
-              to={59.21}
-              decimalPlaces={2}
-              separator=","
+              to={stats.monthly_orders}
               direction="up"
               duration={1}
-              className="count-up-text"
             />
-            %
           </p>
-
-          <div className="flex justify-between items-center gap-3 mt-1">
-            <div className="flex items-center gap-1.5">
-              <TrendingUp size={16} className={`text-sm ${colors.green.text}`} />
-              <span className={`text-sm ${colors.green.text}`}>
-                Up by 12% for last month
-              </span>
-            </div>
-
-            <span className="text-sm text-muted-foreground">
-              +15
+          <div className="flex items-center gap-1.5 mt-2">
+            {stats.order_growth >= 0 ? (
+              <TrendingUp size={16} className={colors.green.text} />
+            ) : (
+              <TrendingDown size={16} className={colors.red.text} />
+            )}
+            <span className={`text-sm ${stats.order_growth >= 0 ? colors.green.text : colors.red.text}`}>
+              {stats.order_growth >= 0 ? '+' : ''}{stats.order_growth}% vs last month
             </span>
           </div>
         </GlowingCard>
       </div>
 
-      {/* <div className={styles.chartGrid}>
-                <div className={styles.chartRow}>
-                    <div className={styles.chartWrapper}>
-                        <RadialChart
-                            className={styles.chartCard}
-                        />
-                    </div>
-                </div>
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Revenue Chart */}
+        <Card className="lg:col-span-2 animate-in fade-in slide-in-from-left-4 duration-700 hover:shadow-lg transition-shadow">
+          <AreaChartComponent
+            title="Monthly Revenue"
+            description="Revenue chart for the current year"
+            data={revenueChartData}
+            chartConfig={revenueChartConfig}
+            xAxisKey="month"
+            variant="gradient"
+            useGradient={true}
+            showGrid={false}
+            yAxisConfig={{
+              tickFormatter: (value) => `${value / 1000000}M`,
+            }}
+            className="border-0 shadow-none"
+          />
+        </Card>
 
-                <div className={styles.fullWidth}>
-
-                </div>
-            </div> */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-10">
-        <TopIntentChart />
-
-        <ReEngagementChart />
-
-        <div className="lg:col-span-2">
-          <UserPromptChart />
-        </div>
+        {/* VPS Status Distribution */}
+        <Card className="animate-in fade-in slide-in-from-right-4 duration-700 hover:shadow-lg transition-shadow">
+          <PieChartComponent
+            title="VPS Status"
+            description="Distribution by status"
+            data={vpsStatusPieData}
+            chartConfig={vpsStatusChartConfig}
+            dataKey="value"
+            nameKey="category"
+            legendKey="category"
+            innerRadius={80}
+            outerRadius={120}
+            paddingAngle={2}
+            cornerRadius={3}
+            showTooltip={false}
+            showActiveSection={true}
+            className="border-0 shadow-none h-full"
+          />
+        </Card>
       </div>
-    </>
+
+      {/* Recent Orders */}
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700 hover:shadow-lg transition-shadow">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-purple-500" />
+            Recent Orders
+          </CardTitle>
+          <CardDescription>
+            The 5 most recent orders
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {stats.recent_orders.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No orders yet</p>
+            ) : (
+              stats.recent_orders.map((order: RecentOrder, index: number) => (
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 hover:border-primary/20 transition-all duration-200 animate-in fade-in slide-in-from-left-4"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <p className="font-medium truncate">{order.customer_name}</p>
+                      {getStatusBadge(order.status)}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
+                      <span className="font-mono">{order.order_number}</span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="hidden sm:inline">{order.plan}</span>
+                    </div>
+                  </div>
+                  <div className="text-right ml-4 shrink-0">
+                    <p className="font-semibold text-green-600">{formatPrice(order.amount)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatTime(order.created_at)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
+export default Dashboard

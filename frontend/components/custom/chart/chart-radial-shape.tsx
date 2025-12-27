@@ -18,6 +18,7 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
+import { TrendingUp } from "lucide-react"
 
 export interface RadialChartData {
     category: string
@@ -50,7 +51,7 @@ export interface RadialChartProps {
     centerOffset?: { x?: number; y?: number }
 }
 
-export function RadialChartShapeComponent({
+export const RadialChartShapeComponent = ({
     title,
     description,
     data,
@@ -66,7 +67,7 @@ export function RadialChartShapeComponent({
     labelSize = 'sm',
     animationDuration = 2.5,
     centerOffset = {}
-}: RadialChartProps) {
+}: RadialChartProps) => {
     const targetEndAngle = startAngle + (data.percentage * 3.6) // 360 độ tương ứng với 100%
     const chartRef = useRef<HTMLDivElement>(null)
     const [isChartVisible, setIsChartVisible] = useState(false)
@@ -187,89 +188,91 @@ export function RadialChartShapeComponent({
                 {description && <CardDescription>{description}</CardDescription>}
             </CardHeader>
 
-            <CardContent className="flex flex-1 justify-center items-center pb-0">
-                <ChartContainer
-                    config={chartConfig}
-                    className="flex justify-center items-center fill-foreground"
-                    style={{
-                        width: `${outerRadius * 2 + 50}px`,
-                        height: `${outerRadius * 2 + 50}px`
-                    }}
-                >
-                    <RadialBarChart
-                        data={chartData}
-                        startAngle={startAngle}
-                        endAngle={currentEndAngle} // Use animated endAngle
-                        innerRadius={innerRadius}
-                        outerRadius={outerRadius}
-                        width={outerRadius * 2 + 50}
-                        height={outerRadius * 2 + 50}
-                        cx="50%"
-                        cy="50%"
+            <CardContent className="flex-1">
+                <div className="w-full h-full flex items-center justify-center">
+                    <ChartContainer
+                        config={chartConfig}
+                        className="w-full fill-foreground"
+                        style={{
+                            width: `${outerRadius * 2 + 50}px`,
+                            height: `${outerRadius * 2 + 50}px`
+                        }}
                     >
-                        <PolarGrid
-                            gridType="circle"
-                            radialLines={false}
-                            stroke="none"
-                            className="first:fill-muted last:fill-background"
-                            polarRadius={[innerRadius + 6, innerRadius - 6]}
-                        />
+                        <RadialBarChart
+                            data={chartData}
+                            startAngle={startAngle}
+                            endAngle={currentEndAngle} // Use animated endAngle
+                            innerRadius={innerRadius}
+                            outerRadius={outerRadius}
+                            width={outerRadius * 2 + 50}
+                            height={outerRadius * 2 + 50}
+                            cx="50%"
+                            cy="50%"
+                        >
+                            <PolarGrid
+                                gridType="circle"
+                                radialLines={false}
+                                stroke="none"
+                                className="first:fill-muted last:fill-background"
+                                polarRadius={[innerRadius + 6, innerRadius - 6]}
+                            />
 
-                        <RadialBar
-                            dataKey="percentage"
-                            cornerRadius={cornerRadius}
-                            fill={data.fill}
-                        />
+                            <RadialBar
+                                dataKey="percentage"
+                                cornerRadius={cornerRadius}
+                                fill={data.fill}
+                            />
 
-                        <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                            <Label
-                                content={({ viewBox }) => {
-                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                                        const dimensions = calculateDimensions()
-                                        const centerX = (viewBox.cx || 0) + (centerOffset.x || 0)
-                                        const centerY = (viewBox.cy || 0) + (centerOffset.y || 0)
+                            <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                                <Label
+                                    content={({ viewBox }) => {
+                                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                            const dimensions = calculateDimensions()
+                                            const centerX = (viewBox.cx || 0) + (centerOffset.x || 0)
+                                            const centerY = (viewBox.cy || 0) + (centerOffset.y || 0)
 
-                                        return (
-                                            <g>
-                                                <foreignObject
-                                                    x={centerX - dimensions.width / 2}
-                                                    y={centerY - dimensions.height / 2}
-                                                    width={dimensions.width}
-                                                    height={dimensions.height}
-                                                >
-                                                    <div
-                                                        className="flex flex-col items-center justify-center w-full h-full"
-                                                        style={{
-                                                            fontFamily: 'inherit'
-                                                        }}
+                                            return (
+                                                <g>
+                                                    <foreignObject
+                                                        x={centerX - dimensions.width / 2}
+                                                        y={centerY - dimensions.height / 2}
+                                                        width={dimensions.width}
+                                                        height={dimensions.height}
                                                     >
                                                         <div
-                                                            className={`${getNumberSizeClass(numberSize)} font-bold text-foreground text-center leading-none mb-1`}
+                                                            className="flex flex-col items-center justify-center w-full h-full"
                                                             style={{
-                                                                letterSpacing: '-0.025em'
+                                                                fontFamily: 'inherit'
                                                             }}
                                                         >
-                                                            {currentPercentage}%
-                                                        </div>
+                                                            <div
+                                                                className={`${getNumberSizeClass(numberSize)} font-bold text-foreground text-center leading-none mb-1`}
+                                                                style={{
+                                                                    letterSpacing: '-0.025em'
+                                                                }}
+                                                            >
+                                                                {currentPercentage}%
+                                                            </div>
 
-                                                        <div
-                                                            className={`${getLabelSizeClass(labelSize)} text-muted-foreground text-center leading-tight`}
-                                                            style={{
-                                                                marginTop: numberSize === 'xl' ? '4px' : '2px'
-                                                            }}
-                                                        >
-                                                            {centerLabel}
+                                                            <div
+                                                                className={`${getLabelSizeClass(labelSize)} text-muted-foreground text-center leading-tight`}
+                                                                style={{
+                                                                    marginTop: numberSize === 'xl' ? '4px' : '2px'
+                                                                }}
+                                                            >
+                                                                {centerLabel}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </foreignObject>
-                                            </g>
-                                        )
-                                    }
-                                }}
-                            />
-                        </PolarRadiusAxis>
-                    </RadialBarChart>
-                </ChartContainer>
+                                                    </foreignObject>
+                                                </g>
+                                            )
+                                        }
+                                    }}
+                                />
+                            </PolarRadiusAxis>
+                        </RadialBarChart>
+                    </ChartContainer>
+                </div>
             </CardContent>
 
             {footerContent && (
@@ -291,5 +294,46 @@ export function RadialChartShapeComponent({
                 </CardFooter>
             )}
         </Card>
+    )
+}
+
+
+// ========================================================================================
+// Radial Chart Example
+// ========================================================================================
+export const RadialChartExample = () => {
+    const data = {
+        category: "re_engagement",
+        value: 450,
+        percentage: 67,
+        fill: "var(--chart-3)",
+        reEngagedUsers: 450,
+        totalReEngagements: 673
+    }
+
+    const chartConfig = {
+        re_engagement: {
+            label: "Re-engagement Rate",
+            color: "var(--chart-3)",
+        },
+    } satisfies ChartConfig
+
+    return (
+        <RadialChartShapeComponent
+            title="Chat Re-engagement Rate"
+            description="The proportion of users who engaged in a second conversation"
+            data={data}
+            chartConfig={chartConfig}
+            centerLabel="Re-engagement"
+            innerRadius={100}
+            outerRadius={150}
+            footerContent={{
+                mainText: "+8.2% this month",
+                subText: "Compared to previous period",
+                showTrending: true,
+                trendingColor: "text-emerald-600",
+                trendingIcon: <TrendingUp size={16} />
+            }}
+        />
     )
 }

@@ -41,7 +41,7 @@ import {
     Eye,
     Calendar,
     Send,
-    Loader2,
+    Loader,
     RefreshCw,
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
@@ -58,12 +58,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import SupportPlaceholder from '@/components/custom/placeholder/support';
-import { useLocale } from 'next-intl';
 import Pagination from '@/components/ui/pagination';
 import { formatDateTime } from '@/utils/string';
 
 const MyTicketsPage = () => {
-    const locale = useLocale();
     const {
         createTicket,
         getTickets,
@@ -397,7 +395,7 @@ const MyTicketsPage = () => {
                                     >
                                         {isCreating ? (
                                             <>
-                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                <Loader className="h-4 w-4 mr-2 animate-spin" />
                                                 Creating...
                                             </>
                                         ) : (
@@ -564,7 +562,7 @@ const MyTicketsPage = () => {
                                             <TableCell className="text-sm text-muted-foreground">
                                                 <div className="flex items-center gap-1">
                                                     <Calendar className="h-3 w-3" />
-                                                    {formatDateTime(new Date(ticket.created_at), locale)}
+                                                    {formatDateTime(new Date(ticket.created_at))}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -626,7 +624,7 @@ const MyTicketsPage = () => {
                                 </div>
                             </DialogHeader>
                             <ScrollArea className="flex-1 overflow-y-auto">
-                                <div className="space-y-4 py-4">
+                                <div className="space-y-4 py-2">
                                     <div className="grid grid-cols-2 gap-4 text-sm pb-3 border-b">
                                         <div>
                                             <span className="text-muted-foreground">Phone Number:</span>
@@ -659,7 +657,7 @@ const MyTicketsPage = () => {
                                         <div className="border rounded-lg p-4 bg-muted/30 max-h-70 overflow-y-auto">
                                             <div className="space-y-4">
                                                 {/* Initial message from user */}
-                                                <div className="flex gap-3 flex-row-reverse">
+                                                <div className="w-[85%] flex gap-3 flex-row-reverse ml-auto">
                                                     <Avatar className="h-8 w-8">
                                                         <AvatarFallback className="bg-muted">
                                                             {selectedTicketData.user?.name?.charAt(0) || selectedTicketData.email?.charAt(0) || 'U'}
@@ -687,8 +685,8 @@ const MyTicketsPage = () => {
                                                                 <div
                                                                     key={reply.id}
                                                                     className={cn(
-                                                                        'flex gap-3',
-                                                                        isAdmin ? 'flex-row' : 'flex-row-reverse'
+                                                                        'w-[85%] flex gap-3',
+                                                                        isAdmin ? 'flex-row mr-auto' : 'flex-row-reverse ml-auto'
                                                                     )}
                                                                 >
                                                                     <Avatar className="h-8 w-8">
@@ -719,7 +717,7 @@ const MyTicketsPage = () => {
                                                                                     : reply.message.sender.name}
                                                                             </span>
                                                                             <span className="text-xs text-muted-foreground">
-                                                                                {new Date(reply.created_at).toLocaleString()}
+                                                                                {formatDateTime(new Date(reply.created_at))}
                                                                             </span>
                                                                         </div>
                                                                         <p className="text-sm whitespace-pre-wrap">{reply.message.content.text}</p>
@@ -768,7 +766,7 @@ const MyTicketsPage = () => {
                                             >
                                                 {isSendingReply ? (
                                                     <>
-                                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                        <Loader className="h-4 w-4 animate-spin mr-2" />
                                                         Sending...
                                                     </>
                                                 ) : (

@@ -2,11 +2,12 @@
 
 import {
     Users,
-    FileText,
-    MessageSquare,
     LayoutDashboardIcon,
-    BotIcon,
-    BarChart3
+    BarChart3,
+    MonitorCog,
+    WalletCards,
+    Headset,
+    Layers
 } from 'lucide-react'
 import {
     ChevronSidebarTrigger,
@@ -16,11 +17,12 @@ import {
     SidebarHeader,
     useSidebar,
 } from "@/components/ui/sidebar"
-import { NavMain } from '@/components/custom/admin/cms-nav-main'
+import { NavMain } from '@/components/custom/admin/CmsNavMain'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { usePathname } from 'next/navigation'
-import { AdminNavUser } from '@/components/custom/admin/cms-nav-user'
+import { AdminNavUser } from '@/components/custom/admin/CmsNavUser'
+import { useLocale } from 'next-intl'
 
 const menuItems = [
     {
@@ -36,15 +38,27 @@ const menuItems = [
         color: 'green',
     },
     {
-        title: 'Articles',
-        url: '/admin/articles',
-        icon: FileText,
+        title: 'VPS',
+        url: '/admin/vps',
+        icon: MonitorCog,
         color: 'purple',
     },
     {
-        title: 'Chats',
-        url: '/admin/chats',
-        icon: MessageSquare,
+        title: 'Plans',
+        url: '/admin/plans',
+        icon: Layers,
+        color: 'indigo',
+    },
+    {
+        title: 'Support',
+        url: '/admin/support',
+        icon: Headset,
+        color: 'cyan',
+    },
+    {
+        title: 'Revenue',
+        url: '/admin/revenue',
+        icon: WalletCards,
         color: 'orange',
     },
     {
@@ -55,7 +69,9 @@ const menuItems = [
     }
 ]
 
+
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const locale = useLocale()
     const { isMobile, open } = useSidebar()
     const pathname = usePathname()
 
@@ -72,24 +88,36 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         >
             <SidebarHeader>
                 {open || isMobile ? (
-                    <div className="flex items-center w-full h-full p-2 text-foreground">
-                        <BotIcon size={40} stroke='#8497FD' />
+                    <div className="hidden md:flex items-center w-full h-full p-2 text-foreground">
+                        <Link href={`/${locale}/admin`} className="flex items-center space-x-2 shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src="/logo.png"
+                                alt="Logo"
+                                className="h-13 w-13"
+                            />
+                        </Link>
 
                         <Separator orientation="vertical" className="mx-2" />
 
                         <div className="flex flex-col items-start justify-center w-full h-full">
-                            <h1 className="text-xl font-semibold">AI Assistant</h1>
-                            <p className="text-sm text-muted-foreground">ChatBot CMS</p>
+                            <h1 className="text-xl font-semibold">PCloud</h1>
+                            <p className="text-sm text-muted-foreground">Admin Panel</p>
                         </div>
                     </div>
                 ) : (
                     <Link
-                        href="/admin"
-                        className="flex items-center justify-center w-full h-full p-1 text-foreground cursor-pointer"
-                        title="ChatBot CMS"
-                        aria-label="ChatBot CMS"
+                        href={`/${locale}/admin`}
+                        className="flex items-center space-x-2 shrink-0 cursor-pointer"
+                        title="PCloud Admin Panel"
+                        aria-label="PCloud Admin Panel"
                     >
-                        <BotIcon stroke='#8497FD' />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src="/logo.png"
+                            alt="Logo"
+                            className="h-7 w-7"
+                        />
                     </Link>
                 )}
 

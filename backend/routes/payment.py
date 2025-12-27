@@ -17,7 +17,6 @@ from backend.schemas import (
     PaymentRequest,
     RenewalPaymentRequest,
     PaymentResponse,
-    PaymentStatusResponse,
     CallbackResponse,
 )
 from backend.services import PaymentService

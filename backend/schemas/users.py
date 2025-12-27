@@ -150,6 +150,9 @@ class UserCreate(UserBase):
     """Schema to create a new user"""
 
     password: str = Field(..., description="Plain password (will be hashed)")
+    verify_email: Optional[bool] = Field(
+        False, description="Whether to verify email immediately"
+    )
 
     @field_validator("password")
     @classmethod
@@ -180,6 +183,9 @@ class UserUpdate(BaseModel):
     address: Optional[str] = Field(None, description="Home address")
     image: Optional[str] = Field(None, description="Profile image URL")
     role: Optional[UserRole] = Field(None, description="User role name")
+    verify_email: Optional[bool] = Field(
+        None, description="Whether to verify email (True=verify, False=unverify, None=no change)"
+    )
 
     @field_validator("name")
     @classmethod

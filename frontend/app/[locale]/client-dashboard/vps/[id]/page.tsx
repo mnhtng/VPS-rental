@@ -2,12 +2,14 @@
 
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "next/navigation"
+import Link from "next/link"
+import { useLocale } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RefreshCw, Square, HardDrive, Activity, Network, Server, Power, Plus, RotateCcw, Trash2, Loader2, Camera, AlertTriangle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { UsageChart } from "@/components/custom/client/usage-chart"
+import { UsageChart } from "@/components/custom/client/UsageChart"
 import VNCConsole from "@/components/custom/console/VNCConsole"
 import { cn } from "@/lib/utils"
 import { VPSItemPlaceholder } from "@/components/custom/placeholder/vps"
@@ -26,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function VPSDetail() {
   const params = useParams();
+  const locale = useLocale();
   const vpsId = params.id as string;
   const { getVpsInfo, getRRD, stopVM, rebootVM, startVM, listSnapshots, createSnapshot, restoreSnapshot, deleteSnapshot } = useVPS()
 
@@ -475,42 +478,71 @@ export default function VPSDetail() {
                 {vpsInfo.vm_info?.ostype.toUpperCase() || 'N/A'} • {vpsInfo.vm?.vcpu || 0} vCPU • {vpsInfo.vm?.ram_gb || 0}GB RAM • {getDiskSize(vpsInfo.vm?.storage_gb || 0, vpsInfo.vm?.storage_type)} • {getNetworkSpeed(vpsInfo.vm?.bandwidth_mbps || 0)} Network
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent hover:scale-105 transition-all"
-                disabled={actionLoading || vpsInfo.vm_info.status === 'stopped'}
-                onClick={() => handleActionVM('stop')}
-              >
-                <Square className="mr-0 sm:mr-2 h-4 w-4" />
-                <span>Stop</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="hover:scale-105 transition-all"
-                disabled={actionLoading || vpsInfo.vm_info.status === 'stopped'}
-                onClick={() => handleActionVM('reboot')}
-              >
-                <RefreshCw className={`mr-0 sm:mr-2 h-4 w-4 ${actionLoading ? 'animate-spin' : ''}`} />
-                <span>Reboot</span>
-              </Button>
-              <Button
-                className="bg-linear-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transition-all"
-                disabled={vpsInfo.vm_info.status === 'running'}
-                onClick={() => handleActionVM('start')}
-              >
-                <Power className="mr-0 sm:mr-2 h-4 w-4" />
-                <span>Start</span>
-              </Button>
-            </div>
+
+            {vpsInfo.vm?.vps_instance?.status !== 'suspended' && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent hover:scale-105 transition-all"
+                  disabled={actionLoading || vpsInfo.vm_info.status === 'stopped' || vpsInfo.vm?.vps_instance?.status === 'suspended'}
+                  onClick={() => handleActionVM('stop')}
+                >
+                  <Square className="mr-0 sm:mr-2 h-4 w-4" />
+                  <span>Stop</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hover:scale-105 transition-all"
+                  disabled={actionLoading || vpsInfo.vm_info.status === 'stopped' || vpsInfo.vm?.vps_instance?.status === 'suspended'}
+                  onClick={() => handleActionVM('reboot')}
+                >
+                  <RefreshCw className={`mr-0 sm:mr-2 h-4 w-4 ${actionLoading ? 'animate-spin' : ''}`} />
+                  <span>Reboot</span>
+                </Button>
+                <Button
+                  className="bg-linear-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transition-all"
+                  disabled={vpsInfo.vm_info.status === 'running' || vpsInfo.vm?.vps_instance?.status === 'suspended'}
+                  onClick={() => handleActionVM('start')}
+                >
+                  <Power className="mr-0 sm:mr-2 h-4 w-4" />
+                  <span>Start</span>
+                </Button>
+              </div>
+            )}
           </div>
 
+          {/* Suspension Banner */}
+          {vpsInfo.vm?.vps_instance?.status === 'suspended' && (
+            <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10 animate-in fade-in slide-in-from-top-4">
+              <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-amber-500/20 p-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-amber-700 dark:text-amber-500">VPS Suspended</h3>
+                    <p className="text-sm text-amber-600/80 dark:text-amber-400/80">
+                      Your VPS has been suspended due to expiration. Please renew to restore access and resume operations.
+                    </p>
+                  </div>
+                </div>
+                <Button asChild className="bg-amber-500 hover:bg-amber-600 text-white shrink-0">
+                  <Link href={`/${locale}/client-dashboard/billing`}>
+                    Renew Now
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="w-full justify-start overflow-x-auto">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="console">Console (VNC)</TabsTrigger>
-              <TabsTrigger value="snapshots">Snapshots</TabsTrigger>
-            </TabsList>
+            {vpsInfo.vm?.vps_instance?.status !== 'suspended' && (
+              <TabsList className="w-full justify-start overflow-x-auto">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="console">Console (VNC)</TabsTrigger>
+                <TabsTrigger value="snapshots">Snapshots</TabsTrigger>
+              </TabsList>
+            )}
 
             <TabsContent value="overview" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -622,7 +654,7 @@ export default function VPSDetail() {
                           <Plus className="mr-2 h-4 w-4" /> Create Snapshot
                         </Button>
                       </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+                      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
                             <Camera className="h-5 w-5 text-blue-600" />
