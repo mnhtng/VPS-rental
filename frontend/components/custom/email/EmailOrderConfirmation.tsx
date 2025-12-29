@@ -15,7 +15,7 @@ import { formatPrice } from "@/utils/currency";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : 'https://mnhtng.site';
+    : 'https://ptitcloud.io.vn';
 
 const EmailOrderConfirmation = ({
     customerName = "Khách hàng",
@@ -147,7 +147,7 @@ const EmailOrderConfirmation = ({
             </Section>
 
             <Text style={supportText}>
-                Nếu bạn cần hỗ trợ, vui lòng liên hệ <Link style={link} href="mailto:support@pcloud.com">support@pcloud.com</Link>
+                Nếu bạn cần hỗ trợ, vui lòng liên hệ <Link style={link} href="mailto:support@ptitcloud.io.vn">support@ptitcloud.io.vn</Link>
             </Text>
 
         </EmailLayout>

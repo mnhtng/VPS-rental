@@ -17,3 +17,4 @@ openai==2.9.0
 Unidecode==1.4.0
 apscheduler==3.11.2
 base36==0.1.1
+google-generativeai==0.8.6

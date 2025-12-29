@@ -136,16 +136,16 @@ const FooterContent = () => {
 
                         <ul className="space-y-3">
                             <li className="flex items-center space-x-3 group">
-                                <Mail className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">support@vpsrental.com</span>
+                                <Mail className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200 shrink-0" />
+                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">support@ptitcloud.io.vn</span>
                             </li>
                             <li className="flex items-center space-x-3 group">
-                                <Phone className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">+1 (555) 123-4567</span>
+                                <Phone className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200 shrink-0" />
+                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">+84 789 318 158</span>
                             </li>
                             <li className="flex items-center space-x-3 group">
-                                <MapPin className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">123 Cloud Street, Tech City</span>
+                                <MapPin className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-200 shrink-0" />
+                                <span className="text-gray-400 group-hover:text-white transition-colors duration-200">96A Đ. Trần Phú, P. Mộ Lao, Hà Đông, Hà Nội, Vietnam</span>
                             </li>
                         </ul>
 
@@ -170,19 +170,19 @@ const FooterContent = () => {
                     </div>
                     <div className="flex space-x-6 mt-4 md:mt-0">
                         <Link
-                            href="#"
+                            href={`/${locale}/privacy`}
                             className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:scale-105"
                         >
                             {t('privacy')}
                         </Link>
                         <Link
-                            href="#"
+                            href={`/${locale}/terms`}
                             className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:scale-105"
                         >
                             {t('terms')}
                         </Link>
                         <Link
-                            href="#"
+                            href={`/${locale}/cookies`}
                             className="text-gray-400 hover:text-white text-sm transition-all duration-200 hover:scale-105"
                         >
                             {t('cookies')}

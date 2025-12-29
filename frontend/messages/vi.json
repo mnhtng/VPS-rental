@@ -175,6 +175,178 @@
         "terms": "Điều khoản dịch vụ",
         "cookies": "Chính sách Cookie"
     },
+    "privacy_policy": {
+        "title": "Chính sách Bảo mật",
+        "subtitle": "Quyền riêng tư của bạn rất quan trọng với chúng tôi. Tìm hiểu cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân của bạn.",
+        "last_updated": "Cập nhật lần cuối",
+        "introduction": "PCloud (\"chúng tôi\") cam kết bảo vệ quyền riêng tư của bạn. Chính sách Bảo mật này giải thích cách chúng tôi thu thập, sử dụng, tiết lộ và bảo vệ thông tin của bạn khi sử dụng dịch vụ VPS hosting. Bằng việc sử dụng dịch vụ, bạn đồng ý với việc thu thập và sử dụng thông tin theo chính sách này.",
+        "data_collection": {
+            "title": "Thông tin Chúng tôi Thu thập",
+            "items": {
+                "account": "Thông tin tài khoản: họ tên, địa chỉ email, số điện thoại và địa chỉ thanh toán khi bạn đăng ký dịch vụ",
+                "payment": "Thông tin thanh toán: chi tiết thẻ tín dụng, lịch sử giao dịch và hồ sơ thanh toán qua cổng thanh toán an toàn (VNPay, MoMo)",
+                "usage": "Dữ liệu sử dụng: mức tiêu thụ tài nguyên VPS, thời gian đăng nhập, cấu hình dịch vụ và lịch sử yêu cầu hỗ trợ",
+                "technical": "Dữ liệu kỹ thuật: địa chỉ IP, nhật ký máy chủ, loại trình duyệt và thông tin thiết bị để bảo mật và tối ưu dịch vụ"
+            }
+        },
+        "data_usage": {
+            "title": "Cách Chúng tôi Sử dụng Thông tin",
+            "items": {
+                "service": "Cung cấp và duy trì dịch vụ VPS hosting, bao gồm triển khai máy chủ, giám sát và hỗ trợ kỹ thuật",
+                "communication": "Gửi thông báo dịch vụ, nhắc thanh toán, cảnh báo bảo trì và phản hồi các yêu cầu của bạn",
+                "improvement": "Phân tích mô hình sử dụng để cải thiện hạ tầng, tối ưu hiệu suất và phát triển tính năng mới",
+                "security": "Phát hiện và ngăn chặn gian lận, lạm dụng, mối đe dọa bảo mật và đảm bảo tuân thủ điều khoản dịch vụ"
+            }
+        },
+        "data_protection": {
+            "title": "Cách Chúng tôi Bảo vệ Dữ liệu",
+            "items": {
+                "encryption": "Tất cả truyền tải dữ liệu được mã hóa bằng giao thức TLS/SSL tiêu chuẩn ngành",
+                "access": "Kiểm soát truy cập nghiêm ngặt giới hạn nhân viên truy cập dữ liệu cá nhân trên cơ sở cần biết",
+                "monitoring": "Giám sát bảo mật 24/7 và hệ thống phát hiện xâm nhập bảo vệ hạ tầng",
+                "backup": "Sao lưu mã hóa định kỳ đảm bảo khôi phục dữ liệu trong trường hợp lỗi hệ thống"
+            }
+        },
+        "user_rights": {
+            "title": "Quyền của Bạn",
+            "items": {
+                "access": "Truy cập và xem lại thông tin cá nhân của bạn được lưu trữ trong hệ thống bất cứ lúc nào qua bảng điều khiển tài khoản",
+                "correction": "Yêu cầu sửa chữa dữ liệu cá nhân không chính xác hoặc không đầy đủ bằng cách liên hệ đội hỗ trợ",
+                "deletion": "Yêu cầu xóa dữ liệu cá nhân, tùy thuộc vào yêu cầu lưu trữ pháp lý và nghĩa vụ dịch vụ đang hoạt động",
+                "export": "Xuất dữ liệu của bạn ở định dạng di động để chuyển sang nhà cung cấp dịch vụ khác"
+            }
+        },
+        "data_retention": {
+            "title": "Lưu trữ Dữ liệu",
+            "description": "Chúng tôi lưu giữ thông tin cá nhân của bạn miễn là tài khoản còn hoạt động hoặc cần thiết để cung cấp dịch vụ. Sau khi chấm dứt tài khoản, chúng tôi có thể giữ lại một số dữ liệu trong tối đa 90 ngày cho mục đích sao lưu. Hồ sơ tài chính được lưu giữ 7 năm theo quy định pháp luật."
+        },
+        "contact": {
+            "title": "Liên hệ",
+            "description": "Nếu bạn có câu hỏi về Chính sách Bảo mật này hoặc muốn thực hiện quyền riêng tư, vui lòng liên hệ đội bảo mật:"
+        }
+    },
+    "terms_of_service": {
+        "title": "Điều khoản Dịch vụ",
+        "subtitle": "Vui lòng đọc kỹ các điều khoản này trước khi sử dụng dịch vụ VPS hosting.",
+        "last_updated": "Cập nhật lần cuối",
+        "notice": "Bằng việc sử dụng dịch vụ PCloud, bạn đồng ý tuân thủ các Điều khoản Dịch vụ này. Nếu bạn không đồng ý, vui lòng không sử dụng dịch vụ.",
+        "introduction": "Các Điều khoản Dịch vụ này (\"Điều khoản\") điều chỉnh việc sử dụng dịch vụ VPS hosting của PCloud. Các Điều khoản này tạo thành thỏa thuận ràng buộc pháp lý giữa bạn và PCloud. Chúng tôi có quyền sửa đổi các điều khoản bất cứ lúc nào, với thông báo qua email hoặc website.",
+        "service_description": {
+            "title": "Mô tả Dịch vụ",
+            "items": {
+                "vps": "Dịch vụ VPS hosting với CPU, RAM và dung lượng lưu trữ riêng biệt theo gói bạn chọn",
+                "support": "Hỗ trợ kỹ thuật 24/7 qua chat trực tiếp, email và điện thoại cho các vấn đề liên quan đến dịch vụ",
+                "uptime": "Cam kết uptime 99.9% được đảm bảo bởi Thỏa thuận Mức Dịch vụ (SLA)",
+                "backup": "Chức năng snapshot để tạo và khôi phục bản sao lưu VPS qua bảng điều khiển"
+            }
+        },
+        "payment_terms": {
+            "title": "Điều khoản Thanh toán",
+            "items": {
+                "billing": "Dịch vụ được thanh toán hàng tháng trước. Chu kỳ thanh toán bắt đầu từ ngày kích hoạt dịch vụ",
+                "methods": "Chúng tôi chấp nhận thanh toán qua VNPay (thẻ tín dụng/ghi nợ) và ví MoMo. Tất cả thanh toán được xử lý an toàn",
+                "refund": "Hoàn tiền khả dụng trong vòng 7 ngày kể từ ngày mua ban đầu nếu dịch vụ không đáp ứng thông số quảng cáo",
+                "late": "Thanh toán trễ có thể dẫn đến tạm ngưng dịch vụ sau 24 giờ quá hạn"
+            }
+        },
+        "sla": {
+            "title": "Thỏa thuận Mức Dịch vụ",
+            "items": {
+                "uptime": "Chúng tôi cam kết 99.9% uptime mạng và hạ tầng, đo lường hàng tháng",
+                "credit": "Cho mỗi giờ downtime dưới 99.9%, bạn nhận 5% tín dụng dịch vụ (tối đa 100% phí hàng tháng)",
+                "maintenance": "Lịch bảo trì được thông báo trước 48 giờ và không tính vào thời gian downtime",
+                "exclusions": "SLA không bao gồm downtime do tấn công DDoS, hành động người dùng hoặc sự kiện bất khả kháng"
+            }
+        },
+        "prohibited": {
+            "title": "Hoạt động Bị cấm",
+            "items": {
+                "illegal": "Bất kỳ hoạt động bất hợp pháp nào bao gồm nhưng không giới hạn gian lận, hack hoặc phân phối nội dung bất hợp pháp",
+                "spam": "Gửi email hàng loạt không mong muốn (spam), lừa đảo phishing hoặc thu thập email",
+                "malware": "Lưu trữ hoặc phân phối malware, virus, botnet hoặc tham gia tấn công DDoS",
+                "abuse": "Lạm dụng tài nguyên ảnh hưởng đến người dùng khác, bao gồm đào tiền điện tử mà không được phê duyệt trước"
+            }
+        },
+        "termination": {
+            "title": "Chấm dứt & Tạm ngưng",
+            "items": {
+                "user": "Bạn có thể hủy dịch vụ bất cứ lúc nào qua bảng điều khiển tài khoản. Không hoàn tiền cho tháng không trọn",
+                "provider": "Chúng tôi có thể chấm dứt dịch vụ ngay lập tức vì vi phạm Điều khoản, có hoặc không có thông báo",
+                "suspension": "Dịch vụ có thể bị tạm ngưng vì vấn đề thanh toán, báo cáo lạm dụng hoặc trong quá trình điều tra bảo mật",
+                "data": "Sau khi chấm dứt, dữ liệu của bạn sẽ được giữ lại 24 giờ, sau đó sẽ bị xóa vĩnh viễn"
+            }
+        },
+        "liability": {
+            "title": "Giới hạn Trách nhiệm",
+            "items": {
+                "limitation": "Trách nhiệm tối đa của chúng tôi giới hạn ở mức phí bạn đã thanh toán trong 3 tháng trước sự cố",
+                "indirect": "Chúng tôi không chịu trách nhiệm về thiệt hại gián tiếp, ngẫu nhiên hoặc hậu quả bao gồm mất lợi nhuận hoặc dữ liệu",
+                "force": "Chúng tôi không chịu trách nhiệm về gián đoạn dịch vụ do các sự kiện ngoài tầm kiểm soát hợp lý",
+                "third": "Chúng tôi không chịu trách nhiệm về hành động của bên thứ ba hoặc nội dung được lưu trữ trên VPS của bạn"
+            }
+        },
+        "changes": {
+            "title": "Thay đổi Điều khoản",
+            "description": "Chúng tôi có quyền sửa đổi các Điều khoản này bất cứ lúc nào. Các thay đổi quan trọng sẽ được thông báo qua email ít nhất 30 ngày trước khi có hiệu lực. Tiếp tục sử dụng dịch vụ sau khi thay đổi đồng nghĩa với việc chấp nhận Điều khoản mới."
+        },
+        "contact": {
+            "title": "Liên hệ",
+            "description": "Nếu bạn có câu hỏi về các Điều khoản Dịch vụ này, vui lòng liên hệ đội pháp lý:"
+        }
+    },
+    "cookies_policy": {
+        "title": "Chính sách Cookie",
+        "subtitle": "Chính sách này giải thích cách chúng tôi sử dụng cookie và các công nghệ tương tự trên website.",
+        "last_updated": "Cập nhật lần cuối",
+        "examples": "Ví dụ",
+        "what_are_cookies": {
+            "title": "Cookie là gì?",
+            "description": "Cookie là các tệp văn bản nhỏ được đặt trên thiết bị của bạn khi truy cập website. Chúng giúp website ghi nhớ tùy chọn của bạn, giữ trạng thái đăng nhập và hiểu cách bạn sử dụng trang. Chúng tôi sử dụng cookie để cung cấp trải nghiệm tốt hơn, nhanh hơn và an toàn hơn trên PCloud."
+        },
+        "essential": {
+            "title": "Cookie Thiết yếu",
+            "badge": "Bắt buộc",
+            "description": "Các cookie này cần thiết để website hoạt động đúng cách. Chúng kích hoạt các tính năng cốt lõi như đăng nhập an toàn, quản lý phiên và bảo vệ bảo mật. Không có các cookie này, một số dịch vụ không thể được cung cấp.",
+            "examples": {
+                "session": "Cookie phiên để duy trì trạng thái đăng nhập của bạn",
+                "auth": "Token xác thực để truy cập API an toàn",
+                "security": "Token CSRF để ngăn chặn tấn công giả mạo yêu cầu"
+            }
+        },
+        "analytics": {
+            "title": "Cookie Phân tích",
+            "badge": "Tùy chọn",
+            "description": "Các cookie này giúp chúng tôi hiểu cách khách truy cập tương tác với website. Chúng tôi sử dụng dữ liệu này để cải thiện dịch vụ, xác định vấn đề và tối ưu trải nghiệm người dùng. Tất cả dữ liệu phân tích được ẩn danh.",
+            "examples": {
+                "usage": "Theo dõi lượt xem trang để hiểu các tính năng phổ biến",
+                "performance": "Chỉ số hiệu suất để tối ưu thời gian tải",
+                "errors": "Theo dõi lỗi để xác định và khắc phục vấn đề"
+            }
+        },
+        "preferences": {
+            "title": "Cookie Tùy chọn",
+            "badge": "Tùy chọn",
+            "description": "Các cookie này ghi nhớ cài đặt và tùy chọn của bạn để cung cấp trải nghiệm cá nhân hóa. Chúng giúp chúng tôi ghi nhớ ngôn ngữ, giao diện và tùy chọn hiển thị của bạn qua các phiên.",
+            "examples": {
+                "language": "Tùy chọn ngôn ngữ (Tiếng Anh/Tiếng Việt)",
+                "theme": "Cài đặt chế độ tối/sáng",
+                "settings": "Bố cục bảng điều khiển và tùy chọn hiển thị"
+            }
+        },
+        "managing": {
+            "title": "Quản lý Cookie",
+            "description": "Bạn có thể kiểm soát và quản lý cookie theo nhiều cách. Xin lưu ý rằng việc xóa hoặc chặn cookie có thể ảnh hưởng đến trải nghiệm người dùng.",
+            "items": {
+                "browser": "Cài đặt trình duyệt: Hầu hết trình duyệt cho phép bạn xem, quản lý và xóa cookie trong cài đặt",
+                "disable": "Tắt cookie tùy chọn: Bạn có thể tiếp tục sử dụng dịch vụ chỉ với cookie thiết yếu",
+                "delete": "Xóa cookie: Bạn có thể xóa tất cả cookie bất cứ lúc nào, nhưng sẽ cần đăng nhập lại"
+            }
+        },
+        "contact": {
+            "title": "Liên hệ",
+            "description": "Nếu bạn có câu hỏi về việc sử dụng cookie, vui lòng liên hệ:"
+        }
+    },
     "common": {
         "loading": "Đang tải...",
         "error": "Lỗi",

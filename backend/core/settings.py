@@ -1,6 +1,12 @@
+import sys
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from typing import List
+
+# Detect if running in development mode
+# fastapi dev -> sys.argv contains 'dev'
+# fastapi run -> sys.argv contains 'run'
+IS_DEV_MODE = "dev" in sys.argv
 
 
 class Settings(BaseSettings):
@@ -38,12 +44,14 @@ class Settings(BaseSettings):
     MOMO_RETURN_URL: str = "http://localhost:3000/checkout/momo-return"
     MOMO_NOTIFY_URL: str = "http://localhost:8000/api/v1/payments/momo/notify"
 
+    OPENROUTER_API_KEY: str
+
     @field_validator("ALLOWED_ORIGINS")
     def parse_allowed_origins(cls, v: str) -> List[str]:
         return v.split(",") if v else []
 
     class Config:
-        env_file = ".env"
+        env_file = (".env", ".env.development") if IS_DEV_MODE else (".env", ".env.production")
         env_file_encoding = "utf-8"
         case_sensitive = True
 

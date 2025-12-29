@@ -268,7 +268,7 @@ const VPSWelcomePDF = ({
                             Cảm ơn bạn đã tin tưởng dịch vụ của PCloud!
                         </Text>
                         <Text style={styles.footerContact}>
-                            support@pcloud.com • Hotline: 1900 xxxx • pcloud.com
+                            support@ptitcloud.io.vn • Hotline: +84 789 318 158 • ptitcloud.io.vn
                         </Text>
                     </View>
                     <Text style={styles.footerCopyright}>

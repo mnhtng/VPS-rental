@@ -98,6 +98,21 @@
             "title": "Renewal - PCloud",
             "description": "Renew your VPS hosting services and extend your subscription.",
             "keywords": ""
+        },
+        "privacy": {
+            "title": "Privacy Policy - PCloud",
+            "description": "Learn how PCloud collects, uses, and protects your personal data when using our VPS hosting services.",
+            "keywords": "privacy policy, data protection, VPS privacy, user data, GDPR"
+        },
+        "terms": {
+            "title": "Terms of Service - PCloud",
+            "description": "Read the terms and conditions for using PCloud VPS hosting services, including billing, SLA, and acceptable use policies.",
+            "keywords": "terms of service, VPS terms, hosting agreement, SLA, acceptable use"
+        },
+        "cookies": {
+            "title": "Cookie Policy - PCloud",
+            "description": "Understand how PCloud uses cookies and similar technologies on our VPS hosting platform.",
+            "keywords": "cookie policy, cookies, tracking, browser cookies, website cookies"
         }
     },
     "header": {
@@ -236,6 +251,178 @@
         "privacy": "Privacy Policy",
         "terms": "Terms of Service",
         "cookies": "Cookie Policy"
+    },
+    "privacy_policy": {
+        "title": "Privacy Policy",
+        "subtitle": "Your privacy is important to us. Learn how we collect, use, and protect your personal information.",
+        "last_updated": "Last Updated",
+        "introduction": "PCloud (\"we\", \"our\", or \"us\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our VPS hosting services. By using our services, you agree to the collection and use of information in accordance with this policy.",
+        "data_collection": {
+            "title": "Information We Collect",
+            "items": {
+                "account": "Account information: name, email address, phone number, and billing address when you register for our services",
+                "payment": "Payment information: credit card details, transaction history, and billing records processed through secure payment gateways (VNPay, MoMo)",
+                "usage": "Usage data: VPS resource consumption, login times, service configurations, and support ticket history",
+                "technical": "Technical data: IP addresses, server logs, browser type, and device information for security and service optimization"
+            }
+        },
+        "data_usage": {
+            "title": "How We Use Your Information",
+            "items": {
+                "service": "Providing and maintaining VPS hosting services, including server deployment, monitoring, and technical support",
+                "communication": "Sending service notifications, billing reminders, maintenance alerts, and responding to your inquiries",
+                "improvement": "Analyzing usage patterns to improve our infrastructure, optimize performance, and develop new features",
+                "security": "Detecting and preventing fraud, abuse, security threats, and ensuring compliance with our terms of service"
+            }
+        },
+        "data_protection": {
+            "title": "How We Protect Your Data",
+            "items": {
+                "encryption": "All data transmissions are encrypted using industry-standard TLS/SSL protocols",
+                "access": "Strict access controls limit employee access to personal data on a need-to-know basis",
+                "monitoring": "24/7 security monitoring and intrusion detection systems protect our infrastructure",
+                "backup": "Regular encrypted backups ensure data recovery in case of system failures"
+            }
+        },
+        "user_rights": {
+            "title": "Your Rights",
+            "items": {
+                "access": "Access and review your personal information stored in our systems at any time through your account dashboard",
+                "correction": "Request correction of inaccurate or incomplete personal data by contacting our support team",
+                "deletion": "Request deletion of your personal data, subject to legal retention requirements and active service obligations",
+                "export": "Export your data in a portable format for transfer to another service provider"
+            }
+        },
+        "data_retention": {
+            "title": "Data Retention",
+            "description": "We retain your personal information for as long as your account is active or as needed to provide services. After account termination, we may retain certain data for up to 90 days for backup purposes. Financial records are retained for 7 years as required by law."
+        },
+        "contact": {
+            "title": "Contact Us",
+            "description": "If you have questions about this Privacy Policy or wish to exercise your privacy rights, please contact our privacy team:"
+        }
+    },
+    "terms_of_service": {
+        "title": "Terms of Service",
+        "subtitle": "Please read these terms carefully before using our VPS hosting services.",
+        "last_updated": "Last Updated",
+        "notice": "By using PCloud services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.",
+        "introduction": "These Terms of Service (\"Terms\") govern your use of PCloud's virtual private server (VPS) hosting services. These Terms constitute a legally binding agreement between you and PCloud. We reserve the right to modify these terms at any time, with notice provided through email or our website.",
+        "service_description": {
+            "title": "Service Description",
+            "items": {
+                "vps": "Virtual Private Server hosting with dedicated CPU, RAM, and storage resources as specified in your selected plan",
+                "support": "24/7 technical support via live chat, email, and phone for service-related issues",
+                "uptime": "99.9% uptime guarantee backed by our Service Level Agreement (SLA)",
+                "backup": "Snapshot functionality for creating and restoring VPS backups through the control panel"
+            }
+        },
+        "payment_terms": {
+            "title": "Payment Terms",
+            "items": {
+                "billing": "Services are billed monthly in advance. Your billing cycle begins on the date of service activation",
+                "methods": "We accept payments via VNPay (credit/debit cards) and MoMo wallet. All payments are processed securely",
+                "refund": "Refunds are available within 7 days of initial purchase if the service does not meet advertised specifications",
+                "late": "Late payments may result in service suspension after 24 hours past due date"
+            }
+        },
+        "sla": {
+            "title": "Service Level Agreement",
+            "items": {
+                "uptime": "We guarantee 99.9% network and infrastructure uptime, measured monthly",
+                "credit": "For each hour of downtime below 99.9%, you receive 5% service credit (maximum 100% monthly fee)",
+                "maintenance": "Scheduled maintenance windows are announced 48 hours in advance and do not count toward downtime",
+                "exclusions": "SLA excludes downtime caused by DDoS attacks, user actions, or force majeure events"
+            }
+        },
+        "prohibited": {
+            "title": "Prohibited Activities",
+            "items": {
+                "illegal": "Any illegal activities including but not limited to fraud, hacking, or distribution of illegal content",
+                "spam": "Sending unsolicited bulk emails (spam), phishing attempts, or email harvesting",
+                "malware": "Hosting or distributing malware, viruses, botnets, or participating in DDoS attacks",
+                "abuse": "Resource abuse that affects other users, including cryptocurrency mining without prior approval"
+            }
+        },
+        "termination": {
+            "title": "Termination & Suspension",
+            "items": {
+                "user": "You may cancel your service at any time through your account dashboard. No refunds for partial months",
+                "provider": "We may terminate service immediately for Terms violations, with or without notice",
+                "suspension": "Services may be suspended for payment issues, abuse reports, or during security investigations",
+                "data": "Upon termination, your data will be retained for 24 hours, after which it will be permanently deleted"
+            }
+        },
+        "liability": {
+            "title": "Limitation of Liability",
+            "items": {
+                "limitation": "Our maximum liability is limited to the fees paid by you in the 3 months preceding the incident",
+                "indirect": "We are not liable for indirect, incidental, or consequential damages including lost profits or data",
+                "force": "We are not responsible for service interruptions due to events beyond our reasonable control",
+                "third": "We are not liable for actions of third parties or content hosted on your VPS"
+            }
+        },
+        "changes": {
+            "title": "Changes to Terms",
+            "description": "We reserve the right to modify these Terms at any time. Material changes will be notified via email at least 30 days before taking effect. Continued use of services after changes constitutes acceptance of the new Terms."
+        },
+        "contact": {
+            "title": "Contact Us",
+            "description": "If you have questions about these Terms of Service, please contact our legal team:"
+        }
+    },
+    "cookies_policy": {
+        "title": "Cookie Policy",
+        "subtitle": "This policy explains how we use cookies and similar technologies on our website.",
+        "last_updated": "Last Updated",
+        "examples": "Examples",
+        "what_are_cookies": {
+            "title": "What Are Cookies?",
+            "description": "Cookies are small text files placed on your device when you visit a website. They help websites remember your preferences, keep you logged in, and understand how you use the site. We use cookies to provide a better, faster, and safer experience on PCloud."
+        },
+        "essential": {
+            "title": "Essential Cookies",
+            "badge": "Required",
+            "description": "These cookies are necessary for the website to function properly. They enable core features like secure login, session management, and security protection. Without these cookies, certain services cannot be provided.",
+            "examples": {
+                "session": "Session cookies to maintain your login state",
+                "auth": "Authentication tokens for secure API access",
+                "security": "CSRF tokens to prevent cross-site request forgery"
+            }
+        },
+        "analytics": {
+            "title": "Analytics Cookies",
+            "badge": "Optional",
+            "description": "These cookies help us understand how visitors interact with our website. We use this data to improve our services, identify issues, and optimize user experience. All analytics data is anonymized.",
+            "examples": {
+                "usage": "Page view tracking to understand popular features",
+                "performance": "Performance metrics to optimize load times",
+                "errors": "Error tracking to identify and fix issues"
+            }
+        },
+        "preferences": {
+            "title": "Preference Cookies",
+            "badge": "Optional",
+            "description": "These cookies remember your settings and preferences to provide a personalized experience. They help us remember your language, theme, and display preferences across sessions.",
+            "examples": {
+                "language": "Language preference (English/Vietnamese)",
+                "theme": "Dark/light mode settings",
+                "settings": "Dashboard layout and display preferences"
+            }
+        },
+        "managing": {
+            "title": "Managing Cookies",
+            "description": "You can control and manage cookies in various ways. Please note that removing or blocking cookies may impact your user experience.",
+            "items": {
+                "browser": "Browser settings: Most browsers allow you to view, manage, and delete cookies in settings",
+                "disable": "Disable optional cookies: You can continue using our services with only essential cookies enabled",
+                "delete": "Clear cookies: You can delete all cookies at any time, but you will need to log in again"
+            }
+        },
+        "contact": {
+            "title": "Contact Us",
+            "description": "If you have questions about our use of cookies, please contact us:"
+        }
     },
     "common": {
         "loading": "Loading...",

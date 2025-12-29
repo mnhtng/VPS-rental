@@ -615,11 +615,33 @@ export interface ValidatePromotion {
     final_amount: number;
 }
 
+export interface VPSPlanRecommendation {
+    id: string;
+    name: string;
+    vcpu: number;
+    ram_gb: number;
+    storage_gb: number;
+    storage_type: string;
+    monthly_price: number;
+    currency: string;
+    category: string;
+    use_case?: string[];
+}
+
 export interface ChatMessage {
     id: string;
     message: string;
     isUser: boolean;
     timestamp: Date;
+    intent?: string;
+    recommendedPlans?: VPSPlanRecommendation[];
+}
+
+export interface ChatResponse {
+    message: string;
+    intent: string;
+    recommended_plans?: VPSPlanRecommendation[];
+    category?: string;
 }
 
 //! Email and PDF Types

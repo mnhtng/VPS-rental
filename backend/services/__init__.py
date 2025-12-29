@@ -27,6 +27,7 @@ from .promotion import PromotionService
 from .auth import AuthService
 from .vps import VPSService
 from .scheduler import VPSCleanupScheduler
+from .chatbot import ChatbotService
 
 __all__ = [
     # Auth Service
@@ -39,6 +40,8 @@ __all__ = [
     "VPSService",
     # Scheduler Service
     "VPSCleanupScheduler",
+    # Chatbot Service
+    "ChatbotService",
     # Proxmox Service
     "CommonProxmoxService",
     "ProxmoxAccessService",

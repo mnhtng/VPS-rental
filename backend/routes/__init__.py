@@ -19,6 +19,7 @@ from .orders import router as orders_router
 from .orders import admin_router as orders_admin_router
 from .support import router as support_router
 from .dashboard import admin_router as dashboard_admin_router
+from .chatbot import router as chatbot_router
 
 __all__ = [
     "auth_router",
@@ -35,4 +36,5 @@ __all__ = [
     "orders_admin_router",
     "support_router",
     "dashboard_admin_router",
+    "chatbot_router",
 ]

@@ -22,6 +22,7 @@ from backend.routes import (
     orders_admin_router,
     support_router,
     dashboard_admin_router,
+    chatbot_router,
 )
 
 
@@ -45,7 +46,7 @@ async def lifespan(app: FastAPI):
     vps_cleanup_scheduler.start()
 
     yield
-    
+
     if vps_cleanup_scheduler:
         vps_cleanup_scheduler.shutdown()
 
@@ -94,6 +95,7 @@ app.include_router(orders_admin_router, prefix=api_prefix)
 app.include_router(payment_router, prefix=api_prefix)
 app.include_router(promotion_router, prefix=api_prefix)
 app.include_router(support_router, prefix=api_prefix)
+app.include_router(chatbot_router, prefix=api_prefix)
 app.include_router(dashboard_admin_router, prefix=api_prefix)
 app.include_router(vps_router, prefix=api_prefix)
 app.include_router(vps_admin_router, prefix=api_prefix)
@@ -107,4 +109,4 @@ def health_check():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=settings.DEBUG)

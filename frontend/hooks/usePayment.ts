@@ -1,5 +1,5 @@
 import { apiPattern } from '@/utils/pattern';
-import { ApiResponse, OrderPaymentsResponse, PaymentStatusResponse, PaymentResponse, OrderConfirmationEmailData } from '@/types/types';
+import { ApiResponse, PaymentResponse, OrderConfirmationEmailData } from '@/types/types';
 import { sendOrderConfirmationEmail } from '@/lib/email/resend';
 
 const usePayment = () => {

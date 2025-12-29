@@ -1,5 +1,4 @@
 import { sendPasswordResetEmail, sendVerificationMail } from "@/lib/email/resend";
-import { useTranslations } from "next-intl";
 import { ApiResponse, Login, Register } from "@/types/types";
 
 const baseURL = process.env.NEXT_PUBLIC_VERCEL_URL
@@ -7,9 +6,6 @@ const baseURL = process.env.NEXT_PUBLIC_VERCEL_URL
     : 'http://localhost:3000';
 
 const useAuth = () => {
-    const commonT = useTranslations("errors.common")
-    const apiT = useTranslations("api")
-
     const login = async ({
         email,
         password,

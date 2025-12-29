@@ -15,7 +15,7 @@ import { EmailLayoutProps } from "@/types/types";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : 'https://mnhtng.site';
+    : 'https://ptitcloud.io.vn';
 
 export const EmailLayout = ({
     preview = "Thông báo từ PCloud",
@@ -32,7 +32,7 @@ export const EmailLayout = ({
                     <Section style={header}>
                         <div style={headerContent}>
                             <Img
-                                src={`${baseUrl}/bg.png`}
+                                src={`${baseUrl}/logo.png`}
                                 width="48"
                                 height="48"
                                 alt="PCloud"

@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -33,13 +35,13 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
-import { ChatMessage } from '@/types/types';
-import { formatPrice, convertUSDToVND } from '@/utils/currency';
+import { ChatMessage, VPSPlanRecommendation } from '@/types/types';
+import { formatPrice } from '@/utils/currency';
 import { toast } from 'sonner';
 import useSupport from '@/hooks/useSupport';
 import useMember from '@/hooks/useMember';
+import useChatbot from '@/hooks/useChatbot';
 
-// Mock FAQ data
 const faqs = [
     {
         id: 1,
@@ -79,43 +81,27 @@ const faqs = [
     }
 ];
 
-// Mock chatbot responses
-const chatbotResponses: { [key: string]: string } = {
-    'hello': 'Hi! Welcome to VPS Rental support. How can I help you today?',
-    'hi': 'Hello! I\'m here to help you with any VPS-related questions.',
-    'pricing': `Our VPS plans start from ${formatPrice(convertUSDToVND(15))}/month for the Starter plan. We also have Business (${formatPrice(convertUSDToVND(35))}/mo), Professional (${formatPrice(convertUSDToVND(65))}/mo), and Enterprise (${formatPrice(convertUSDToVND(125))}/mo) plans. Would you like me to recommend a plan based on your needs?`,
-    'plan': 'I can help you choose the right VPS plan! What will you be using the server for? (e.g., website hosting, application development, database server)',
-    'website': `For website hosting, I recommend: Small personal sites - Starter plan (${formatPrice(convertUSDToVND(15))}/mo), Business websites - Business plan (${formatPrice(convertUSDToVND(35))}/mo), High-traffic sites - Professional plan (${formatPrice(convertUSDToVND(65))}/mo).`,
-    'development': `For development work, the Business plan (${formatPrice(convertUSDToVND(35))}/mo) with 2 CPU cores and 4GB RAM is perfect for most development environments.`,
-    'database': `For databases, consider our Professional plan (${formatPrice(convertUSDToVND(65))}/mo) with 4 CPU cores and 8GB RAM, or the High Memory plan for memory-intensive databases.`,
-    'support': 'Our support team is available 24/7 via live chat, email (support@pcloud.com), and phone (+1-234-567-8900). What specific issue can I help you with?',
-    'backup': 'We provide automated daily backups for all plans. You can also create manual backups from your dashboard. Backups are stored securely and can be restored with one click.',
-    'setup': 'VPS setup typically takes 5-10 minutes after payment. You\'ll receive login credentials via email. Need help with initial server configuration?',
-    'payment': 'We accept MoMo wallet and VNPay. All payments are secure and processed instantly.',
-    'refund': 'We offer a 30-day money-back guarantee for new customers. Contact support to process your refund request.',
-    'upgrade': 'You can upgrade your VPS plan anytime from your dashboard. Upgrades are processed immediately with prorated billing.',
-    'default': 'I\'m not sure about that specific question. Let me connect you with our human support team who can provide detailed assistance. You can also browse our FAQ section below.'
-};
-
 const SupportPage = () => {
     const { data: session, status } = useSession();
     const router = useRouter();
     const locale = useLocale();
     const { getProfile } = useMember();
     const { createTicket } = useSupport();
+    const { sendMessage } = useChatbot();
 
     const [activeTab, setActiveTab] = useState('chat');
     const [isLoading, setIsLoading] = useState(true);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
         {
             id: '1',
-            message: 'Hello! I\'m your VPS assistant. I can help you choose plans, answer technical questions, and provide support. How can I help you today?',
+            message: 'Xin chào! Tôi là trợ lý ảo của PCloud. Tôi có thể giúp bạn:\n- Tư vấn chọn gói VPS phù hợp\n- Giải đáp thắc mắc về dịch vụ\n- Hỗ trợ kỹ thuật\n\nBạn cần hỗ trợ gì ạ?',
             isUser: false,
             timestamp: new Date()
         }
     ]);
     const [currentMessage, setCurrentMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const messageContainerRef = useRef<HTMLDivElement>(null);
     const [ticketForm, setTicketForm] = useState({
         subject: '',
         phone: '',
@@ -176,20 +162,17 @@ const SupportPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const generateChatbotResponse = (userMessage: string): string => {
-        const lowerMessage = userMessage.toLowerCase();
-
-        // Check for keywords in the message
-        for (const [keyword, response] of Object.entries(chatbotResponses)) {
-            if (lowerMessage.includes(keyword)) {
-                return response;
-            }
+    // Auto scroll to bottom when messages change
+    useEffect(() => {
+        if (messageContainerRef.current) {
+            messageContainerRef.current.scrollTo({
+                top: messageContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
         }
+    }, [chatMessages, isTyping]);
 
-        return chatbotResponses.default;
-    };
-
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (!currentMessage.trim()) return;
 
         const userMessage: ChatMessage = {
@@ -200,21 +183,43 @@ const SupportPage = () => {
         };
 
         setChatMessages(prev => [...prev, userMessage]);
+        const messageToSend = currentMessage;
         setCurrentMessage('');
         setIsTyping(true);
 
-        // Simulate bot response delay
-        setTimeout(() => {
-            const botResponse: ChatMessage = {
+        try {
+            const result = await sendMessage(messageToSend);
+
+            if (result.error) {
+                const errorResponse: ChatMessage = {
+                    id: (Date.now() + 1).toString(),
+                    message: 'Xin lỗi, hiện tại đang gặp sự cố kỹ thuật. Vui lòng thử lại sau hoặc liên hệ đội ngũ hỗ trợ của chúng tôi.',
+                    isUser: false,
+                    timestamp: new Date()
+                };
+                setChatMessages(prev => [...prev, errorResponse]);
+            } else if (result.data) {
+                const botResponse: ChatMessage = {
+                    id: (Date.now() + 1).toString(),
+                    message: result.data.message,
+                    isUser: false,
+                    timestamp: new Date(),
+                    intent: result.data.intent,
+                    recommendedPlans: result.data.recommended_plans
+                };
+                setChatMessages(prev => [...prev, botResponse]);
+            }
+        } catch {
+            const errorResponse: ChatMessage = {
                 id: (Date.now() + 1).toString(),
-                message: generateChatbotResponse(currentMessage),
+                message: 'Đã xảy ra lỗi với dịch vụ chatbot PCloud của chúng tôi. Vui lòng thử lại sau hoặc liên hệ đội ngũ hỗ trợ của chúng tôi.',
                 isUser: false,
                 timestamp: new Date()
             };
-
-            setChatMessages(prev => [...prev, botResponse]);
+            setChatMessages(prev => [...prev, errorResponse]);
+        } finally {
             setIsTyping(false);
-        }, 1500);
+        }
     };
 
     const handleTicketSubmit = async (e: React.FormEvent) => {
@@ -277,12 +282,47 @@ const SupportPage = () => {
     };
 
     const suggestedQuestions = [
-        'What VPS plan should I choose?',
-        'How long does setup take?',
-        'What payment methods do you accept?',
-        'Do you provide backups?',
-        'Can I upgrade my plan later?'
+        'Tôi nên chọn gói VPS nào?',
+        'Cài đặt mất bao lâu?',
+        'Các phương thức thanh toán nào được chấp nhận?',
+        'Có dịch vụ sao lưu không?',
+        'Tư vấn VPS cho website',
     ];
+
+    const suggestedAnswers: { [key: string]: string } = {
+        'Tôi nên chọn gói VPS nào?': 'Việc chọn gói VPS phù hợp phụ thuộc vào nhu cầu cụ thể của bạn:\n\n- **Basic**: Phù hợp cho website nhỏ, blog cá nhân, dự án thử nghiệm\n- **Standard**: Lý tưởng cho website thương mại điện tử vừa, ứng dụng web đang phát triển\n- **Premium**: Dành cho website có lưu lượng cao, ứng dụng phức tạp\n\nBạn có thể cho tôi biết thêm về dự án của bạn để tôi tư vấn chi tiết hơn?',
+        'Cài đặt mất bao lâu?': 'Thời gian cài đặt VPS tại PCloud rất nhanh chóng:\n\n- **5-10 phút**: Hầu hết các VPS được triển khai tự động\n- **Thông báo email**: Bạn sẽ nhận được thông tin đăng nhập ngay sau khi hoàn tất\n- **Sẵn sàng sử dụng**: Server được cấu hình cơ bản, bạn có thể bắt đầu cài đặt ứng dụng ngay\n\nNếu bạn cần hỗ trợ cài đặt phần mềm hoặc cấu hình, đội ngũ kỹ thuật của chúng tôi luôn sẵn sàng hỗ trợ 24/7!',
+        'Các phương thức thanh toán nào được chấp nhận?': 'PCloud chấp nhận nhiều phương thức thanh toán tiện lợi:\n\n- **Thẻ tín dụng/ghi nợ**: Visa, Mastercard, JCB qua cổng VNPay\n- **Ví điện tử**: MoMo, ZaloPay\n- **Chuyển khoản ngân hàng**: Hỗ trợ chuyển khoản trực tiếp',
+        'Có dịch vụ sao lưu không?': 'Chúng tôi cung cấp dịch vụ sao lưu thông qua snapshot:\n\n- **Sao lưu bằng Snapshot**: Bạn có thể tạo snapshot của VPS bất cứ lúc nào từ control panel\n- **Quản lý linh hoạt**: Tạo, khôi phục và xóa snapshot theo nhu cầu của bạn\n- **An toàn dữ liệu**: Snapshot giúp bạn sao lưu toàn bộ trạng thái VPS tại một thời điểm cụ thể\n- **Khôi phục nhanh chóng**: Khôi phục VPS về trạng thái trước đó chỉ trong vài phút\n\nBạn hoàn toàn chủ động trong việc quản lý backup với hệ thống snapshot của PCloud!',
+        'Tư vấn VPS cho website': 'Để tư vấn VPS phù hợp cho website, tôi cần biết thêm một số thông tin:\n\n- **Loại website**: Blog, thương mại điện tử, diễn đàn, hay ứng dụng web?\n- **Lưu lượng truy cập**: Bao nhiêu người dùng/ngày?\n- **Dung lượng dữ liệu**: Kích thước database và file hiện tại?\n- **Công nghệ**: PHP, Node.js, Python, hay .NET?\n\nVới các thông tin này, tôi có thể đề xuất gói VPS tối ưu nhất cho bạn. Bạn có thể chia sẻ thêm về website của mình không?',
+    };
+
+    const handleSuggestedQuestion = (question: string) => {
+        const userMessage: ChatMessage = {
+            id: Date.now().toString(),
+            message: question,
+            isUser: true,
+            timestamp: new Date()
+        };
+        setChatMessages(prev => [...prev, userMessage]);
+
+        const predefinedAnswer = suggestedAnswers[question];
+
+        if (predefinedAnswer) {
+            setTimeout(() => {
+                const botResponse: ChatMessage = {
+                    id: (Date.now() + 1).toString(),
+                    message: predefinedAnswer,
+                    isUser: false,
+                    timestamp: new Date(),
+                    intent: 'consultation'
+                };
+                setChatMessages(prev => [...prev, botResponse]);
+            }, 500);
+        } else {
+            setCurrentMessage(question);
+        }
+    };
 
     return (
         <div className="min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -327,7 +367,7 @@ const SupportPage = () => {
                                 <CardContent className="text-center p-6">
                                     <Mail className="h-8 w-8 text-green-600 dark:text-green-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
                                     <h3 className="font-semibold mb-2">Email Support</h3>
-                                    <p className="text-sm text-muted-foreground mb-3">support@pcloud.com</p>
+                                    <p className="text-sm text-muted-foreground mb-3">support@ptitcloud.io.vn</p>
                                     <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">Response within 2 hours</Badge>
                                 </CardContent>
                             </Card>
@@ -336,7 +376,7 @@ const SupportPage = () => {
                                 <CardContent className="text-center p-6">
                                     <Phone className="h-8 w-8 text-purple-600 dark:text-purple-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
                                     <h3 className="font-semibold mb-2">Phone Support</h3>
-                                    <p className="text-sm text-muted-foreground mb-3">+1 (234) 567-8900</p>
+                                    <p className="text-sm text-muted-foreground mb-3">+84 789 318 158</p>
                                     <Badge className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100">24/7 Emergency</Badge>
                                 </CardContent>
                             </Card>
@@ -393,7 +433,7 @@ const SupportPage = () => {
                                                         key={index}
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => setCurrentMessage(question)}
+                                                        onClick={() => handleSuggestedQuestion(question)}
                                                         className="text-xs hover:scale-105 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600 transition-all"
                                                     >
                                                         {question}
@@ -403,7 +443,7 @@ const SupportPage = () => {
                                         </div>
 
                                         {/* Chat Messages */}
-                                        <div className="border rounded-lg h-96 overflow-y-auto p-4 bg-muted">
+                                        <div ref={messageContainerRef} className="border rounded-lg h-[70vh] overflow-y-auto p-4 bg-muted">
                                             <div className="space-y-4">
                                                 {chatMessages.map((message) => (
                                                     <div
@@ -411,7 +451,7 @@ const SupportPage = () => {
                                                         className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                                                     >
                                                         <div className={`flex max-w-[80%] space-x-2 ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                                                            <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center ${message.isUser ? 'bg-blue-600' : 'bg-gray-600'
+                                                            <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center ${message.isUser ? 'bg-blue-600' : 'bg-linear-to-br from-blue-600 to-green-600'
                                                                 }`}>
                                                                 {message.isUser ? (
                                                                     <User className="h-4 w-4 text-white" />
@@ -421,9 +461,53 @@ const SupportPage = () => {
                                                             </div>
                                                             <div className={`rounded-lg p-3 ${message.isUser
                                                                 ? 'bg-blue-600 text-white'
-                                                                : 'bg-gray-100 text-gray-900'
+                                                                : 'bg-white dark:bg-gray-800 shadow-sm'
                                                                 }`}>
-                                                                <p className="text-sm">{message.message}</p>
+                                                                {message.isUser ? (
+                                                                    <div className="text-sm whitespace-pre-wrap">
+                                                                        {message.message}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-sm text-gray-900 dark:text-gray-100 prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+                                                                        <ReactMarkdown
+                                                                            remarkPlugins={[remarkGfm]}
+                                                                            components={{
+                                                                                p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                                                                                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                                                                ul: ({ children }) => <ul className="list-none space-y-1 my-2">{children}</ul>,
+                                                                                ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2">{children}</ol>,
+                                                                                li: ({ children }) => <li className="flex items-start gap-2"><span>•</span><span>{children}</span></li>,
+                                                                                code: ({ children }) => <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">{children}</code>,
+                                                                                br: () => <br className="my-1" />,
+                                                                            }}
+                                                                        >
+                                                                            {message.message.replace(/\n/g, '  \n')}
+                                                                        </ReactMarkdown>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Display recommended plans if available */}
+                                                                {message.recommendedPlans && message.recommendedPlans.length > 0 && (
+                                                                    <div className="mt-3 space-y-2">
+                                                                        {message.recommendedPlans.map((plan: VPSPlanRecommendation, idx: number) => (
+                                                                            <div
+                                                                                key={idx}
+                                                                                className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                                                                            >
+                                                                                <div className="font-semibold text-blue-900 dark:text-blue-100">
+                                                                                    {plan.name}
+                                                                                </div>
+                                                                                <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                                                                    {plan.vcpu} vCPU, {plan.ram_gb}GB RAM, {plan.storage_gb}GB {plan.storage_type}
+                                                                                </div>
+                                                                                <div className="text-sm font-bold text-blue-900 dark:text-blue-100 mt-1">
+                                                                                    {formatPrice(plan.monthly_price)}/tháng
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+
                                                                 <p className="text-xs mt-1 opacity-70">
                                                                     {message.timestamp.toLocaleTimeString()}
                                                                 </p>

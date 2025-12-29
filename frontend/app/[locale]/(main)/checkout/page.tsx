@@ -342,7 +342,7 @@ const CheckoutPage = () => {
                                                         onChange={handleInputChange}
                                                         required
                                                         className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
-                                                        placeholder="+1 (555) 123-4567"
+                                                        placeholder="+84 123 456 789"
                                                     />
                                                 </div>
                                             </div>

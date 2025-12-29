@@ -243,6 +243,11 @@ from .proxmox import (
     ErrorResponse,
 )
 
+from .chatbot import (
+    ChatRequest,
+    ChatResponse,
+)
+
 __all__ = [
     # Auth schemas
     "AuthLogin",
@@ -431,6 +436,9 @@ __all__ = [
     "TaskStatusResponse",
     "OperationResponse",
     "ErrorResponse",
+    # Chatbot schemas
+    "ChatRequest",
+    "ChatResponse",
 ]
 
 # Rebuild models to ensure all validators are applied after resolving potential circular imports

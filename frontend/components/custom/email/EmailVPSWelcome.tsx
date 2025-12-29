@@ -1,5 +1,4 @@
 import {
-    Button,
     Heading,
     Hr,
     Row,
@@ -11,10 +10,6 @@ import {
 import * as React from "react";
 import EmailLayout from "@/components/custom/email/EmailLayout";
 import { EmailVPSWelcomeProps } from "@/types/types";
-
-const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : 'https://mnhtng.site';
 
 const EmailVPSWelcome = ({
     customerName = "Khách hàng",
@@ -131,7 +126,7 @@ const EmailVPSWelcome = ({
 
             {/* Support */}
             <Text style={supportText}>
-                Cần hỗ trợ? Liên hệ <Link style={link} href="mailto:support@pcloud.com">support@pcloud.com</Link> hoặc Hotline: 1900 xxxx
+                Cần hỗ trợ? Liên hệ <Link style={link} href="mailto:support@ptitcloud.io.vn">support@ptitcloud.io.vn</Link> hoặc Hotline: +84 789 318 158
             </Text>
 
         </EmailLayout>

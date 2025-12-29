@@ -168,8 +168,8 @@ export const sendOrderConfirmationEmail = async (data: OrderConfirmationEmailDat
         File PDF hóa đơn chi tiết đã được đính kèm trong email này.
 
         Nếu cần hỗ trợ, vui lòng liên hệ:
-        - Email: support@pcloud.com
-        - Hotline: 1900 xxxx
+        - Email: support@ptitcloud.io.vn
+        - Hotline: +84 789 318 158
 
         Trân trọng,
         PCloud Team
@@ -244,8 +244,8 @@ export const sendVPSWelcomeEmail = async (data: VPSWelcomeEmailData) => {
         File PDF hướng dẫn sử dụng đã được đính kèm trong email này.
 
         Nếu cần hỗ trợ, vui lòng liên hệ:
-        - Email: support@pcloud.com
-        - Hotline: 1900 xxxx
+        - Email: support@ptitcloud.io.vn
+        - Hotline: +84 789 318 158
 
         Trân trọng,
         PCloud Team

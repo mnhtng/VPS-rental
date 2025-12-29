@@ -7,7 +7,7 @@ from typing import List, Dict, Any
 import logging
 
 from backend.db import get_session
-from backend.models import User
+from backend.models import User, Account
 from backend.schemas import (
     UserCreate,
     UserUpdate,
@@ -255,8 +255,20 @@ async def create_user(
 
         user = User(**user_dict)
         session.add(user)
+        session.flush()
+
+        # Create credential account
+        account = Account(
+            user_id=user.id,
+            type="credentials",
+            provider="credentials",
+            provider_account_id=str(user.id),
+        )
+
+        session.add(account)
         session.commit()
         session.refresh(user)
+        session.refresh(account)
 
         return user
     except HTTPException:
