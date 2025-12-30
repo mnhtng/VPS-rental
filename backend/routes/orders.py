@@ -17,7 +17,7 @@ admin_router = APIRouter(prefix="/admin/orders", tags=["Admin - Orders Managemen
 
 
 @router.get(
-    "/",
+    "",
     response_model=List[OrderResponse],
     status_code=status.HTTP_200_OK,
     summary="Get current user's orders",
@@ -270,7 +270,7 @@ async def get_user_total_revenue(
 
 
 @admin_router.get(
-    "/",
+    "",
     response_model=List[OrderResponse],
     status_code=status.HTTP_200_OK,
     summary="[Admin] Get all orders",

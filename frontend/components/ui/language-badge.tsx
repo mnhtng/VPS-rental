@@ -42,7 +42,7 @@ export function LanguageBadge({
                 ? pathname.substring(locale.length + 1)
                 : pathname;
 
-            const newPath = `${pathWithoutLocale}`;
+            const newPath = `/${newLocale}${pathWithoutLocale}`;
             router.replace(newPath);
         });
     };
@@ -70,7 +70,7 @@ export function LanguageBadge({
                 </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-[180px]">
+            <DropdownMenuContent align="end" className="w-45">
                 <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
                     {t('select_language')}
                 </div>

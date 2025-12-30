@@ -22,7 +22,7 @@ router = APIRouter(prefix="/plans", tags=["VPS Plans"])
 
 
 @router.get(
-    "/",
+    "",
     response_model=List[VPSPlanResponse],
     status_code=status.HTTP_200_OK,
     summary="Get a list of VPS plans",
@@ -115,7 +115,7 @@ async def get_vps_plan(
 
 
 @router.post(
-    "/",
+    "",
     response_model=VPSPlanResponse,
     status_code=status.HTTP_201_CREATED,
     summary="[Admin] Create a new VPS plan",
@@ -288,7 +288,7 @@ async def delete_vps_plan(
 
 
 @router.get(
-    "/search/",
+    "/search",
     response_model=List[VPSPlanResponse],
     status_code=status.HTTP_200_OK,
     summary="Search VPS plans with filters",

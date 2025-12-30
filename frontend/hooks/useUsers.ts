@@ -4,7 +4,7 @@ import { ApiResponse, User, AdminUserCreate, AdminUserUpdate, UserStatistics } f
 const useUsers = () => {
     const getUsers = async (skip: number = 0, limit?: number, signal?: AbortSignal): Promise<ApiResponse> => {
         try {
-            let url = `${process.env.NEXT_PUBLIC_API_URL}/users/?skip=${skip}`;
+            let url = `${process.env.NEXT_PUBLIC_API_URL}/users?skip=${skip}`;
             if (limit) {
                 url += `&limit=${limit}`;
             }
@@ -79,7 +79,7 @@ const useUsers = () => {
 
     const searchUsers = async (query: string, signal?: AbortSignal): Promise<ApiResponse> => {
         try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/users/search/?query=${encodeURIComponent(query)}`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/users/search?query=${encodeURIComponent(query)}`, {
                 method: 'GET',
                 signal,
             });
@@ -114,7 +114,7 @@ const useUsers = () => {
 
     const getUserCount = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/users/count/`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/users/count`, {
                 method: 'GET',
                 signal,
             });
@@ -149,7 +149,7 @@ const useUsers = () => {
 
     const getUserStatistics = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/users/`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
                 method: 'GET',
                 signal,
             });
@@ -191,7 +191,7 @@ const useUsers = () => {
 
     const createUser = async (data: AdminUserCreate): Promise<ApiResponse> => {
         try {
-            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/users/`, {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
                 method: 'POST',
                 body: JSON.stringify(data),
             });
