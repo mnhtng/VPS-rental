@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
 import CmsMobileHeader from "@/components/custom/admin/CmsMobileHeader";
-import { AdminSidebar } from "@/components/layout/admin/Sidebar";
+import { AdminSidebar } from "@/components/layout/admin/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { CmsProvider } from "@/contexts/CmsContext";
+import { CmsProvider } from "@/contexts/cmsContext";
 import { headers } from "next/headers";
 
 import "@/styles/globals.css";

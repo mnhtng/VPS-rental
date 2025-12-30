@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
-import { useCms } from '@/contexts/CmsContext'
+import { useCms } from '@/contexts/cmsContext'
 
 const CmsMobileHeader = () => {
     const { isMobile } = useSidebar()
