@@ -37,8 +37,28 @@ const providers: Provider[] = [
             return user;
         },
     }),
-    Google,
-    Github,
+    Google({
+        clientId: process.env.AUTH_GOOGLE_ID || "",
+        clientSecret: process.env.AUTH_GOOGLE_SECRET || "",
+        authorization: {
+            params: {
+                prompt: "consent",
+                access_type: "offline",
+                response_type: "code",
+            },
+        },
+    }),
+    Github({
+        clientId: process.env.AUTH_GITHUB_ID || "",
+        clientSecret: process.env.AUTH_GITHUB_SECRET || "",
+        authorization: {
+            params: {
+                prompt: "consent",
+                access_type: "offline",
+                response_type: "code",
+            },
+        },
+    }),
 ]
 
 export const { handlers, signIn, signOut, auth } = NextAuth({

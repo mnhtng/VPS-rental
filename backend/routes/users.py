@@ -27,7 +27,7 @@ router = APIRouter(prefix="/users", tags=["User"])
 
 
 @router.get(
-    "/",
+    "",
     response_model=List[UserResponse],
     status_code=status.HTTP_200_OK,
     summary="[Admin] Get a list of users",
@@ -185,7 +185,7 @@ async def get_user_by_email(
 
 
 @router.get(
-    "/count/",
+    "/count",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
     summary="[Admin] Get total number of users",
@@ -228,7 +228,7 @@ async def get_user_count(
 
 
 @router.post(
-    "/",
+    "",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="[Admin] Create a new user",
@@ -438,7 +438,7 @@ async def delete_user(
 
 
 @router.get(
-    "/search/",
+    "/search",
     response_model=List[UserResponse],
     status_code=status.HTTP_200_OK,
     summary="[Admin] Search users",

@@ -9,7 +9,7 @@ const useAdminVPS = () => {
         signal?: AbortSignal
     ): Promise<ApiResponse> => {
         try {
-            let url = `${process.env.NEXT_PUBLIC_API_URL}/admin/vps/?skip=${skip}`;
+            let url = `${process.env.NEXT_PUBLIC_API_URL}/admin/vps?skip=${skip}`;
             if (limit) {
                 url += `&limit=${limit}`;
             }
