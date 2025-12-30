@@ -62,7 +62,7 @@ app = FastAPI(
     openapi_url="/openapi.json",
     contact={
         "name": "VPS Rental API Support",
-        "url": "http://localhost:8000/docs",
+        "url": "https://api.ptitcloud.io.vn/docs",
         "email": "support@vpsrentalapi.com",
     },
 )
