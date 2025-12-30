@@ -18,7 +18,7 @@ router = APIRouter(prefix="/cart", tags=["Cart"])
 
 
 @router.get(
-    "/",
+    "",
     response_model=List[CartResponse],
     status_code=status.HTTP_200_OK,
     summary="Get current user's cart",
@@ -107,7 +107,7 @@ async def get_cart_total(
 
 
 @router.post(
-    "/",
+    "",
     response_model=CartResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Add item to cart",
@@ -216,7 +216,7 @@ async def add_to_cart(
 
 
 @router.delete(
-    "/",
+    "",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Clear current user's cart",
     description="Clear the shopping cart for the currently authenticated user",

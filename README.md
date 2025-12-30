@@ -1,233 +1,118 @@
 # VPS Rental Platform
 
-A comprehensive VPS rental website with a modern React frontend and FastAPI backend.
+A modern VPS rental platform with automated provisioning, payment gateway integration, and comprehensive management tools. Built with FastAPI, Next.js 15, and Proxmox VE.
 
-## Features
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.117.1-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.9-000000?style=flat&logo=next.js)](https://nextjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-### ✅ Completed Features
+---
 
-#### Backend (FastAPI)
+## ✨ Features
 
-- **User Authentication System**
-    - Secure registration with email verification
-    - JWT-based login/logout with session management
-    - Profile management (update personal info, change password)
-    - Role-based access control (customer/admin)
+### Authentication & User Management
 
-- **VPS Management**
-    - Complete VPS plan catalog with configurable options
-    - CPU cores (1-16), RAM (1GB-64GB), Storage (SSD/NVMe, 20GB-1TB)
-    - Bandwidth options and pricing management
-    - Search and filtering capabilities
+- **Secure Authentication**: NextAuth v5 with Prisma adapter for session management
+- **Multiple Providers**: Email/password, Google OAuth, GitHub OAuth
+- **Email Verification**: Automated email verification system using Resend
+- **Role-Based Access Control (RBAC)**: Customer and admin roles with granular permissions
+- **User Profiles**: Comprehensive profile management with password reset capabilities
 
-- **Shopping Cart & Orders**
-    - Full shopping cart functionality
-    - Add/remove items with quantity selection
-    - Real-time price calculation
-    - Complete order management system
+### VPS Management
 
-- **Payment Integration**
-    - QR Code payment with dynamic QR generation
-    - MoMo Wallet integration
-    - VNPay payment gateway
-    - Transaction tracking and status management
+- **Automated Provisioning**: Direct integration with Proxmox VE for instant VPS deployment
+- **Multiple OS Support**: Linux (Ubuntu, Debian, CentOS) and Windows Server templates
+- **Real-time Control**: Start, stop, restart, and monitor VPS instances
+- **VNC Console**: Browser-based VNC console via WebSocket for direct server access
+- **Snapshot Management**: Create, restore, and delete VPS snapshots
+- **Automated Cleanup**: Scheduled cleanup of expired VPS instances (2-phase: suspend → terminate)
+- **Renewal System**: Seamless VPS renewal with payment gateway integration
 
-- **Customer Support**
-    - Intelligent chatbot for VPS recommendations
-    - Support ticket system with messaging
-    - FAQ management system
-    - 24/7 support capabilities
+### E-commerce Features
 
-- **Admin Panel**
-    - Comprehensive dashboard with analytics
-    - User management (view, activate/deactivate, role changes)
-    - Order management and status updates
-    - Sales reports and revenue analytics
-    - VPS plan management
-    - Support ticket administration
+- **Shopping Cart**: Full-featured cart with real-time price calculations
+- **VPS Plan Catalog**: Configurable plans with CPU, RAM, storage, and bandwidth options
+- **Promotions**: Discount code system with validation and tracking
+- **Order Management**: Complete order lifecycle tracking from cart to deployment
+- **Invoice Generation**: Automated PDF invoice generation with detailed breakdowns
+- **Payment Integration**:
+    - **VNPay**: Vietnamese payment gateway
+    - **MoMo**: Vietnamese mobile wallet
+- **Repayment System**: Support for repayment for not-pay order
 
-#### Frontend (Next.js + React)
+### Admin Dashboard
 
-- **Modern UI/UX**
-    - Responsive design with Tailwind CSS
-    - Beautiful homepage with feature highlights
-    - Professional navigation and layout
+- **Analytics Dashboard**: Revenue tracking, order statistics, and user metrics
+- **User Management**: View, edit, create, and manage user accounts
+- **VPS Administration**: Monitor and control all VPS instances
+- **Order Management**: Process orders, update statuses, and track revenue
+- **Support System**: Manage support tickets and customer inquiries
+- **Revenue Reports**: Detailed analytics with charts and exportable data
 
-- **User Interface**
-    - User authentication pages
-    - Shopping cart with real-time updates
-    - VPS plan browsing and comparison
-    - Order management interface
+### Customer Support
 
-- **State Management**
-    - Context-based authentication
-    - Shopping cart state management
-    - API integration with error handling
+- **AI-Powered Chatbot**: Google Gemini integration for intelligent VPS recommendations
+- **Support Tickets**: Full ticketing system with threaded conversations
+- **Admin Response System**: Efficient ticket management for support staff
 
-## Tech Stack
+### Internationalization
 
-### Backend
+- **Multi-language Support**: Vietnamese and English localization
+- **next-intl Integration**: Seamless locale switching
+- **Currency Formatting**: VND currency formatting throughout
 
-- **FastAPI** - Modern Python web framework
-- **SQLModel** - Type-safe ORM with Pydantic
-- **PostgreSQL** - Production database
-- **JWT** - Secure authentication
-- **Pydantic** - Data validation
-- **QRCode** - Payment QR generation
-- **Email** - SMTP email verification
+### Modern UI/UX
 
-### Frontend
+- **Responsive Design**: Mobile-first design with Tailwind CSS v4
+- **Dark Mode**: System-aware theme switching with next-themes
+- **shadcn/ui Components**: Beautiful, accessible UI components
+- **Framer Motion**: Smooth animations and transitions
+- **Interactive Charts**: Recharts integration for data visualization
+- **PDF Viewer**: React-PDF for document preview
 
-- **Next.js 15** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first styling
-- **Radix UI** - Accessible components
-- **React Hook Form** - Form management
-- **Axios** - API client
-- **React Hot Toast** - Notifications
+---
 
-## Setup Instructions
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL 12+
-
-### Backend Setup
-
-1. **Install Dependencies**
-
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-2. **Database Setup**
-   - Create a PostgreSQL database
-   - Update `core/settings.py` with your database URL
-   - Default: `postgresql://postgres:password@localhost:5432/vps_rental`
-
-3. **Environment Variables**
-   Create a `.env` file in the backend directory:
-
-   ```env
-   DATABASE_URL=postgresql://user:password@localhost:5432/vps_rental
-   SECRET_KEY=your-secret-key-here
-   SMTP_USERNAME=your-email@gmail.com
-   SMTP_PASSWORD=your-email-password
-   ADMIN_EMAIL=admin@vpsrental.com
-   ADMIN_PASSWORD=admin123
-   ```
-
-4. **Run the Server**
-
-   ```bash
-   python main.py
-   ```
-
-   The API will be available at `http://localhost:8000`
-
-### Frontend Setup
-
-1. **Install Dependencies**
-
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-2. **Environment Variables**
-   Create a `.env.local` file:
-
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:8000
-   ```
-
-3. **Run the Development Server**
-
-   ```bash
-   npm run dev
-   ```
-
-   The frontend will be available at `http://localhost:3000`
-
-## API Documentation
-
-Once the backend is running, visit:
-
-- **Swagger UI**: <http://localhost:8000/docs>
-- **ReDoc**: <http://localhost:8000/redoc>
-
-## Default Admin Account
-
-- **Email**: <admin@vpsrental.com>
-- **Password**: admin123
-
-## Database Schema
-
-The system includes the following main models:
-
-- **User** - User accounts with role-based access
-- **VPSPlan** - VPS configurations and pricing
-- **Order** - Customer orders with items
-- **Payment** - Payment transactions and methods
-- **SupportTicket** - Customer support system
-- **FAQ** - Frequently asked questions
-
-## Payment Methods
-
-1. **QR Code** - Bank transfer with generated QR codes
-2. **MoMo Wallet** - Vietnamese mobile wallet
-3. **VNPay** - Vietnamese payment gateway
-
-## Development
-
-### Backend Development
-
-- The API automatically creates database tables on startup
-- Sample data (VPS plans, FAQs, admin user) is created automatically
-- All endpoints are documented with OpenAPI/Swagger
-
-### Frontend Development
-
-- Hot reload enabled for development
-- TypeScript for type safety
-- Responsive design with mobile support
-- Context-based state management
-
-## Production Deployment
+## 🛠 Technology Stack
 
 ### Backend
 
-1. Set up PostgreSQL database
-2. Configure environment variables
-3. Use a production WSGI server (e.g., Gunicorn)
-4. Set up reverse proxy (Nginx)
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **FastAPI** | 0.117.1 | Modern Python web framework with async support |
+| **SQLModel** | 0.0.27 | SQL database ORM with Pydantic integration |
+| **PostgreSQL** | 14+ | Production-grade relational database |
+| **Proxmoxer** | 2.2.0 | Proxmox VE API client for VM management |
+| **PyJWT** | 2.10.1 | JWT token generation and validation |
+| **Argon2** | 25.1.0 | Secure password hashing |
+| **APScheduler** | 3.11.2 | Background job scheduling for VPS cleanup |
+| **Uvicorn** | 0.37.0 | ASGI server for production deployment |
 
 ### Frontend
 
-1. Build the application: `npm run build`
-2. Deploy to Vercel, Netlify, or your preferred platform
-3. Configure environment variables
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **Next.js** | 15.5.9 | React framework with App Router |
+| **React** | 19.2.3 | UI library |
+| **TypeScript** | 5 | Type-safe JavaScript |
+| **Tailwind CSS** | 4 | Utility-first CSS framework |
+| **NextAuth** | 5.0.0-beta | Authentication solution |
+| **Prisma** | 6.16.2 | Database ORM and schema management |
+| **Radix UI** | Latest | Accessible component primitives |
+| **Recharts** | 2.15.4 | Chart library for analytics |
+| **React-PDF** | 4.3.1 | PDF generation and rendering |
+| **Zustand** | 5.0.8 | Lightweight state management |
+| **Framer Motion** | 12.23.12 | Animation library |
 
-## Security Features
+### Infrastructure
 
-- **Password Hashing** - bcrypt for secure password storage
-- **JWT Authentication** - Secure token-based auth
-- **Input Validation** - Pydantic models for API validation
-- **CORS Protection** - Configured for production
-- **SQL Injection Protection** - SQLModel ORM prevents SQL injection
-- **Rate Limiting** - Can be configured for production
+- **Proxmox VE**: Virtualization platform for VPS hosting
+- **WebSocket**: Real-time VNC console connections
+- **Resend**: Transactional email service
 
-## Support
+---
 
-For technical support or questions:
-
-- Create a support ticket through the application
-- Email: <support@vpsrental.com>
-- 24/7 chat support available
-
-## License
-
-This project is for educational and commercial use.
+<div align="center">
+  <p>Made with ❤️ and ☕ by the VPS Rental Team</p>
+  <p><strong>A journey of learning, building, and growing</strong></p>
+</div>

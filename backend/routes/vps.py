@@ -675,7 +675,7 @@ async def delete_vps_snapshot(
 
 
 @admin_router.get(
-    "/",
+    "",
     response_model=List[VPSInstanceResponse],
     status_code=status.HTTP_200_OK,
     summary="[Admin] List All VPS Instances",
