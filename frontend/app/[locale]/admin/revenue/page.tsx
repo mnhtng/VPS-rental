@@ -42,6 +42,7 @@ import { formatPrice } from "@/utils/currency"
 import { toast } from "sonner"
 import { OrderDetailSheet } from "@/components/custom/admin/revenue/RevenueDetail"
 import { RevenuePlaceholder } from "@/components/custom/placeholder/admin/revenue"
+import { useTranslations } from "next-intl"
 
 const chartConfig = {
     revenue: { label: "Revenue", color: "#22c55e" },
@@ -49,6 +50,8 @@ const chartConfig = {
 
 
 const RevenuePage = () => {
+    const tCommon = useTranslations('common')
+    const t = useTranslations('admin.revenue')
     const { getAllOrders, getOrderStatistics, getMonthlyRevenue } = useAdminOrders()
 
     const [orders, setOrders] = useState<AdminOrder[]>([])
@@ -83,13 +86,13 @@ const RevenuePage = () => {
             if (monthlyRes.data) {
                 setMonthlyData(monthlyRes.data)
             }
+            setIsLoading(false)
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return
 
-            toast.error("Failed to fetch revenue data", {
-                description: "Please try again later"
+            toast.error(t('toast.fetch_failed'), {
+                description: t('toast.fetch_failed')
             })
-        } finally {
             setIsLoading(false)
         }
     }
@@ -114,11 +117,11 @@ const RevenuePage = () => {
     const getStatusBadge = (status: AdminOrder['status']) => {
         switch (status) {
             case 'paid':
-                return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-0">Paid</Badge>
+                return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-0">{t('status.paid')}</Badge>
             case 'pending':
-                return <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-0">Pending</Badge>
+                return <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-0">{t('status.pending')}</Badge>
             case 'cancelled':
-                return <Badge className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border-0">Cancelled</Badge>
+                return <Badge className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border-0">{t('status.cancelled')}</Badge>
         }
     }
 
@@ -231,12 +234,12 @@ const RevenuePage = () => {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <DollarSign className="h-4 w-4" />
-                            Total Revenue
+                            {t('stats.total_revenue')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-xl md:text-2xl font-bold text-green-600">{formatPrice(stats?.total_revenue || 0)}</p>
-                        <p className="text-xs text-muted-foreground mt-1">From {stats?.paid_orders || 0} orders</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('stats.from_orders', { count: stats?.paid_orders || 0 })}</p>
                     </CardContent>
                 </Card>
 
@@ -244,12 +247,12 @@ const RevenuePage = () => {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <CreditCard className="h-4 w-4" />
-                            Paid Orders
+                            {t('stats.paid_orders')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-xl md:text-2xl font-bold">{stats?.paid_orders || 0}</p>
-                        <p className="text-xs text-muted-foreground mt-1">orders</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('stats.orders_label')}</p>
                     </CardContent>
                 </Card>
 
@@ -257,7 +260,7 @@ const RevenuePage = () => {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <ShoppingCart className="h-4 w-4" />
-                            Pending Orders
+                            {t('filter.pending')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -270,12 +273,12 @@ const RevenuePage = () => {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <TrendingUp className="h-4 w-4" />
-                            Avg Order Value
+                            {t('stats.avg_order')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-xl md:text-2xl font-bold">{formatPrice(stats?.average_order || 0)}</p>
-                        <p className="text-xs text-muted-foreground mt-1">average</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('stats.average_label')}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -288,14 +291,14 @@ const RevenuePage = () => {
                             <div className="">
                                 <CardTitle className="flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5 text-green-500" />
-                                    Revenue Statistics
+                                    {t('chart.title')}
                                 </CardTitle>
-                                <CardDescription>View detailed revenue by time period</CardDescription>
+                                <CardDescription>{t('chart.description')}</CardDescription>
                             </div>
                             <TabsList className="grid w-full max-w-md grid-cols-3 mb-4">
-                                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                                <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
-                                <TabsTrigger value="table">Details</TabsTrigger>
+                                <TabsTrigger value="monthly">{t('chart.monthly')}</TabsTrigger>
+                                <TabsTrigger value="quarterly">{t('chart.quarterly')}</TabsTrigger>
+                                <TabsTrigger value="table">{t('chart.details')}</TabsTrigger>
                             </TabsList>
                         </CardHeader>
                         <TabsContent value="monthly">
@@ -324,9 +327,9 @@ const RevenuePage = () => {
                             <Table>
                                 <TableHeader className="bg-secondary">
                                     <TableRow>
-                                        <TableHead>Period</TableHead>
-                                        <TableHead className="text-right">Revenue</TableHead>
-                                        <TableHead className="text-right">Orders</TableHead>
+                                        <TableHead>{t('chart.period')}</TableHead>
+                                        <TableHead className="text-right">{t('chart.revenue')}</TableHead>
+                                        <TableHead className="text-right">{t('chart.orders')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -349,7 +352,7 @@ const RevenuePage = () => {
                 <div className="relative w-full sm:w-80">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search orders..."
+                        placeholder={t('filter.search')}
                         className="pl-10"
                         onChange={debounce(handleSearch, 300)}
                     />
@@ -359,25 +362,25 @@ const RevenuePage = () => {
                     <Select value={timeFilter} onValueChange={handleTimeFilter}>
                         <SelectTrigger className="w-full sm:w-36">
                             <CalendarDays className="h-4 w-4 mr-2" />
-                            <SelectValue placeholder="Time" />
+                            <SelectValue placeholder={t('filter.time_placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Time</SelectItem>
-                            <SelectItem value="month">This Month</SelectItem>
-                            <SelectItem value="quarter">This Quarter</SelectItem>
-                            <SelectItem value="year">This Year</SelectItem>
+                            <SelectItem value="all">{t('filter.all')}</SelectItem>
+                            <SelectItem value="month">{t('filter.month')}</SelectItem>
+                            <SelectItem value="quarter">{t('filter.week')}</SelectItem>
+                            <SelectItem value="year">{t('filter.year')}</SelectItem>
                         </SelectContent>
                     </Select>
 
                     <Select value={statusFilter} onValueChange={handleStatusFilter}>
                         <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Status" />
+                            <SelectValue placeholder={t('filter.placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="all">{t('filter.all')}</SelectItem>
+                            <SelectItem value="paid">{t('status.paid')}</SelectItem>
+                            <SelectItem value="pending">{t('status.pending')}</SelectItem>
+                            <SelectItem value="cancelled">{t('status.cancelled')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -389,23 +392,23 @@ const RevenuePage = () => {
                     <Table>
                         <TableHeader className="bg-secondary">
                             <TableRow>
-                                <TableHead>Order Number</TableHead>
-                                <TableHead className="hidden md:table-cell">Customer</TableHead>
+                                <TableHead>{t('table.order_number')}</TableHead>
+                                <TableHead className="hidden md:table-cell">{t('table.customer')}</TableHead>
                                 <TableHead className="text-center hidden sm:table-cell">
                                     <Package className="h-4 w-4 inline-block" />
                                 </TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                                <TableHead className="hidden lg:table-cell">Payment</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="hidden xl:table-cell">Created</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead className="text-right">{t('table.amount')}</TableHead>
+                                <TableHead className="hidden lg:table-cell">{t('table.payment')}</TableHead>
+                                <TableHead>{t('table.status')}</TableHead>
+                                <TableHead className="hidden xl:table-cell">{t('table.date')}</TableHead>
+                                <TableHead className="text-right">{t('table.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {orders.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                        No orders found
+                                        {t('table.no_orders')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -418,8 +421,8 @@ const RevenuePage = () => {
                                         <TableCell className="font-mono text-sm">{order.order_number}</TableCell>
                                         <TableCell className="hidden md:table-cell">
                                             <div className="text-sm">
-                                                <p className="font-medium">{order.user?.name || 'N/A'}</p>
-                                                <p className="text-muted-foreground text-xs truncate max-w-45">{order.user?.email || 'N/A'}</p>
+                                                <p className="font-medium">{order.user?.name || tCommon('na')}</p>
+                                                <p className="text-muted-foreground text-xs truncate max-w-45">{order.user?.email || tCommon('na')}</p>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center hidden sm:table-cell">
@@ -461,7 +464,7 @@ const RevenuePage = () => {
                     endIndex={Math.min(endIndex, totalItems)}
                     onPageChange={setCurrentPage}
                     onItemsPerPageChange={setItemsPerPage}
-                    itemLabel="orders"
+                    itemLabel={tCommon('orders')}
                 />
             )}
         </div>

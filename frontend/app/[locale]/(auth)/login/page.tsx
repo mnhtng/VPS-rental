@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -27,14 +27,16 @@ import { signIn } from 'next-auth/react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useLocale } from 'use-intl/react';
+import { useLocale, useTranslations } from 'next-intl';
 import useAuth from '@/hooks/useAuth';
 import { loginWithCredentials } from '@/utils/auth';
 import { useAuthStore } from '@/store/authStore';
 
-const LoginPage = () => {
+const LoginContent = () => {
     const router = useRouter();
     const locale = useLocale();
+    const t = useTranslations('auth.login');
+    const tCommon = useTranslations('common');
     const { login } = useAuth();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/';
@@ -54,12 +56,12 @@ const LoginPage = () => {
 
         try {
             if (!formData.email || !formData.password) {
-                toast.error('Please fill in all fields');
+                toast.error(t('toast.fill_all_fields'));
                 return;
             }
 
             if (!/\S+@\S+\.\S+/.test(formData.email)) {
-                toast.error('Please enter a valid email address');
+                toast.error(t('toast.invalid_email'));
                 return;
             }
 
@@ -69,25 +71,25 @@ const LoginPage = () => {
             })
 
             if (result.error) {
-                toast.error('Invalid email or password');
+                toast.error(t('toast.invalid_credentials'));
             } else if (result.data && result.data.email_verified === false) {
-                toast.info('Please verify your email to continue', {
-                    description: 'We\'ve sent a verification email to your inbox'
+                toast.info(t('toast.verify_email'), {
+                    description: t('toast.verify_email_desc')
                 });
 
-                router.push(`/${locale}/pending-verification?email=${encodeURIComponent(result.data.email)}&name=${encodeURIComponent(result.data.name)}`);
+                router.push(`/pending-verification?email=${encodeURIComponent(result.data.email)}&name=${encodeURIComponent(result.data.name)}`);
             } else {
                 // Store access token in memory
                 useAuthStore.getState().setAccessToken(result.data?.access_token || '');
 
                 await loginWithCredentials(formData.email, formData.password);
 
-                toast.success('Login successful');
-                window.location.href = `/${locale}${callbackUrl}`;
+                toast.success(t('toast.success'));
+                window.location.href = `/${locale}${callbackUrl.startsWith('/') ? callbackUrl : '/' + callbackUrl}`;
             }
         } catch {
-            toast.error("Login failed", {
-                description: "Please try again later"
+            toast.error(t('toast.failed'), {
+                description: t('toast.failed_desc')
             });
         } finally {
             setIsLoading(false);
@@ -102,8 +104,8 @@ const LoginPage = () => {
                 redirectTo: `/${locale}${callbackUrl}`,
             });
         } catch {
-            toast.error("Login failed", {
-                description: "Please try again later"
+            toast.error(t('toast.failed'), {
+                description: t('toast.failed_desc')
             });
         } finally {
             setIsLoading(false);
@@ -121,12 +123,12 @@ const LoginPage = () => {
                         </div>
                     </div>
                     <h2 className="text-3xl font-bold">
-                        Sign in to your account
+                        {t('title')}
                     </h2>
                     <p className="mt-2 text-sm text-muted-foreground">
-                        Don&apos;t have an account?{' '}
+                        {t('subtitle')}{' '}
                         <Link href={`/${locale}/register`} className="text-blue-600 dark:text-blue-400 hover:text-blue-500 font-medium">
-                            Create one here
+                            {t('create_account')}
                         </Link>
                     </p>
                 </div>
@@ -134,9 +136,9 @@ const LoginPage = () => {
                 {/* Login Form */}
                 <Card>
                     <CardHeader className="space-y-1">
-                        <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+                        <CardTitle className="text-2xl text-center">{t('welcome_back')}</CardTitle>
                         <CardDescription className="text-center">
-                            Enter your credentials to access your VPS dashboard
+                            {t('description')}
                         </CardDescription>
                     </CardHeader>
 
@@ -144,7 +146,7 @@ const LoginPage = () => {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Email Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">{t('email_label')}</Label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Mail className="h-4 w-4 text-accent-foreground" />
@@ -155,7 +157,7 @@ const LoginPage = () => {
                                         type="email"
                                         autoComplete="email"
                                         required
-                                        placeholder="Enter your email"
+                                        placeholder={t('email_placeholder')}
                                         className="pl-10"
                                         disabled={isLoading}
                                     />
@@ -164,7 +166,7 @@ const LoginPage = () => {
 
                             {/* Password Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">{t('password_label')}</Label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Lock className="h-4 w-4 text-accent-foreground" />
@@ -175,7 +177,7 @@ const LoginPage = () => {
                                         type={showPassword ? 'text' : 'password'}
                                         autoComplete="current-password"
                                         required
-                                        placeholder="Enter your password"
+                                        placeholder={t('password_placeholder')}
                                         className="pl-10 pr-10"
                                         disabled={isLoading}
                                     />
@@ -204,7 +206,7 @@ const LoginPage = () => {
                                         disabled={isLoading}
                                     />
                                     <Label htmlFor="remember-me" className="ml-2 text-sm">
-                                        Remember me
+                                        {t('remember_me')}
                                     </Label>
                                 </div>
 
@@ -213,7 +215,7 @@ const LoginPage = () => {
                                         "text-blue-600 hover:text-blue-500",
                                         isLoading && "pointer-events-none select-none"
                                     )}>
-                                        Forgot your password?
+                                        {t('forgot_password')}
                                     </Link>
                                 </div>
                             </div>
@@ -228,12 +230,12 @@ const LoginPage = () => {
                                 {isLoading ? (
                                     <>
                                         <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                        Signing in...
+                                        {t('submitting')}
                                     </>
                                 ) : (
                                     <>
                                         <LogIn className="mr-2 h-4 w-4" />
-                                        Sign in
+                                        {t('submit')}
                                     </>
                                 )}
                             </Button>
@@ -242,10 +244,10 @@ const LoginPage = () => {
                         {/* Divider */}
                         <div className="relative my-6">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-400 to-transparent"></div>
+                                <div className="w-full h-px bg-linear-to-r from-transparent via-gray-400 to-transparent"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="bg-card px-4 text-muted-foreground">Or continue with</span>
+                                <span className="bg-card px-4 text-muted-foreground">{t('or_continue')}</span>
                             </div>
                         </div>
 
@@ -259,7 +261,7 @@ const LoginPage = () => {
                                 disabled={isLoading}
                             >
                                 <Google />
-                                {isLoading ? 'Connecting...' : 'Google'}
+                                {isLoading ? t('connecting') : 'Google'}
                             </Button>
 
                             {/* GitHub Login */}
@@ -270,7 +272,7 @@ const LoginPage = () => {
                                 disabled={isLoading}
                             >
                                 <GitHub />
-                                {isLoading ? 'Connecting...' : 'GitHub'}
+                                {isLoading ? t('connecting') : 'GitHub'}
                             </Button>
                         </div>
                     </CardContent>
@@ -279,24 +281,38 @@ const LoginPage = () => {
                 {/* Footer */}
                 <div className="text-center">
                     <p className="text-xs text-muted-foreground">
-                        By signing in, you agree to our{' '}
-                        <Link href="#" className={cn(
+                        {t('terms_notice')}{' '}
+                        <Link href={`/${locale}/terms`} className={cn(
                             "text-blue-600 hover:text-blue-500",
                             isLoading && "pointer-events-none select-none"
                         )}>
-                            Terms of Service
+                            {t('terms_of_service')}
                         </Link>{' '}
-                        and{' '}
-                        <Link href="#" className={cn(
+                        {tCommon('and')}{' '}
+                        <Link href={`/${locale}/privacy`} className={cn(
                             "text-blue-600 hover:text-blue-500",
                             isLoading && "pointer-events-none select-none"
                         )}>
-                            Privacy Policy
+                            {t('privacy_policy')}
                         </Link>
                     </p>
                 </div>
             </div>
         </BeamsBackground>
+    );
+};
+
+const LoginPage = () => {
+    return (
+        <Suspense fallback={
+            <BeamsBackground>
+                <div className="max-w-md w-full flex items-center justify-center">
+                    <Loader className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+            </BeamsBackground>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 };
 

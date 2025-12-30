@@ -1,7 +1,10 @@
 import { apiPattern } from "@/utils/pattern"
 import { VPSPlan, CartItem, AddToCartPayload, ApiResponse } from "@/types/types"
+import { getClientLocale } from "@/utils/locale";
 
 const useProduct = () => {
+    const locale = getClientLocale();
+
     const getPlans = async (signal?: AbortSignal): Promise<ApiResponse> => {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`, {
@@ -9,6 +12,7 @@ const useProduct = () => {
                 signal,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
             })
 
@@ -55,6 +59,7 @@ const useProduct = () => {
                 signal,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
             })
 
@@ -206,7 +211,7 @@ const useProduct = () => {
             }
 
             return {
-                message: "Cart cleared successfully",
+                message: result.message,
                 data: null,
             };
         } catch (error) {
@@ -248,7 +253,7 @@ const useProduct = () => {
             }
 
             return {
-                message: "Cart item removed successfully",
+                message: result.message,
                 data: null,
             };
         } catch (error) {

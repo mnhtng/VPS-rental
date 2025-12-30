@@ -22,6 +22,7 @@ import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { colors } from "@/utils/color"
+import { useTranslations } from "next-intl"
 
 export const getColorClasses = (color: string) => {
     return colors[color as keyof typeof colors] || colors.blue
@@ -42,6 +43,7 @@ export function NavMain({
         }[]
     }[]
 }) {
+    const t = useTranslations('admin.nav')
     const { open } = useSidebar()
 
     const menuRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({})
@@ -95,7 +97,7 @@ export function NavMain({
         <SidebarGroup>
             <SidebarGroupLabel>
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">Main Menu</span>
+                    <span className="text-sm font-semibold">{t('main_menu')}</span>
                 </div>
             </SidebarGroupLabel>
 

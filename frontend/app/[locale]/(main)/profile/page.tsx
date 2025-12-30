@@ -29,8 +29,10 @@ import ProfilePlaceholder from '@/components/custom/placeholder/profile';
 import useMember from '@/hooks/useMember';
 import { useSession } from 'next-auth/react';
 import { formatDate } from '@/utils/string';
+import { useTranslations } from 'next-intl';
 
 const ProfilePage = () => {
+    const t = useTranslations('profile');
     const { data: session } = useSession();
     const { getProfile, updateProfile, changePassword } = useMember();
 
@@ -65,8 +67,8 @@ const ProfilePage = () => {
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return;
 
-            toast.error('Get user profile fail', {
-                description: 'Please try again later'
+            toast.error(t('toast.get_profile_failed'), {
+                description: t('toast.try_again')
             });
         } finally {
             if (!signal?.aborted) {
@@ -92,7 +94,7 @@ const ProfilePage = () => {
 
 
         if (!/\S+@\S+\.\S+/.test(userInfo.email)) {
-            toast.error('Please enter a valid email address');
+            toast.error(t('validation.valid_email'));
             return;
         }
 
@@ -118,8 +120,8 @@ const ProfilePage = () => {
                 setIsEditing(false);
             }
         } catch {
-            toast.error('Failed to update profile', {
-                description: 'Please try again later'
+            toast.error(t('toast.update_failed'), {
+                description: t('toast.try_again')
             });
         } finally {
             setIsSaving(false);
@@ -136,26 +138,26 @@ const ProfilePage = () => {
 
     const handleChangePassword = async () => {
         if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-            toast.error('Please fill in all password fields');
+            toast.error(t('validation.fill_all_password'));
             return;
         }
 
         if (passwordForm.newPassword.length < 6 || passwordForm.currentPassword.length < 6) {
-            toast.error('Password must be at least 6 characters long');
+            toast.error(t('validation.password_min_length'));
             return;
         } else if (!/[A-Z]/.test(passwordForm.newPassword) || !/[A-Z]/.test(passwordForm.currentPassword)) {
-            toast.error('Password must contain at least one uppercase letter');
+            toast.error(t('validation.password_uppercase'));
             return;
         } else if (!/[a-z]/.test(passwordForm.newPassword) || !/[a-z]/.test(passwordForm.currentPassword)) {
-            toast.error('Password must contain at least one lowercase letter');
+            toast.error(t('validation.password_lowercase'));
             return;
         } else if (!/[0-9]/.test(passwordForm.newPassword) || !/[0-9]/.test(passwordForm.currentPassword)) {
-            toast.error('Password must contain at least one number');
+            toast.error(t('validation.password_number'));
             return;
         }
 
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            toast.error('Passwords do not match');
+            toast.error(t('validation.password_mismatch'));
             return;
         }
 
@@ -181,8 +183,8 @@ const ProfilePage = () => {
                 });
             }
         } catch {
-            toast.error('Failed to change password', {
-                description: 'Please try again later'
+            toast.error(t('toast.change_password_failed'), {
+                description: t('toast.try_again')
             });
         } finally {
             setIsChangingPassword(false);
@@ -198,9 +200,9 @@ const ProfilePage = () => {
     return (
         <div className="min-h-screen max-w-4xl mx-auto py-8 px-4">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold">User Profile</h1>
+                <h1 className="text-3xl font-bold">{t('header.title')}</h1>
                 <p className="text-muted-foreground mt-2">
-                    Manage your account information and settings
+                    {t('header.subtitle')}
                 </p>
             </div>
 
@@ -210,11 +212,11 @@ const ProfilePage = () => {
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="profile" className="flex items-center gap-2">
                             <User className="h-4 w-4" />
-                            Profile
+                            {t('tabs.profile')}
                         </TabsTrigger>
                         <TabsTrigger value="security" className="flex items-center gap-2">
                             <Shield className="h-4 w-4" />
-                            Security
+                            {t('tabs.security')}
                         </TabsTrigger>
                     </TabsList>
                 )}
@@ -253,9 +255,9 @@ const ProfilePage = () => {
 
                         <CardHeader className="flex flex-row items-center justify-between gap-2 relative z-10">
                             <div className='space-y-1.5'>
-                                <CardTitle>Personal Information</CardTitle>
+                                <CardTitle>{t('personal_info.title')}</CardTitle>
                                 <p className="text-sm text-muted-foreground">
-                                    Update your personal information
+                                    {t('personal_info.subtitle')}
                                 </p>
                             </div>
                             <Button
@@ -273,12 +275,12 @@ const ProfilePage = () => {
                                 {isEditing ? (
                                     <>
                                         <X className="h-4 w-4 mr-2" />
-                                        Cancel
+                                        {t('buttons.cancel')}
                                     </>
                                 ) : (
                                     <>
                                         <Edit className="h-4 w-4 mr-2" />
-                                        Edit
+                                        {t('buttons.edit')}
                                     </>
                                 )}
                             </Button>
@@ -299,7 +301,7 @@ const ProfilePage = () => {
                                     </div>
 
                                     <p className="text-sm text-muted-foreground">
-                                        Member since {originalUserInfo?.joinedDate ? formatDate(new Date(originalUserInfo.joinedDate)) : 'N/A'}
+                                        {t('personal_info.member_since')} {originalUserInfo?.joinedDate ? formatDate(new Date(originalUserInfo.joinedDate)) : 'N/A'}
                                     </p>
                                 </div>
                             </div>
@@ -308,7 +310,7 @@ const ProfilePage = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Full Name</Label>
+                                    <Label htmlFor="name">{t('form.full_name')}</Label>
                                     <div className="flex items-center space-x-2">
                                         <User className="h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -323,7 +325,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
+                                    <Label htmlFor="email">{t('form.email')}</Label>
                                     <div className="flex items-center space-x-2">
                                         <Mail className="h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -339,7 +341,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone">Phone Number</Label>
+                                    <Label htmlFor="phone">{t('form.phone')}</Label>
                                     <div className="flex items-center space-x-2">
                                         <Phone className="h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -355,7 +357,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="joinedDate">Join Date</Label>
+                                    <Label htmlFor="joinedDate">{t('form.join_date')}</Label>
                                     <div className="flex items-center space-x-2">
                                         <Calendar className="h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -369,7 +371,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="md:col-span-2 space-y-2">
-                                    <Label htmlFor="address">Address</Label>
+                                    <Label htmlFor="address">{t('form.address')}</Label>
                                     <div className="flex items-start space-x-2">
                                         <MapPin className="h-4 w-4 text-muted-foreground mt-3" />
                                         <Textarea
@@ -393,7 +395,7 @@ const ProfilePage = () => {
                                         onClick={handleCancel}
                                         disabled={isSaving}
                                     >
-                                        Cancel
+                                        {t('buttons.cancel')}
                                     </Button>
                                     <Button
                                         onClick={handleSave}
@@ -402,12 +404,12 @@ const ProfilePage = () => {
                                         {isSaving ? (
                                             <>
                                                 <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                                Saving...
+                                                {t('buttons.saving')}
                                             </>
                                         ) : (
                                             <>
                                                 <Save className="h-4 w-4 mr-2" />
-                                                Save Changes
+                                                {t('buttons.save')}
                                             </>
                                         )}
                                     </Button>
@@ -421,15 +423,15 @@ const ProfilePage = () => {
                     <TabsContent value="security" className="mt-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Change Password</CardTitle>
+                                <CardTitle>{t('security.title')}</CardTitle>
                                 <p className="text-sm text-muted-foreground">
-                                    Update your password to secure your account
+                                    {t('security.subtitle')}
                                 </p>
                             </CardHeader>
 
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="currentPassword">Current Password</Label>
+                                    <Label htmlFor="currentPassword">{t('security.current_password')}</Label>
                                     <Input
                                         id="currentPassword"
                                         name="currentPassword"
@@ -441,7 +443,7 @@ const ProfilePage = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="newPassword">New Password</Label>
+                                    <Label htmlFor="newPassword">{t('security.new_password')}</Label>
                                     <Input
                                         id="newPassword"
                                         name="newPassword"
@@ -453,7 +455,7 @@ const ProfilePage = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                                    <Label htmlFor="confirmPassword">{t('security.confirm_password')}</Label>
                                     <Input
                                         id="confirmPassword"
                                         name="confirmPassword"
@@ -471,12 +473,12 @@ const ProfilePage = () => {
                                     {isChangingPassword ? (
                                         <>
                                             <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                            Updating...
+                                            {t('security.updating')}
                                         </>
                                     ) : (
                                         <>
                                             <Key className="h-4 w-4 mr-2" />
-                                            Update Password
+                                            {t('security.update_button')}
                                         </>
                                     )}
                                 </Button>

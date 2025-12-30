@@ -7,7 +7,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 
 from backend.db import get_session
-from backend.utils import get_current_user, get_admin_user
+from backend.utils import get_current_user, get_admin_user, Translator, get_translator
 from backend.dependencies import ProxmoxConnection, get_default_proxmox
 from backend.models import (
     User,
@@ -65,6 +65,7 @@ async def list_my_vps(
     limit: int = None,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     List VPS instances for the current user
@@ -74,6 +75,7 @@ async def list_my_vps(
         limit (int, optional): Maximum number of VPS instances to return. Defaults to None.
         current_user (User, optional): The current authenticated user. Defaults to Depends(get_current_user).
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 500 if retrieval fails
@@ -100,7 +102,7 @@ async def list_my_vps(
         logger.error(f">>> Failed to list user VPS: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve VPS instances",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -116,6 +118,7 @@ async def get_vps_info(
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get detailed information about a VPS
@@ -125,6 +128,7 @@ async def get_vps_info(
         current_user (User, optional): The current authenticated user. Defaults to Depends(get_current_user).
         proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated
@@ -161,7 +165,7 @@ async def get_vps_info(
         logger.error(f">>> Failed to get VM info: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get VM information",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -179,6 +183,7 @@ async def get_vps_rrd_data(
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get RRD data (Resource Usage Data) for a VPS
@@ -190,6 +195,7 @@ async def get_vps_rrd_data(
         current_user (User, optional): The current authenticated user. Defaults to Depends(get_current_user).
         proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated
@@ -222,7 +228,7 @@ async def get_vps_rrd_data(
         logger.error(f"Failed to get RRD data: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get RRD data",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -235,6 +241,7 @@ async def control_vps_power(
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Control VPS power state
@@ -254,6 +261,7 @@ async def control_vps_power(
         current_user (User): The current authenticated user
         proxmox (ProxmoxConnection): Proxmox connection instance
         session (Session): Database session
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated
@@ -274,7 +282,7 @@ async def control_vps_power(
         if vps.status == "suspended":
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="VPS is suspended due to non-payment",
+                detail=translator.t("vps.already_terminated"),
             )
 
         action = action_request.action
@@ -297,7 +305,7 @@ async def control_vps_power(
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid power action",
+                detail=translator.t("errors.bad_request"),
             )
 
         if action in ["start", "resume"]:
@@ -322,7 +330,7 @@ async def control_vps_power(
         logger.error(f">>> Failed to perform power action {action}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to perform power action",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -332,6 +340,7 @@ async def get_vps_vnc_access(
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get VNC access credentials for VPS
@@ -346,7 +355,7 @@ async def get_vps_vnc_access(
     if vps.status != "active":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="VPS must be active to access VNC console",
+            detail=translator.t("vps.already_terminated"),
         )
 
     try:
@@ -371,10 +380,10 @@ async def get_vps_vnc_access(
         )
 
     except Exception as e:
-        logger.error(f"Failed to get VNC info: {str(e)}")
+        logger.error(f">>> Failed to get VNC info: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get VNC access information",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -390,6 +399,7 @@ async def list_vps_snapshots(
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     List snapshots for a VPS
@@ -399,6 +409,7 @@ async def list_vps_snapshots(
         current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
         proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated
@@ -446,7 +457,7 @@ async def list_vps_snapshots(
         logger.error(f">>> Failed to list snapshots: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to list snapshots",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -463,6 +474,7 @@ async def create_vps_snapshot(
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Create a snapshot for a VPS
@@ -473,6 +485,7 @@ async def create_vps_snapshot(
         current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
         proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated
@@ -491,7 +504,7 @@ async def create_vps_snapshot(
         if vps.status != "active":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS must be active to create snapshots",
+                detail=translator.t("vps.already_terminated"),
             )
 
         existing_snapshots = await ProxmoxVMService.list_snapshots(
@@ -507,7 +520,7 @@ async def create_vps_snapshot(
         if len(real_snapshots) >= max_snapshots:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Snapshot limit reached for this VPS plan",
+                detail=translator.t("vps.snapshot_created"),
             )
 
         if any(
@@ -515,7 +528,7 @@ async def create_vps_snapshot(
         ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Snapshot with this name already exists",
+                detail=translator.t("errors.bad_request"),
             )
 
         result = await ProxmoxVMService.create_snapshot(
@@ -537,7 +550,7 @@ async def create_vps_snapshot(
         logger.error(f">>> Failed to create snapshot: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create snapshot",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -554,6 +567,7 @@ async def restore_vps_snapshot(
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Restore a VPS to a specific snapshot
@@ -563,7 +577,8 @@ async def restore_vps_snapshot(
         restore_request (SnapshotRestoreRequest, optional): Snapshot restore request data. Defaults to Body(...).
         current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
         proxmox (ProxmoxConnection, optional): Proxmox connection instance. Defaults to Depends(get_default_proxmox).
-        session (Session, optional): Database session. Defaults to Depends(get_session).
+        session (Session, optional): Database session. Defaults to Depends(get_session).\
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated
@@ -585,7 +600,7 @@ async def restore_vps_snapshot(
         ):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Snapshot not found",
+                detail=translator.t("vps.snapshot_not_found"),
             )
 
         result = await ProxmoxVMService.rollback_snapshot(
@@ -603,7 +618,7 @@ async def restore_vps_snapshot(
         logger.error(f">>> Failed to restore snapshot: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to restore snapshot",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -620,6 +635,7 @@ async def delete_vps_snapshot(
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """Delete a VPS snapshot"""
     try:
@@ -631,7 +647,7 @@ async def delete_vps_snapshot(
         if not any(snap.get("name") == snapshot_name for snap in snapshots):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Snapshot not found",
+                detail=translator.t("vps.snapshot_not_found"),
             )
 
         result = await ProxmoxVMService.delete_snapshot(
@@ -649,7 +665,7 @@ async def delete_vps_snapshot(
         logger.error(f">>> Failed to delete snapshot: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete snapshot",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -673,6 +689,7 @@ async def admin_list_all_vps(
     ),
     admin_user: User = Depends(get_admin_user),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     List all VPS instances for admin management
@@ -683,6 +700,7 @@ async def admin_list_all_vps(
         status_filter: Optional filter by VPS status (active, stopped, terminated, etc.)
         admin_user: Current admin user
         session: Database session
+        translator: Translator for error messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -711,7 +729,7 @@ async def admin_list_all_vps(
         logger.error(f">>> Failed to list all VPS: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve VPS instances",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -724,6 +742,7 @@ async def admin_list_all_vps(
 async def admin_get_vps_statistics(
     admin_user: User = Depends(get_admin_user),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get VPS instance statistics for admin dashboard
@@ -731,6 +750,7 @@ async def admin_get_vps_statistics(
     Args:
         admin_user (User, optional): Current admin user. Defaults to Depends(get_admin_user).
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -765,7 +785,7 @@ async def admin_get_vps_statistics(
         logger.error(f">>> Failed to get VPS statistics: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get VPS statistics",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -782,6 +802,7 @@ async def admin_control_vps_power(
     admin_user: User = Depends(get_admin_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Control VPS power state as admin (no ownership check)
@@ -799,6 +820,7 @@ async def admin_control_vps_power(
         admin_user (User): Current admin user
         proxmox (ProxmoxConnection): Proxmox connection instance
         session (Session): Database session
+        translator (Translator, optional): Translator for error messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -815,27 +837,27 @@ async def admin_control_vps_power(
         if not vps:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="VPS instance not found",
+                detail=translator.t("vps.not_found"),
             )
 
         if vps.status == "terminated":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot control terminated VPS",
+                detail=translator.t("vps.already_terminated"),
             )
 
         vm = session.get(ProxmoxVM, vps.vm_id)
         if not vm:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Proxmox VM not found",
+                detail=translator.t("vps.vm_not_found"),
             )
 
         node = session.get(ProxmoxNode, vm.node_id)
         if not node:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Proxmox node not found",
+                detail=translator.t("vps.node_not_found"),
             )
 
         action = power_request.action
@@ -858,7 +880,7 @@ async def admin_control_vps_power(
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid power action",
+                detail=translator.t("errors.bad_request"),
             )
 
         if action in ["start", "resume"]:
@@ -884,7 +906,7 @@ async def admin_control_vps_power(
         logger.error(f">>> Failed to control VPS power: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to control VPS power",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -894,6 +916,7 @@ async def deploy_vps_for_user(
     admin_user: User = Depends(get_admin_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Deploy a new VPS for a user from template
@@ -906,7 +929,7 @@ async def deploy_vps_for_user(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=translator.t("user.not_found"),
         )
 
     # Verify VPS plan exists
@@ -917,7 +940,7 @@ async def deploy_vps_for_user(
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="VPS plan not found",
+            detail=translator.t("admin.plan_not_found"),
         )
 
     # Get template
@@ -925,7 +948,7 @@ async def deploy_vps_for_user(
     if not template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Template not found",
+            detail=translator.t("proxmox.template_not_found"),
         )
 
     # Select node (auto-select if not specified)
@@ -940,7 +963,7 @@ async def deploy_vps_for_user(
         if not nodes:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="No available nodes",
+                detail=translator.t("proxmox.node_not_found"),
             )
         # Simple selection: first available node
         # TODO: Implement smarter selection based on resources
@@ -949,7 +972,7 @@ async def deploy_vps_for_user(
     if not node:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Node not found",
+            detail=translator.t("proxmox.node_not_found"),
         )
 
     try:
@@ -1012,7 +1035,7 @@ async def deploy_vps_for_user(
         logger.error(f"Failed to deploy VPS: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to deploy VPS: {str(e)}",
+            detail=translator.t("proxmox.vm_create_failed"),
         )
 
 
@@ -1022,6 +1045,7 @@ async def get_cluster_status(
     admin_user: User = Depends(get_admin_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """Get Proxmox cluster status overview"""
     try:
@@ -1066,7 +1090,7 @@ async def get_cluster_status(
         logger.error(f"Failed to get cluster status: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get cluster status",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -1078,6 +1102,7 @@ async def get_cluster_resources(
     admin_user: User = Depends(get_admin_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """Get all cluster resources (VMs, nodes, storage)"""
     try:
@@ -1095,7 +1120,7 @@ async def get_cluster_resources(
         logger.error(f"Failed to get cluster resources: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get cluster resources",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -1110,6 +1135,7 @@ async def setup_vps(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     proxmox: ProxmoxConnection = Depends(get_default_proxmox),
+    translator: Translator = Depends(get_translator),
 ) -> VPSSetupResponse:
     """
     Setup VPS instances after successful payment.
@@ -1139,7 +1165,7 @@ async def setup_vps(
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                detail=translator.t("order.not_found"),
             )
 
         # Check if all order items are already provisioned
@@ -1150,7 +1176,7 @@ async def setup_vps(
         if not unprovisioned_items:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="All order items have already been provisioned",
+                detail=translator.t("vps.setup_success"),
             )
 
         provisioned_vps: List[VPSSetupItem] = []
@@ -1161,7 +1187,7 @@ async def setup_vps(
                 if not template:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail="Template not found for any order items",
+                        detail=translator.t("proxmox.template_not_found"),
                     )
 
                 node = None
@@ -1176,7 +1202,7 @@ async def setup_vps(
                 if not node:
                     raise HTTPException(
                         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                        detail="No available node for provisioning",
+                        detail=translator.t("proxmox.node_not_found"),
                     )
 
                 new_vmid = await CommonProxmoxService.get_next_vmid(proxmox)
@@ -1191,7 +1217,7 @@ async def setup_vps(
                 if not clone_result.get("success"):
                     raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail="Failed to create VM",
+                        detail=translator.t("proxmox.vm_create_failed"),
                     )
 
                 start_result = await ProxmoxVMService.start_vm(
@@ -1199,7 +1225,6 @@ async def setup_vps(
                 )
 
                 if not start_result.get("success"):
-                    logger.warning(f">>> VM {new_vmid} created but failed to start")
                     ip_address = VPSService.generate_placeholder_ip()
                 else:
                     # Retry getting IP with delay - VM needs time to boot and get IP
@@ -1244,12 +1269,9 @@ async def setup_vps(
                     else:
                         sub_ip_addr = ip.get("ip_address")
 
-                print(">>> IP Address:", ip_addr, sub_ip_addr, mac_addr)
-
                 username = template.default_user
                 password = VPSService.generate_password()
 
-                # Check if VM already exists in database (from previous failed attempt)
                 existing_vm = session.exec(
                     select(ProxmoxVM).where(
                         ProxmoxVM.cluster_id == node.cluster_id,
@@ -1259,7 +1281,6 @@ async def setup_vps(
                 ).first()
 
                 if existing_vm:
-                    # Update existing VM record
                     existing_vm.template_id = template.id
                     existing_vm.hostname = order_item.hostname
                     existing_vm.ip_address = ip_addr
@@ -1366,7 +1387,7 @@ async def setup_vps(
                 )
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Error provisioning VPS",
+                    detail=translator.t("proxmox.vm_create_failed"),
                 )
 
         session.commit()
@@ -1396,5 +1417,5 @@ async def setup_vps(
         logger.error(f">>> VPS setup error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to setup VPS instances",
+            detail=translator.t("proxmox.vm_create_failed"),
         )

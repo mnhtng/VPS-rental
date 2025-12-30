@@ -34,6 +34,22 @@ export const normalizeHostname = (hostname: string): string => {
         .slice(0, 63);
 }
 
+export const getDiskSize = (storage_gb: number, storage_type?: string) => {
+    if (storage_gb >= 1000) {
+        const tb = (storage_gb / 1000).toFixed(1);
+        return `${tb} TB ${storage_type || ''}`;
+    }
+    return `${storage_gb} GB ${storage_type || ''}`;
+}
+
+export const getNetworkSpeed = (mbps: number) => {
+    if (mbps >= 1000) {
+        const gbps = (mbps / 1000).toFixed(1);
+        return `${gbps} Gbps`;
+    }
+    return `${mbps} Mbps`;
+};
+
 export const generateOrderNumber = () => {
     const timestamp = Date.now().toString(36).toUpperCase();
     const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();

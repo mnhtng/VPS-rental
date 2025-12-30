@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatDate } from "@/utils/string"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { VPSInstance } from "@/types/types"
+import { useTranslations } from "next-intl"
 
 export const VPSDetailSheet = ({
     vps,
@@ -31,6 +32,8 @@ export const VPSDetailSheet = ({
     onReboot: (id: string) => void
     isActionLoading: string | null
 }) => {
+    const t = useTranslations('admin.components.vps_detail')
+    const tCommon = useTranslations('admin.components.common')
     const getDaysUntilExpiry = (expiresAt: string) => {
         const now = new Date()
         const expiry = new Date(expiresAt)
@@ -43,21 +46,21 @@ export const VPSDetailSheet = ({
                 return (
                     <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-0">
                         <div className="w-2 h-2 rounded-full bg-green-500 mr-1.5 animate-pulse" />
-                        Running
+                        {t('running')}
                     </Badge>
                 )
             case 'suspended':
                 return (
                     <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-0">
                         <div className="w-2 h-2 rounded-full bg-yellow-500 mr-1.5" />
-                        Suspended
+                        {t('suspended')}
                     </Badge>
                 )
             case 'stopped':
                 return (
                     <Badge className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border-0">
                         <div className="w-2 h-2 rounded-full bg-red-500 mr-1.5" />
-                        Stopped
+                        {t('stopped')}
                     </Badge>
                 )
             default:
@@ -105,9 +108,9 @@ export const VPSDetailSheet = ({
                                     }`} />
                             </div>
                             <div>
-                                <SheetTitle className="text-xl">{vps.order_item?.hostname || vps.vm?.hostname || 'N/A'}</SheetTitle>
+                                <SheetTitle className="text-xl">{vps.order_item?.hostname || vps.vm?.hostname || tCommon('na')}</SheetTitle>
                                 <SheetDescription className="font-mono">
-                                    VMID: {vps.vm?.vmid || 'N/A'} • {vps.vm?.ip_address || 'N/A'}
+                                    VMID: {vps.vm?.vmid || tCommon('na')} • {vps.vm?.ip_address || tCommon('na')}
                                 </SheetDescription>
                             </div>
                         </div>
@@ -132,7 +135,7 @@ export const VPSDetailSheet = ({
                                             {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>Start</TooltipContent>
+                                    <TooltipContent>{t('start')}</TooltipContent>
                                 </Tooltip>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -146,7 +149,7 @@ export const VPSDetailSheet = ({
                                             {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Square className="h-4 w-4" />}
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>Stop</TooltipContent>
+                                    <TooltipContent>{t('stop')}</TooltipContent>
                                 </Tooltip>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -160,7 +163,7 @@ export const VPSDetailSheet = ({
                                             {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>Reboot</TooltipContent>
+                                    <TooltipContent>{t('reboot')}</TooltipContent>
                                 </Tooltip>
                             </div>
                         </div>
@@ -176,8 +179,8 @@ export const VPSDetailSheet = ({
                                     <Clock className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <p className="font-semibold">Expiring Soon</p>
-                                    <p className="text-sm opacity-80">{daysLeft} days until renewal</p>
+                                    <p className="font-semibold">{t('expiring_soon')}</p>
+                                    <p className="text-sm opacity-80">{daysLeft} {t('days_until_renewal')}</p>
                                 </div>
                             </div>
                         </div>
@@ -185,7 +188,7 @@ export const VPSDetailSheet = ({
 
                     {/* Specs */}
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '50ms' }}>
-                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Specifications</h4>
+                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t('specs')}</h4>
                         <div className="grid grid-cols-2 gap-3">
                             <Card className="bg-linear-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 hover:shadow-lg transition-all">
                                 <CardContent className="pt-4">
@@ -244,18 +247,18 @@ export const VPSDetailSheet = ({
 
                     {/* Owner Info */}
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '100ms' }}>
-                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Owner</h4>
+                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t('owner')}</h4>
                         <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                            <p className="text-sm"><span className="text-muted-foreground">Name:</span> <span className="font-medium">{vps.user?.name || 'N/A'}</span></p>
-                            <p className="text-sm"><span className="text-muted-foreground">Email:</span> <span className="font-medium">{vps.user?.email || 'N/A'}</span></p>
+                            <p className="text-sm"><span className="text-muted-foreground">Name:</span> <span className="font-medium">{vps.user?.name || tCommon('na')}</span></p>
+                            <p className="text-sm"><span className="text-muted-foreground">Email:</span> <span className="font-medium">{vps.user?.email || tCommon('na')}</span></p>
                         </div>
                     </div>
 
                     {/* Dates */}
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '150ms' }}>
-                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Service Information</h4>
+                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t('service_info')}</h4>
                         <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                            <p className="text-sm"><span className="text-muted-foreground">Plan:</span> <Badge variant="outline" className="ml-1">{vps.vps_plan?.name || 'N/A'}</Badge></p>
+                            <p className="text-sm"><span className="text-muted-foreground">Plan:</span> <Badge variant="outline" className="ml-1">{vps.vps_plan?.name || tCommon('na')}</Badge></p>
                             <p className="text-sm"><span className="text-muted-foreground">Created:</span> <span className="font-medium">{formatDate(new Date(vps.created_at))}</span></p>
                             <p className="text-sm"><span className="text-muted-foreground">Expires:</span> <span className={`font-medium ${isExpiringSoon ? 'text-orange-600' : ''}`}>{formatDate(new Date(vps.expires_at))}</span></p>
                         </div>
@@ -264,7 +267,7 @@ export const VPSDetailSheet = ({
 
                 <SheetFooter className="px-6 pb-6">
                     <SheetClose asChild>
-                        <Button variant="outline" className="w-full">Close</Button>
+                        <Button variant="outline" className="w-full">{tCommon('close')}</Button>
                     </SheetClose>
                 </SheetFooter>
             </SheetContent>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie, Request
 from fastapi.security import HTTPBearer
 from sqlmodel import Session, select
 from datetime import datetime, timedelta, timezone
@@ -23,6 +23,8 @@ from backend.schemas import (
 from backend.utils import (
     get_current_user,
     get_admin_user,
+    Translator,
+    get_translator,
 )
 from backend.services import AuthService
 
@@ -42,24 +44,24 @@ async def login(
     response: Response,
     user_credentials: AuthLogin,
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Login user and return JWT access token if email is verified.
     Sets refresh token in HttpOnly Secure cookie.
 
     Args:
-        response (Response): FastAPI Response object to set cookies.
-        user_credentials (AuthLogin): User login credentials.
-        session (Session): Database session.
+        response (Response): FastAPI response object for setting cookies.
+        user_credentials (AuthLogin): User login credentials (email, password).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
-        HTTPException: 401 if credentials are incorrect.
-        HTTPException: 403 if email is not verified.
-        HTTPException: 500 if there is an error during login.
+        HTTPException: 400 if email or password is incorrect.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Dict containing access_token (short-lived, 15 min) in JSON.
-        Refresh token (7 days) is set in HttpOnly Secure cookie.
+        Dict[str, Any]: Login result with access token or verification status.
     """
     try:
         auth_service = AuthService(session)
@@ -67,7 +69,7 @@ async def login(
 
         if not result["email_verified"]:
             return {
-                "message": "Email not verified",
+                "message": translator.t("auth.email_not_verified"),
                 "data": {
                     "email_verified": False,
                     "email": result["user"].email,
@@ -88,7 +90,7 @@ async def login(
         )
 
         return {
-            "message": "Login successful",
+            "message": translator.t("auth.login_success"),
             "data": {
                 "email_verified": True,
                 "access_token": result["access_token"],
@@ -103,7 +105,7 @@ async def login(
         logger.error(f">>> Error during login: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error during login",
+            detail=translator.t("auth.error_login"),
         )
 
 
@@ -118,21 +120,24 @@ async def oauth_login(
     response: Response,
     oauth_data: AuthLoginOAuth,
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Login user via OAuth token and return JWT access token.
     Sets refresh token in HttpOnly Secure cookie.
 
     Args:
-        response (Response): FastAPI Response object to set cookies.
-        oauth_data (AuthLoginOAuth): OAuth login data containing oauth user info.
-        session (Session): Database session.
+        response (Response): FastAPI response object for setting cookies.
+        oauth_data (AuthLoginOAuth): OAuth login data.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
+
     Raises:
-        HTTPException: 401 if token is invalid.
-        HTTPException: 500 if there is an error during login.
+        HTTPException: 400 if OAuth token is invalid.
+        HTTPException: 500 if there is a server error.
+
     Returns:
-        Dict containing access_token (short-lived, 15 min) in JSON.
-        Refresh token (7 days) is set in HttpOnly Secure cookie.
+        Dict[str, Any]: Login result with access token.
     """
     try:
         auth_service = AuthService(session)
@@ -150,7 +155,7 @@ async def oauth_login(
         )
 
         return {
-            "message": "OAuth login successful",
+            "message": translator.t("auth.oauth_login_success"),
             "data": {
                 "access_token": result["access_token"],
                 "token_type": "bearer",
@@ -163,7 +168,7 @@ async def oauth_login(
         logger.error(f">>> Error during OAuth login: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error during OAuth login",
+            detail=translator.t("auth.error_login"),
         )
 
 
@@ -174,26 +179,32 @@ async def oauth_login(
     summary="User registration",
     description="Register a new user and return verification token",
 )
-async def register(user_data: AuthRegister, session: Session = Depends(get_session)):
+async def register(
+    user_data: AuthRegister,
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
+):
     """
     Register a new user.
 
     Args:
-        user_data (AuthRegister): User registration data.
+        user_data (AuthRegister): User registration data (name, email, password).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
-        HTTPException: 400 if user with email already exists.
-        HTTPException: 500 if there is an error during user registration.
+        HTTPException: 400 if email is already registered.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Registration success message, verification token, and user/account data.
+        Dict[str, Any]: Registration result with user info and verification token.
     """
     try:
         auth_service = AuthService(session)
         result = auth_service.register_user(user_data)
 
         return {
-            "message": "User registered successfully",
+            "message": translator.t("auth.register_success"),
             "data": {
                 "user": result["user"].to_dict(),
                 "account": result["account"].to_dict(),
@@ -207,7 +218,7 @@ async def register(user_data: AuthRegister, session: Session = Depends(get_sessi
         logger.error(f">>> Error registering user: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error registering user",
+            detail=translator.t("auth.error_register"),
         )
 
 
@@ -219,28 +230,32 @@ async def register(user_data: AuthRegister, session: Session = Depends(get_sessi
     description="Resend verification email to the user",
 )
 async def resend_verification(
-    data: AuthResendVerification, session: Session = Depends(get_session)
+    data: AuthResendVerification,
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Resend verification email to the user.
 
     Args:
-        data (AuthResendVerification): Data containing the user's email.
+        data (AuthResendVerification): Request containing user email.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 404 if user not found.
-        HTTPException: 400 if email is already verified.
-        HTTPException: 500 if an error occurs during the process.
+        HTTPException: 400 if email already verified.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        A success message and the new verification token.
+        Dict[str, Any]: Result with new verification token.
     """
     try:
         auth_service = AuthService(session)
         result = auth_service.resend_verification(data)
 
         return {
-            "message": "Verification email sent successfully",
+            "message": translator.t("auth.verification_sent"),
             "data": {
                 "verification_token": result["verification_token"],
             },
@@ -252,7 +267,7 @@ async def resend_verification(
         logger.error(f">>> Error resending verification email: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error resending verification email",
+            detail=translator.t("auth.error_verify_email"),
         )
 
 
@@ -263,28 +278,32 @@ async def resend_verification(
     summary="Verify email",
     description="Verify the user's email using a token. Sets refresh token in HttpOnly Secure cookie.",
 )
-async def verify_email(data: AuthVerifyEmail, session: Session = Depends(get_session)):
+async def verify_email(
+    data: AuthVerifyEmail,
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
+):
     """
     Verify the user's email using a token.
 
     Args:
-        data (AuthVerifyEmail): Data containing the verification token.
+        data (AuthVerifyEmail): Request containing verification token.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 400 if token is invalid or expired.
-        HTTPException: 404 if user not found.
-        HTTPException: 400 if email is already verified.
-        HTTPException: 500 if an error occurs during the verification.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        A success message and the verified user data.
+        Dict[str, Any]: Result with verified user info.
     """
     try:
         auth_service = AuthService(session)
         user = auth_service.verify_email(data)
 
         return {
-            "message": "Email verified successfully",
+            "message": translator.t("auth.email_verified"),
             "data": {
                 "user": user.to_dict(),
             },
@@ -296,7 +315,7 @@ async def verify_email(data: AuthVerifyEmail, session: Session = Depends(get_ses
         logger.error(f">>> Error verifying email: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error verifying email",
+            detail=translator.t("auth.error_verify_email"),
         )
 
 
@@ -308,27 +327,31 @@ async def verify_email(data: AuthVerifyEmail, session: Session = Depends(get_ses
     description="Resend password reset email to the user",
 )
 async def resend_reset_password_email(
-    data: AuthResendVerification, session: Session = Depends(get_session)
+    data: AuthResendVerification,
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Resend password reset email to the user.
 
     Args:
-        data (AuthResendVerification): Data containing the user's email.
+        data (AuthResendVerification): Request containing user email.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 404 if user not found.
-        HTTPException: 500 if an error occurs during the process.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        A success message and the new reset token.
+        Dict[str, Any]: Result with reset token info.
     """
     try:
         auth_service = AuthService(session)
         result = auth_service.resend_reset_password(data)
 
         return {
-            "message": "Password reset email sent successfully",
+            "message": translator.t("auth.password_reset_sent"),
             "data": result,
         }
     except HTTPException:
@@ -338,7 +361,7 @@ async def resend_reset_password_email(
         logger.error(f">>> Error resending reset password email: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error resending reset password email",
+            detail=translator.t("auth.error_reset_password"),
         )
 
 
@@ -350,19 +373,23 @@ async def resend_reset_password_email(
     description="Request password reset email to be sent to the user",
 )
 async def forgot_password(
-    data: AuthForgotPassword, session: Session = Depends(get_session)
+    data: AuthForgotPassword,
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Request password reset email.
 
     Args:
-        data (AuthForgotPassword): Data containing the user's email.
+        data (AuthForgotPassword): Request containing user email.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
-        HTTPException: 500 if an error occurs during the process.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Success message (always returns success for security reasons).
+        Dict[str, Any]: Result with reset token info (always returns success for security).
     """
     try:
         auth_service = AuthService(session)
@@ -370,12 +397,12 @@ async def forgot_password(
 
         if not result:
             return {
-                "message": "If the email exists in our system, you will receive a password reset link shortly",
+                "message": translator.t("auth.password_reset_sent"),
                 "data": {},
             }
 
         return {
-            "message": "Password reset link has been sent to your email. Please check your inbox (including spam folder).",
+            "message": translator.t("auth.password_reset_sent"),
             "data": result,
         }
     except HTTPException:
@@ -385,7 +412,7 @@ async def forgot_password(
         logger.error(f">>> Error during forgot password: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error processing password reset request",
+            detail=translator.t("auth.error_reset_password"),
         )
 
 
@@ -397,28 +424,31 @@ async def forgot_password(
     description="Reset user password using a valid reset token",
 )
 async def reset_password(
-    data: AuthResetPassword, session: Session = Depends(get_session)
+    data: AuthResetPassword,
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Reset user password using a valid reset token.
 
     Args:
-        data (AuthResetPassword): Data containing reset token, email, and new password.
+        data (AuthResetPassword): Request containing token, email and new password.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 400 if token is invalid or expired.
-        HTTPException: 404 if user not found.
-        HTTPException: 500 if an error occurs during the reset.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Success message and user data.
+        Dict[str, Any]: Result with user info after password reset.
     """
     try:
         auth_service = AuthService(session)
         user = auth_service.reset_password(data)
 
         return {
-            "message": "Password has been reset successfully",
+            "message": translator.t("auth.password_reset_success"),
             "data": {
                 "name": user.name,
                 "email": user.email,
@@ -431,7 +461,7 @@ async def reset_password(
         logger.error(f">>> Error resetting password: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error resetting password",
+            detail=translator.t("auth.error_reset_password"),
         )
 
 
@@ -443,28 +473,33 @@ async def reset_password(
     description="Validate a password reset token",
 )
 async def validate_reset_token(
-    token: str, email: str, session: Session = Depends(get_session)
+    token: str,
+    email: str,
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Validate a password reset token.
 
     Args:
-        token (str): Reset token.
-        email (str): User's email.
+        token (str): Password reset token.
+        email (str): User email.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 400 if token is invalid or expired.
-        HTTPException: 404 if user not found.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Token validity status and user data.
+        Dict[str, Any]: Result with user info and token expiry.
     """
     try:
         auth_service = AuthService(session)
         result = auth_service.validate_reset_token(token, email)
 
         return {
-            "message": "Token is valid",
+            "message": translator.t("auth.token_valid"),
             "data": {
                 "user": {
                     "email": result["user"].email,
@@ -479,7 +514,7 @@ async def validate_reset_token(
         logger.error(f">>> Error validating reset token: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error validating reset token",
+            detail=translator.t("auth.error_reset_password"),
         )
 
 
@@ -490,20 +525,23 @@ async def validate_reset_token(
     summary="Get current user info",
     description="Get current authenticated user info",
 )
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
+async def get_current_user_info(
+    current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
+):
     """
     Get current authenticated user info.
 
     Args:
-        current_user (User, optional): The current authenticated user. Defaults to Depends(get_current_user).
+        current_user (User, optional): The authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
-        HTTPException: 4
-        HTTPException:
-        HTTPException: 500 if an error occurs during retrieval.
+        HTTPException: 401 if not authenticated.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Current user information.
+        UserResponse: Current user information.
     """
     try:
         return current_user
@@ -513,7 +551,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         logger.error(f">>> Error retrieving current user info: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving current user info",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -528,20 +566,24 @@ async def update_profile(
     user_update: UserUpdate,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Update current authenticated user's profile.
 
     Args:
-        user_update (UserUpdate): User update data.
-        current_user (User, optional): The current authenticated user. Defaults to Depends(get_current_user).
+        user_update (UserUpdate): Updated user data.
+        current_user (User, optional): The authenticated user. Defaults to Depends(get_current_user).
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
-        HTTPException: 500 if an error occurs during update.
+        HTTPException: 401 if not authenticated.
+        HTTPException: 400 if email already in use.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Updated user information.
+        UserResponse: Updated user information.
     """
     try:
         auth_service = AuthService(session)
@@ -554,7 +596,7 @@ async def update_profile(
         logger.error(f">>> Error updating user profile: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error updating user profile",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -569,13 +611,31 @@ async def change_password(
     password_change: UserChangePassword,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
+    """
+    Change the password of the current authenticated user.
+
+    Args:
+        password_change (UserChangePassword): Current and new password.
+        current_user (User, optional): The authenticated user. Defaults to Depends(get_current_user).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
+
+    Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 400 if current password is incorrect.
+        HTTPException: 500 if there is a server error.
+
+    Returns:
+        Dict[str, Any]: Result with user info after password change.
+    """
     try:
         auth_service = AuthService(session)
         user = auth_service.change_password(current_user, password_change)
 
         return {
-            "message": "Password changed successfully",
+            "message": translator.t("auth.password_changed"),
             "data": {
                 "user": user.to_dict(),
             },
@@ -587,7 +647,7 @@ async def change_password(
         logger.error(f">>> Error changing password: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error changing password",
+            detail=translator.t("auth.error_change_password"),
         )
 
 
@@ -602,30 +662,29 @@ async def refresh_access_token(
     response: Response,
     refresh_token: Optional[str] = Cookie(None, alias=settings.REFRESH_TOKEN_NAME),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Refresh access token using refresh token from HttpOnly cookie.
 
-    This endpoint validates the refresh token and issues a new access token.
-    Optionally rotates the refresh token for enhanced security.
-
     Args:
-        response (Response): FastAPI Response object to set new cookies.
-        refresh_token (Optional[str]): Refresh token from HttpOnly cookie.
-        session (Session): Database session.
+        response (Response): FastAPI response object for cookie operations.
+        refresh_token (Optional[str], optional): Refresh token from cookie. Defaults to Cookie(None).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
-        HTTPException: 401 if refresh token is missing, invalid, or expired.
-        HTTPException: 500 if there is an error during token refresh.
+        HTTPException: 401 if refresh token is missing or invalid.
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Dict containing new access_token (15 min).
+        Dict[str, Any]: Result with new access token.
     """
     try:
         if not refresh_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Refresh token not found",
+                detail=translator.t("auth.refresh_token_not_found"),
             )
 
         # Verify and refresh token
@@ -643,28 +702,11 @@ async def refresh_access_token(
             )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired refresh token",
+                detail=translator.t("auth.invalid_refresh_token"),
             )
 
-        # Optional: Rotate refresh token for enhanced security
-        # Uncomment to enable refresh token rotation
-        # new_refresh_token = create_refresh_token(
-        #     data={"sub": user.email, "role": user.role},
-        #     expires_delta=timedelta(days=7),
-        # )
-        #
-        # response.set_cookie(
-        #     key=settings.REFRESH_TOKEN_NAME,
-        #     value=new_refresh_token,
-        #     max_age=14 * 24 * 60 * 60,
-        #     httponly=True,
-        #     secure=settings.DEBUG == False,
-        #     samesite="lax",
-        #     path="/",
-        # )
-
         return {
-            "message": "Access token refreshed successfully",
+            "message": translator.t("auth.token_refreshed"),
             "data": {
                 "access_token": result["access_token"],
                 "token_type": "bearer",
@@ -677,7 +719,7 @@ async def refresh_access_token(
         logger.error(f">>> Error refreshing token: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error refreshing access token",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -691,16 +733,21 @@ async def refresh_access_token(
 async def logout(
     response: Response,
     refresh_token: Optional[str] = Cookie(None, alias=settings.REFRESH_TOKEN_NAME),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Logout user by revoking refresh token and clearing cookie.
 
     Args:
-        response (Response): FastAPI Response object to clear cookies.
-        refresh_token (Optional[str]): Refresh token from HttpOnly cookie.
+        response (Response): FastAPI response object for cookie operations.
+        refresh_token (Optional[str], optional): Refresh token from cookie. Defaults to Cookie(None).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
+
+    Raises:
+        HTTPException: 500 if there is a server error.
 
     Returns:
-        Dict with logout success message.
+        Dict[str, Any]: Logout success message.
     """
     try:
         response.delete_cookie(
@@ -712,7 +759,7 @@ async def logout(
         )
 
         return {
-            "message": "Logged out successfully",
+            "message": translator.t("auth.logout_success"),
             "data": {},
         }
     except HTTPException:
@@ -721,5 +768,5 @@ async def logout(
         logger.error(f">>> Error during logout: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error during logout",
+            detail=translator.t("errors.internal_server"),
         )

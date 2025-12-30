@@ -49,7 +49,6 @@ const PROTECTED_ROUTES = new Set([
 
 /**
  * Helper function to get locale from NextRequest using our centralized utility
- * This replaces the previous complex caching logic with a unified approach
  * Priority: cookies (NEXT_LOCALE > locale) > pathname > Accept-Language > default
  */
 const getPreferredLocale = (request: RequestWithHeaders, pathname?: string): SupportedLocale => {
@@ -141,7 +140,12 @@ export default async function middleware(request: NextRequest) {
             const locale = getPreferredLocale(request, pathname);
 
             const loginUrl = new URL(`/${locale}/login`, request.url);
-            loginUrl.searchParams.set('callbackUrl', pathname);
+            // Strip locale prefix from pathname to avoid duplicate locale (e.g., /vi/vi/profile)
+            const segments = pathname.split('/').filter(Boolean);
+            const callbackPath = isValidLocale(segments[0])
+                ? '/' + segments.slice(1).join('/')
+                : pathname;
+            loginUrl.searchParams.set('callbackUrl', callbackPath || '/');
             return NextResponse.redirect(loginUrl);
         }
     }

@@ -5,21 +5,6 @@
             "description": "Khám phá dịch vụ VPS hosting đáng tin cậy và giá cả phải chăng với PCloud. Tận hưởng tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ chuyên gia 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
             "keywords": "VPS hosting, máy chủ đám mây, SSD VPS, NVMe VPS, VPS giá rẻ, VPS ổn định, web hosting, máy chủ ảo riêng"
         },
-        "plans": {
-            "title": "Gói VPS - PCloud",
-            "description": "Lựa chọn các gói VPS hosting linh hoạt với lưu trữ SSD/NVMe, tài nguyên riêng và hỗ trợ 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
-            "keywords": "gói VPS, giá VPS, gói máy chủ đám mây, SSD VPS, NVMe VPS, gói hosting"
-        },
-        "support": {
-            "title": "Trung tâm Hỗ trợ - PCloud",
-            "description": "Nhận trợ giúp cho dịch vụ VPS của bạn. Truy cập tài liệu, gửi yêu cầu hỗ trợ và liên hệ đội ngũ kỹ thuật 24/7.",
-            "keywords": "hỗ trợ VPS, hỗ trợ kỹ thuật, trợ giúp hosting, tài liệu, chăm sóc khách hàng"
-        },
-        "dashboard": {
-            "title": "Bảng điều khiển - PCloud",
-            "description": "Quản lý VPS, theo dõi hiệu suất và truy cập tất cả dịch vụ hosting của bạn từ một bảng điều khiển tập trung.",
-            "keywords": "bảng điều khiển VPS, quản lý máy chủ, control panel hosting, giám sát VPS"
-        },
         "login": {
             "title": "Đăng nhập - PCloud",
             "description": "Truy cập tài khoản PCloud của bạn để quản lý VPS, thanh toán và các dịch vụ hosting.",
@@ -30,12 +15,10 @@
             "description": "Tạo tài khoản PCloud và bắt đầu hành trình VPS hosting của bạn với máy chủ đám mây đáng tin cậy cùng hỗ trợ chuyên gia.",
             "keywords": "đăng ký VPS, đăng ký hosting, tạo tài khoản, tài khoản VPS hosting"
         },
-        "vps_detail": {
-            "title": "{hostname} - Quản lý VPS | PCloud",
-            "title_fallback": "Quản lý VPS - PCloud",
-            "description": "Quản lý VPS {hostname} của bạn với {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type}. Hệ điều hành {os}.",
-            "description_fallback": "Quản lý máy chủ VPS của bạn với PCloud. Theo dõi hiệu suất, cấu hình cài đặt và truy cập console máy chủ.",
-            "keywords": "quản lý VPS, bảng điều khiển máy chủ, VPS console, giám sát máy chủ"
+        "plans": {
+            "title": "Gói VPS - PCloud",
+            "description": "Lựa chọn các gói VPS hosting linh hoạt với lưu trữ SSD/NVMe, tài nguyên riêng và hỗ trợ 24/7. Hoàn hảo cho website, ứng dụng và phát triển.",
+            "keywords": "gói VPS, giá VPS, gói máy chủ đám mây, SSD VPS, NVMe VPS, gói hosting"
         },
         "plan_item": {
             "title": "{name} - Gói VPS | PCloud",
@@ -43,6 +26,702 @@
             "description": "Sở hữu gói {name} với {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type}, {bandwidth}TB băng thông. Chỉ từ {price}đ/tháng. Hoàn hảo cho website và ứng dụng.",
             "description_fallback": "Xem chi tiết các gói VPS hosting với tài nguyên riêng, lưu trữ SSD/NVMe và hỗ trợ 24/7.",
             "keywords": "chi tiết gói VPS, cấu hình máy chủ đám mây, tính năng VPS, thông số VPS, gói hosting"
+        },
+        "support": {
+            "title": "Trung tâm Hỗ trợ - PCloud",
+            "description": "Nhận trợ giúp cho dịch vụ VPS của bạn. Truy cập tài liệu, gửi yêu cầu hỗ trợ và liên hệ đội ngũ kỹ thuật 24/7.",
+            "keywords": "hỗ trợ VPS, hỗ trợ kỹ thuật, trợ giúp hosting, tài liệu, chăm sóc khách hàng"
+        },
+        "profile": {
+            "title": "Hồ sơ của tôi - PCloud",
+            "description": "Quản lý cài đặt tài khoản, thông tin thanh toán và dịch vụ VPS từ bảng điều khiển hồ sơ PCloud.",
+            "keywords": ""
+        },
+        "orders": {
+            "title": "Đơn hàng của tôi - PCloud",
+            "description": "Xem và quản lý đơn hàng VPS hosting, hóa đơn và lịch sử thanh toán trong tài khoản PCloud.",
+            "keywords": ""
+        },
+        "tickets": {
+            "title": "Yêu cầu hỗ trợ - PCloud",
+            "description": "Xem và quản lý yêu cầu hỗ trợ của bạn. Nhận trợ giúp từ đội ngũ kỹ thuật cho dịch vụ VPS hosting.",
+            "keywords": ""
+        },
+        "cart": {
+            "title": "Giỏ hàng - PCloud",
+            "description": "Xem lại các gói VPS hosting đã chọn và tiến hành thanh toán để hoàn tất đơn hàng.",
+            "keywords": ""
+        },
+        "checkout": {
+            "title": "Thanh toán - PCloud",
+            "description": "Hoàn tất mua gói VPS hosting với các tùy chọn thanh toán an toàn và cài đặt tức thì.",
+            "keywords": ""
+        },
+        "vnpay-return": {
+            "title": "Kết quả VNPAY - PCloud",
+            "description": "Kết quả thanh toán từ cổng VNPAY.",
+            "keywords": ""
+        },
+        "momo-return": {
+            "title": "Kết quả MOMO - PCloud",
+            "description": "Kết quả thanh toán từ cổng MOMO.",
+            "keywords": ""
+        },
+        "admin": {
+            "title": "Bảng điều khiển Quản trị - PCloud",
+            "description": "Truy cập bảng điều khiển quản trị để quản lý người dùng, gói VPS và cài đặt hệ thống cho dịch vụ PCloud.",
+            "keywords": ""
+        },
+        "client-dashboard": {
+            "title": "Bảng điều khiển - PCloud",
+            "description": "Quản lý dịch vụ VPS hosting, thanh toán và cài đặt tài khoản từ bảng điều khiển.",
+            "keywords": ""
+        },
+        "vps": {
+            "title": "Máy chủ VPS của tôi - PCloud",
+            "description": "Xem và quản lý máy chủ VPS, theo dõi hiệu suất và cấu hình cài đặt từ tài khoản PCloud.",
+            "keywords": ""
+        },
+        "vps_detail": {
+            "title": "{hostname} - Quản lý VPS | PCloud",
+            "title_fallback": "Quản lý VPS - PCloud",
+            "description": "Quản lý VPS {hostname} của bạn với {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type}. Hệ điều hành {os}.",
+            "description_fallback": "Quản lý máy chủ VPS của bạn với PCloud. Theo dõi hiệu suất, cấu hình cài đặt và truy cập console máy chủ.",
+            "keywords": ""
+        },
+        "billing": {
+            "title": "Thanh toán & Hóa đơn - PCloud",
+            "description": "Quản lý thông tin thanh toán, xem hóa đơn và theo dõi thanh toán cho dịch vụ VPS hosting.",
+            "keywords": ""
+        },
+        "renewal": {
+            "title": "Gia hạn - PCloud",
+            "description": "Gia hạn dịch vụ VPS hosting và kéo dài thời gian sử dụng.",
+            "keywords": ""
+        },
+        "privacy": {
+            "title": "Chính sách Bảo mật - PCloud",
+            "description": "Tìm hiểu cách PCloud thu thập, sử dụng và bảo vệ dữ liệu cá nhân của bạn khi sử dụng dịch vụ VPS hosting.",
+            "keywords": "chính sách bảo mật, bảo vệ dữ liệu, quyền riêng tư VPS, dữ liệu người dùng, GDPR"
+        },
+        "terms": {
+            "title": "Điều khoản Dịch vụ - PCloud",
+            "description": "Đọc điều khoản và điều kiện sử dụng dịch vụ VPS hosting PCloud, bao gồm thanh toán, SLA và chính sách sử dụng.",
+            "keywords": "điều khoản dịch vụ, điều khoản VPS, thỏa thuận hosting, SLA, chính sách sử dụng"
+        },
+        "cookies": {
+            "title": "Chính sách Cookie - PCloud",
+            "description": "Tìm hiểu cách PCloud sử dụng cookie và các công nghệ tương tự trên nền tảng VPS hosting.",
+            "keywords": "chính sách cookie, cookie, theo dõi, cookie trình duyệt, cookie website"
+        }
+    },
+    "sidebar": {
+        "dashboard": "Bảng điều khiển",
+        "vps": "VPS",
+        "billing": "Thanh toán",
+        "support": "Hỗ trợ"
+    },
+    "renewal_dialog": {
+        "title": "Gia hạn VPS",
+        "description": "Gia hạn dịch vụ VPS để tiếp tục sử dụng",
+        "plan_label": "Gói",
+        "expires_label": "Hết hạn",
+        "days_left": "Còn {count} ngày",
+        "expired": "Đã hết hạn",
+        "duration_label": "Thời hạn gia hạn",
+        "one_month": "1 tháng",
+        "three_months": "3 tháng",
+        "six_months": "6 tháng",
+        "twelve_months": "12 tháng",
+        "payment_method": "Phương thức thanh toán",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "original_price": "Giá gốc ({months} tháng)",
+        "discount": "Giảm giá ({percent}%)",
+        "total": "Tổng cộng",
+        "cancel": "Hủy",
+        "processing": "Đang xử lý...",
+        "renew_now": "Gia hạn ngay",
+        "enter_phone": "Vui lòng nhập số điện thoại",
+        "enter_address": "Vui lòng nhập địa chỉ",
+        "renew_failed": "Gia hạn VPS thất bại",
+        "try_again": "Vui lòng thử lại sau"
+    },
+    "repay_dialog": {
+        "title": "Thanh toán đơn gia hạn",
+        "description": "Hoàn tất thanh toán cho đơn gia hạn VPS",
+        "order_number": "Mã đơn hàng",
+        "total_amount": "Tổng tiền",
+        "created": "Ngày tạo",
+        "note": "Ghi chú",
+        "none": "Không có",
+        "cannot_pay": "Không thể thanh toán",
+        "not_eligible": "Đơn hàng không đủ điều kiện thanh toán lại",
+        "error_checking": "Có lỗi xảy ra khi kiểm tra đơn hàng",
+        "failed": "Thanh toán thất bại",
+        "pay": "Thanh toán",
+        "payment_method": "Phương thức thanh toán",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "cancel": "Hủy",
+        "processing": "Đang xử lý...",
+        "enter_phone": "Vui lòng nhập số điện thoại",
+        "enter_address": "Vui lòng nhập địa chỉ",
+        "try_again": "Vui lòng thử lại sau"
+    },
+    "usage_chart": {
+        "loading": "Đang tải dữ liệu...",
+        "no_data": "Không có dữ liệu",
+        "no_data_desc": "Dữ liệu biểu đồ sẽ hiển thị khi có sẵn",
+        "cpu_usage": "Sử dụng CPU",
+        "memory_usage": "Sử dụng RAM"
+    },
+    "pagination": {
+        "showing": "Hiển thị {start} - {end} trong {total} {label}",
+        "per_page": "Số lượng/trang:",
+        "page_of": "Trang {current} / {total}",
+        "default_label": "mục"
+    },
+    "vnc_console": {
+        "status": {
+            "initializing": "Đang khởi tạo...",
+            "getting_info": "Đang lấy thông tin VNC proxy...",
+            "loading": "Đang tải bảng điều khiển...",
+            "loading_short": "Đang tải...",
+            "ready": "Sẵn sàng",
+            "disconnected": "Đã ngắt kết nối"
+        },
+        "error": {
+            "connection_failed": "Kết nối thất bại",
+            "connection_failed_toast": "Kết nối thất bại",
+            "init_failed": "Không thể khởi tạo VNC console",
+            "console_not_ready": "Bảng điều khiển chưa sẵn sàng",
+            "send_cad_failed": "Gửi Ctrl+Alt+Del thất bại"
+        },
+        "success": {
+            "ready": "VNC Console đã sẵn sàng",
+            "cad_sent": "Đã gửi Ctrl+Alt+Del",
+            "window_opened": "VNC Console đã mở trong cửa sổ mới",
+            "proxmox_opened": "Đã mở Proxmox Console"
+        },
+        "button": {
+            "cad": "Ctrl+Alt+Del",
+            "load_console": "Tải Console",
+            "close": "Đóng",
+            "retry": "Thử lại",
+            "open_window": "Mở cửa sổ mới",
+            "open_proxmox": "Proxmox Console"
+        },
+        "tooltip": {
+            "send_cad": "Gửi Ctrl+Alt+Del",
+            "open_proxmox": "Mở Proxmox Console",
+            "fullscreen": "Toàn màn hình",
+            "exit_fullscreen": "Thoát toàn màn hình",
+            "open_window": "Mở trong cửa sổ mới",
+            "reload": "Tải lại"
+        },
+        "info": {
+            "vm_info": "VM: {id} @ {node}",
+            "title": "VNC Console cho VM {id}",
+            "description": "Nhấn \"Tải Console\" để dùng VNC tích hợp, hoặc dùng \"Proxmox Console\" để truy cập trực tiếp (cần đăng nhập Proxmox).",
+            "tip_connected": "Sử dụng thanh công cụ bên trong console để gửi Ctrl+Alt+Del và các điều khiển khác",
+            "tip_disconnected": "Mẹo: Mở trong cửa sổ mới để thao tác bàn phím tốt hơn"
+        }
+    },
+    "admin": {
+        "dashboard": {
+            "title": "Bảng điều khiển",
+            "stats": {
+                "total_users": "Tổng người dùng",
+                "active_vps": "VPS hoạt động",
+                "monthly_revenue": "Doanh thu tháng",
+                "monthly_orders": "Đơn hàng tháng",
+                "this_month": "{value}% tháng này",
+                "vs_last_month": "{value}% so với tháng trước"
+            },
+            "charts": {
+                "revenue_title": "Doanh thu hàng tháng",
+                "revenue_description": "Biểu đồ doanh thu năm nay",
+                "vps_status_title": "Trạng thái VPS",
+                "vps_status_description": "Phân bố theo trạng thái",
+                "running": "Đang chạy",
+                "stopped": "Đã dừng",
+                "terminated": "Đã hủy"
+            },
+            "recent_orders": {
+                "title": "Đơn hàng gần đây",
+                "description": "5 đơn hàng mới nhất",
+                "no_orders": "Chưa có đơn hàng",
+                "min_ago": "{value} phút trước",
+                "hours_ago": "{value} giờ trước"
+            },
+            "status": {
+                "paid": "Đã thanh toán",
+                "pending": "Đang chờ",
+                "cancelled": "Đã hủy"
+            },
+            "errors": {
+                "failed_load": "Không thể tải dữ liệu bảng điều khiển",
+                "try_again": "Vui lòng thử lại sau"
+            }
+        },
+        "vps": {
+            "title": "Danh sách VPS",
+            "stats": {
+                "total": "Tổng VPS",
+                "active": "Hoạt động",
+                "suspended": "Tạm dừng",
+                "terminated": "Đã hủy"
+            },
+            "status": {
+                "active": "Hoạt động",
+                "suspended": "Tạm dừng",
+                "terminated": "Đã hủy",
+                "creating": "Đang tạo",
+                "error": "Lỗi"
+            },
+            "filter": {
+                "all": "Tất cả",
+                "running": "Đang chạy",
+                "suspended": "Tạm dừng",
+                "terminated": "Đã hủy",
+                "creating": "Đang tạo",
+                "error": "Lỗi",
+                "placeholder": "Trạng thái",
+                "search": "Tìm kiếm VPS...",
+                "refresh": "Làm mới"
+            },
+            "table": {
+                "vmid": "VMID",
+                "hostname": "Tên máy",
+                "ip_address": "Địa chỉ IP",
+                "os": "Hệ điều hành",
+                "plan": "Gói",
+                "user": "Người dùng",
+                "status": "Trạng thái",
+                "expires": "Hết hạn",
+                "actions": "Thao tác",
+                "no_vps": "Không tìm thấy VPS",
+                "na": "N/A"
+            },
+            "toast": {
+                "start_success": "Khởi động VPS thành công",
+                "stop_success": "Dừng VPS thành công",
+                "reboot_success": "Đã gửi lệnh khởi động lại VPS",
+                "start_failed": "Khởi động VPS thất bại",
+                "stop_failed": "Dừng VPS thất bại",
+                "reboot_failed": "Khởi động lại VPS thất bại",
+                "fetch_failed": "Không thể tải dữ liệu VPS"
+            }
+        },
+        "users": {
+            "title": "Danh sách người dùng",
+            "stats": {
+                "total": "Tổng người dùng",
+                "active": "Hoạt động",
+                "unverified": "Chưa xác minh"
+            },
+            "table": {
+                "name": "Tên",
+                "email": "Email",
+                "phone": "Điện thoại",
+                "role": "Vai trò",
+                "provider": "Nhà cung cấp",
+                "status": "Trạng thái",
+                "joined": "Ngày tham gia",
+                "actions": "Thao tác",
+                "no_users": "Không tìm thấy người dùng"
+            },
+            "filter": {
+                "search": "Tìm kiếm người dùng...",
+                "all": "Tất cả",
+                "admin": "Quản trị viên",
+                "user": "Người dùng",
+                "verified": "Đã xác minh",
+                "unverified": "Chưa xác minh",
+                "placeholder": "Bộ lọc",
+                "refresh": "Làm mới"
+            },
+            "status": {
+                "active": "Hoạt động",
+                "unverified": "Chưa xác minh"
+            },
+            "role": {
+                "admin": "Quản trị viên",
+                "user": "Người dùng"
+            },
+            "toast": {
+                "create_success": "Tạo người dùng thành công",
+                "create_failed": "Tạo người dùng thất bại",
+                "update_success": "Cập nhật người dùng thành công",
+                "update_failed": "Cập nhật người dùng thất bại",
+                "delete_success": "Xóa người dùng thành công",
+                "delete_failed": "Xóa người dùng thất bại",
+                "fetch_failed": "Không thể tải danh sách người dùng"
+            },
+            "add_user": "Thêm người dùng"
+        },
+        "support": {
+            "title": "Yêu cầu hỗ trợ",
+            "stats": {
+                "total": "Tổng yêu cầu",
+                "open": "Đang mở",
+                "in_progress": "Đang xử lý",
+                "resolved": "Đã giải quyết"
+            },
+            "table": {
+                "ticket_id": "Mã yêu cầu",
+                "subject": "Chủ đề",
+                "user": "Người dùng",
+                "category": "Danh mục",
+                "priority": "Độ ưu tiên",
+                "status": "Trạng thái",
+                "created": "Ngày tạo",
+                "actions": "Thao tác",
+                "no_tickets": "Không tìm thấy yêu cầu"
+            },
+            "filter": {
+                "search": "Tìm kiếm yêu cầu...",
+                "all": "Tất cả",
+                "open": "Đang mở",
+                "in_progress": "Đang xử lý",
+                "resolved": "Đã giải quyết",
+                "closed": "Đã đóng",
+                "placeholder": "Trạng thái",
+                "refresh": "Làm mới"
+            },
+            "status": {
+                "open": "Đang mở",
+                "in_progress": "Đang xử lý",
+                "resolved": "Đã giải quyết",
+                "closed": "Đã đóng"
+            },
+            "priority": {
+                "low": "Thấp",
+                "medium": "Trung bình",
+                "high": "Cao",
+                "urgent": "Khẩn cấp"
+            },
+            "category": {
+                "technical": "Kỹ thuật",
+                "billing": "Thanh toán",
+                "general": "Chung",
+                "sales": "Bán hàng",
+                "account": "Tài khoản"
+            },
+            "toast": {
+                "status_updated": "Cập nhật trạng thái thành công",
+                "status_failed": "Cập nhật trạng thái thất bại",
+                "reply_sent": "Gửi phản hồi thành công",
+                "reply_failed": "Gửi phản hồi thất bại",
+                "fetch_failed": "Không thể tải danh sách yêu cầu"
+            }
+        },
+        "revenue": {
+            "title": "Doanh thu",
+            "stats": {
+                "total_revenue": "Tổng doanh thu",
+                "total_orders": "Tổng đơn hàng",
+                "paid_orders": "Đơn đã thanh toán",
+                "avg_order": "Đơn TB",
+                "from_orders": "Từ {count} đơn hàng",
+                "orders_label": "đơn hàng",
+                "average_label": "trung bình"
+            },
+            "table": {
+                "order_number": "Mã đơn hàng",
+                "customer": "Khách hàng",
+                "plan": "Gói",
+                "amount": "Số tiền",
+                "payment": "Thanh toán",
+                "status": "Trạng thái",
+                "date": "Ngày",
+                "actions": "Thao tác",
+                "no_orders": "Không tìm thấy đơn hàng"
+            },
+            "filter": {
+                "search": "Tìm kiếm đơn hàng...",
+                "all": "Tất cả",
+                "paid": "Đã thanh toán",
+                "pending": "Đang chờ",
+                "failed": "Thất bại",
+                "cancelled": "Đã hủy",
+                "today": "Hôm nay",
+                "week": "Tuần này",
+                "month": "Tháng này",
+                "year": "Năm nay",
+                "placeholder": "Trạng thái",
+                "time_placeholder": "Thời gian",
+                "refresh": "Làm mới"
+            },
+            "status": {
+                "paid": "Đã thanh toán",
+                "pending": "Đang chờ",
+                "failed": "Thất bại",
+                "cancelled": "Đã hủy"
+            },
+            "chart": {
+                "title": "Thống kê doanh thu",
+                "description": "Xem chi tiết doanh thu theo thời gian",
+                "monthly": "Theo tháng",
+                "quarterly": "Theo quý",
+                "details": "Chi tiết",
+                "period": "Giai đoạn",
+                "revenue": "Doanh thu",
+                "orders": "Đơn hàng"
+            },
+            "toast": {
+                "fetch_failed": "Không thể tải dữ liệu doanh thu"
+            }
+        },
+        "plans": {
+            "title": "Gói VPS",
+            "stats": {
+                "total": "Tổng gói",
+                "active": "Hoạt động",
+                "inactive": "Không hoạt động"
+            },
+            "table": {
+                "name": "Tên",
+                "category": "Danh mục",
+                "specs": "Cấu hình",
+                "price": "Giá",
+                "status": "Trạng thái",
+                "actions": "Thao tác",
+                "no_plans": "Không tìm thấy gói"
+            },
+            "filter": {
+                "search": "Tìm kiếm gói...",
+                "all": "Tất cả",
+                "basic": "Cơ bản",
+                "pro": "Chuyên nghiệp",
+                "premium": "Cao cấp",
+                "placeholder": "Danh mục",
+                "refresh": "Làm mới"
+            },
+            "category": {
+                "basic": "Cơ bản",
+                "pro": "Chuyên nghiệp",
+                "premium": "Cao cấp"
+            },
+            "status": {
+                "active": "Hoạt động",
+                "inactive": "Không hoạt động"
+            },
+            "toast": {
+                "create_success": "Tạo gói thành công",
+                "create_failed": "Tạo gói thất bại",
+                "update_success": "Cập nhật gói thành công",
+                "update_failed": "Cập nhật gói thất bại",
+                "delete_success": "Xóa gói thành công",
+                "delete_failed": "Xóa gói thất bại",
+                "fetch_failed": "Không thể tải danh sách gói"
+            },
+            "add_plan": "Thêm gói"
+        },
+        "analytics": {
+            "stats": {
+                "total_vps": "Tổng VPS",
+                "users": "Người dùng",
+                "yearly_revenue": "Doanh thu năm",
+                "orders": "Đơn hàng"
+            },
+            "charts": {
+                "monthly_revenue": "Doanh thu hàng tháng",
+                "monthly_revenue_desc": "Doanh thu trong 12 tháng qua",
+                "user_growth": "Tăng trưởng người dùng",
+                "user_growth_desc": "Số lượng người dùng tích lũy theo tháng",
+                "vps_by_plan": "VPS theo gói",
+                "vps_by_plan_desc": "Phân bố theo gói",
+                "vps_by_os": "VPS theo hệ điều hành",
+                "vps_by_os_desc": "Phân bố hệ điều hành",
+                "payment_methods": "Phương thức thanh toán",
+                "payment_methods_desc": "Phân bố thanh toán",
+                "revenue": "Doanh thu",
+                "count": "Số lượng"
+            },
+            "table": {
+                "title": "Thống kê chi tiết theo gói",
+                "description": "Số lượng VPS và doanh thu theo gói dịch vụ",
+                "service_plan": "Gói dịch vụ",
+                "vps_count": "Số VPS",
+                "percentage": "Phần trăm",
+                "revenue": "Doanh thu",
+                "revenue_percent": "% Doanh thu",
+                "total": "Tổng"
+            },
+            "no_data": "Không có dữ liệu",
+            "toast": {
+                "fetch_failed": "Không thể tải dữ liệu phân tích"
+            }
+        },
+        "pages": {
+            "dashboard": {
+                "title": "Bảng điều khiển",
+                "description": "Xem tổng quan nhanh về hoạt động, cập nhật và các thống kê chính của trang web."
+            },
+            "users": {
+                "title": "Người dùng",
+                "description": "Quản lý tài khoản người dùng, vai trò và quyền hạn cho hệ thống."
+            },
+            "vps": {
+                "title": "VPS",
+                "description": "Quản lý máy chủ ảo, bao gồm tạo mới, cấu hình và giám sát."
+            },
+            "plans": {
+                "title": "Gói dịch vụ",
+                "description": "Quản lý các gói đăng ký, giá cả và tính năng dành cho người dùng."
+            },
+            "support": {
+                "title": "Hỗ trợ",
+                "description": "Quản lý yêu cầu hỗ trợ, trả lời khách hàng và theo dõi tiến độ xử lý."
+            },
+            "revenue": {
+                "title": "Doanh thu",
+                "description": "Quản lý và theo dõi nguồn doanh thu, bao gồm thanh toán, hóa đơn và báo cáo tài chính."
+            },
+            "analytics": {
+                "title": "Phân tích",
+                "description": "Xem báo cáo và số liệu để theo dõi hiệu suất và mức độ tương tác của trang web."
+            }
+        },
+        "sidebar": {
+            "admin_panel": "Bảng quản trị",
+            "toggle_sidebar": "Ẩn/Hiện thanh bên"
+        },
+        "nav": {
+            "main_menu": "Menu chính",
+            "logging_out": "Đang đăng xuất..."
+        },
+        "components": {
+            "common": {
+                "cancel": "Hủy",
+                "close": "Đóng",
+                "save": "Lưu thay đổi",
+                "saving": "Đang lưu...",
+                "create": "Tạo",
+                "creating": "Đang tạo...",
+                "edit": "Sửa",
+                "delete": "Xóa",
+                "loading": "Đang tải...",
+                "na": "N/A",
+                "verified": "Đã xác minh"
+            },
+            "user_detail": {
+                "title": "Chi tiết người dùng",
+                "description": "Xem và quản lý thông tin tài khoản người dùng",
+                "edit_info": "Sửa thông tin",
+                "contact_info": "Thông tin liên hệ",
+                "name": "Tên",
+                "email": "Email",
+                "phone": "Điện thoại",
+                "address": "Địa chỉ",
+                "role": "Vai trò",
+                "verify_email": "Xác minh Email",
+                "email_verified": "Email đã xác minh",
+                "add_user": "Thêm người dùng",
+                "add_new_user": "Thêm người dùng mới",
+                "fill_details": "Điền thông tin để tạo tài khoản mới",
+                "basic_info": "Thông tin cơ bản",
+                "account_info": "Thông tin tài khoản",
+                "full_name": "Họ và tên",
+                "password": "Mật khẩu",
+                "phone_number": "Số điện thoại",
+                "create_account": "Tạo tài khoản",
+                "admin": "Quản trị viên",
+                "user": "Người dùng",
+                "validation": {
+                    "name_min": "Tên phải có ít nhất 2 ký tự",
+                    "email_invalid": "Vui lòng nhập địa chỉ email hợp lệ",
+                    "phone_invalid": "Vui lòng nhập số điện thoại hợp lệ",
+                    "password_min": "Mật khẩu phải có ít nhất 6 ký tự",
+                    "password_uppercase": "Mật khẩu phải chứa ít nhất một chữ in hoa",
+                    "password_lowercase": "Mật khẩu phải chứa ít nhất một chữ thường",
+                    "password_number": "Mật khẩu phải chứa ít nhất một số",
+                    "required_fields": "Vui lòng điền đầy đủ các trường bắt buộc"
+                }
+            },
+            "plan_detail": {
+                "title": "Chi tiết gói",
+                "description": "Xem và quản lý cấu hình gói VPS",
+                "add_plan": "Thêm gói",
+                "add_new_plan": "Thêm gói mới",
+                "create_plan_desc": "Tạo gói VPS mới với cấu hình tùy chỉnh",
+                "basic_info": "Thông tin cơ bản",
+                "plan_name": "Tên gói",
+                "category": "Danh mục",
+                "description_field": "Mô tả",
+                "specs": "Cấu hình",
+                "vcpu": "vCPU",
+                "ram": "RAM (GB)",
+                "storage": "Lưu trữ (GB)",
+                "storage_type": "Loại lưu trữ",
+                "bandwidth": "Băng thông (GB)",
+                "network_speed": "Tốc độ mạng (Mbps)",
+                "pricing": "Giá",
+                "monthly_price": "Giá tháng",
+                "yearly_price": "Giá năm",
+                "create_plan": "Tạo gói",
+                "update_plan": "Cập nhật gói"
+            },
+            "vps_detail": {
+                "title": "Chi tiết VPS",
+                "description": "Xem và quản lý VPS",
+                "status": "Trạng thái",
+                "hostname": "Hostname",
+                "ip_address": "Địa chỉ IP",
+                "os": "Hệ điều hành",
+                "specs": "Cấu hình",
+                "expires": "Hết hạn",
+                "days_left": "ngày còn lại",
+                "expired": "Đã hết hạn",
+                "owner": "Chủ sở hữu",
+                "start": "Khởi động",
+                "stop": "Dừng",
+                "reboot": "Khởi động lại",
+                "actions": "Thao tác",
+                "running": "Đang chạy",
+                "suspended": "Tạm ngưng",
+                "stopped": "Đã dừng",
+                "expiring_soon": "Sắp hết hạn",
+                "days_until_renewal": "ngày còn lại trước khi gia hạn",
+                "service_info": "Thông tin dịch vụ"
+            },
+            "ticket_detail": {
+                "title": "Chi tiết yêu cầu",
+                "description": "Xem và phản hồi yêu cầu hỗ trợ",
+                "ticket_info": "Thông tin yêu cầu",
+                "customer_info": "Thông tin khách hàng",
+                "conversation": "Cuộc hội thoại",
+                "reply": "Phản hồi",
+                "send_reply": "Gửi phản hồi",
+                "sending": "Đang gửi...",
+                "update_status": "Cập nhật trạng thái",
+                "subject": "Chủ đề",
+                "category": "Danh mục",
+                "priority": "Độ ưu tiên",
+                "status": "Trạng thái",
+                "created": "Ngày tạo",
+                "type_reply": "Nhập phản hồi của bạn..."
+            },
+            "order_detail": {
+                "title": "Chi tiết đơn hàng",
+                "description": "Xem thông tin đơn hàng",
+                "order_info": "Thông tin đơn hàng",
+                "customer_info": "Thông tin khách hàng",
+                "items": "Sản phẩm",
+                "order_number": "Mã đơn hàng",
+                "total": "Tổng cộng",
+                "payment_method": "Phương thức thanh toán",
+                "status": "Trạng thái",
+                "created": "Ngày tạo",
+                "paid": "Đã thanh toán",
+                "pending": "Đang chờ",
+                "cancelled": "Đã hủy",
+                "note": "Ghi chú",
+                "products": "Sản phẩm",
+                "months": "tháng"
+            }
         }
     },
     "header": {
@@ -52,21 +731,275 @@
         "profile": "Hồ sơ",
         "my_orders": "Đơn hàng của tôi",
         "my_tickets": "Yêu cầu của tôi",
-        "support_tickets": "Yêu cầu hỗ trợ",
         "manage_vps": "Quản lý VPS",
         "admin": "Quản trị",
         "login": "Đăng nhập",
         "register": "Đăng ký",
         "logout": "Đăng xuất",
+        "logging_out": "Đang đăng xuất...",
+        "logout_success": "Đăng xuất thành công",
+        "logout_failed": "Không thể đăng xuất",
+        "try_again": "Vui lòng thử lại sau",
         "menu": "Menu",
         "nav": "Điều hướng",
         "auth": "Xác thực",
-        "acc": "Tài khoản"
+        "acc": "Tài khoản",
+        "default_user": "Người dùng"
     },
     "language": {
         "select_language": "Chọn ngôn ngữ",
         "en": "Tiếng Anh",
         "vi": "Tiếng Việt"
+    },
+    "payment_return": {
+        "processing": "Đang xử lý thanh toán...",
+        "setting_up_vps": "Đang thiết lập VPS...",
+        "payment_successful": "Thanh toán thành công",
+        "payment_failed": "Thanh toán thất bại",
+        "verifying": "Đang xác minh giao dịch...",
+        "success_setting_up": "Thanh toán thành công! Đang thiết lập VPS của bạn...",
+        "success_vps_activated": "Thanh toán thành công! VPS của bạn đang được kích hoạt.",
+        "success_vps_error": "Thanh toán thành công nhưng thiết lập VPS gặp lỗi. Vui lòng liên hệ hỗ trợ.",
+        "unable_to_verify": "Không thể xác minh giao dịch",
+        "provisioning": "Đang cung cấp VPS trên máy chủ của chúng tôi...",
+        "warning_no_close": "Vui lòng không đóng hoặc làm mới trang trong quá trình thiết lập.",
+        "warning_leave_page": "Đang thiết lập VPS. Rời khỏi trang có thể làm gián đoạn quá trình.",
+        "order_number": "Mã đơn hàng",
+        "momo_trans_id": "Mã giao dịch MoMo",
+        "vnpay_trans_id": "Mã giao dịch VNPay",
+        "amount": "Số tiền",
+        "email_confirmation": "Bạn sẽ nhận được email xác nhận với thông tin chi tiết về VPS của bạn.",
+        "setting_up": "Đang thiết lập VPS...",
+        "go_to_dashboard": "Đi đến Bảng điều khiển",
+        "continue_shopping": "Tiếp tục mua sắm",
+        "retry": "Thử lại",
+        "go_to_home": "Về trang chủ"
+    },
+    "client_dashboard": {
+        "title": "Bảng điều khiển",
+        "stats": {
+            "total_vps": "Tổng VPS",
+            "active": "Đang hoạt động",
+            "no_vps_yet": "Chưa có VPS",
+            "total_spent": "Tổng chi tiêu",
+            "all_orders": "Tất cả đơn hàng",
+            "support": "Hỗ trợ",
+            "total_tickets": "Tổng ticket",
+            "expiring_soon": "Sắp hết hạn",
+            "within_7_days": "Trong 7 ngày"
+        },
+        "vps_list": {
+            "title": "Danh sách VPS của bạn",
+            "configuring": "Đang cấu hình...",
+            "waiting_for_ip": "Đang chờ IP",
+            "running": "Đang chạy",
+            "stopped": "Đã dừng",
+            "no_vps_message": "Bạn chưa có VPS nào",
+            "get_vps_now": "Thuê VPS ngay",
+            "manage": "Quản lý"
+        },
+        "recent_activity": {
+            "title": "Hoạt động gần đây",
+            "no_activities": "Chưa có hoạt động nào",
+            "vps_initialized": "VPS đã khởi tạo"
+        },
+        "toast": {
+            "load_failed": "Không thể tải dữ liệu bảng điều khiển",
+            "try_again": "Vui lòng thử lại sau"
+        }
+    },
+    "client_vps": {
+        "title": "Danh sách VPS",
+        "all_servers": "Tất cả máy chủ",
+        "search_placeholder": "Tìm theo tên hoặc IP...",
+        "table": {
+            "hostname": "Tên máy chủ",
+            "ip_address": "Địa chỉ IP",
+            "configuration": "Cấu hình",
+            "vps_plan": "Gói VPS",
+            "actions": "Hành động"
+        },
+        "status": {
+            "suspended": "Đã tạm ngưng",
+            "configuring": "Đang cấu hình...",
+            "waiting_for_ip": "Đang chờ IP"
+        },
+        "empty": {
+            "no_vps_found": "Không tìm thấy VPS",
+            "no_vps_yet": "Chưa có VPS",
+            "try_different_keywords": "Thử tìm với từ khóa khác",
+            "start_by_registering": "Bắt đầu bằng cách đăng ký VPS mới",
+            "get_vps_now": "Thuê VPS ngay"
+        },
+        "buttons": {
+            "renew": "Gia hạn",
+            "manage": "Quản lý"
+        },
+        "toast": {
+            "fetch_failed": "Không thể tải danh sách VPS",
+            "try_again": "Vui lòng thử lại sau"
+        }
+    },
+    "client_billing": {
+        "title": "Thanh toán",
+        "cards": {
+            "total_spending": "Tổng chi tiêu",
+            "this_month_cost": "Chi phí tháng này"
+        },
+        "usage": {
+            "title": "Tiến trình sử dụng VPS",
+            "description": "Tiến trình sử dụng hiện tại của các dịch vụ VPS",
+            "days": "ngày",
+            "expired": "Đã hết hạn",
+            "renew": "Gia hạn",
+            "no_vps_title": "Chưa có VPS",
+            "no_vps_description": "Khi bạn thuê VPS, tiến trình sử dụng sẽ hiển thị ở đây"
+        },
+        "invoice": {
+            "title": "Lịch sử hóa đơn",
+            "description": "Tất cả giao dịch và hóa đơn của bạn",
+            "table": {
+                "invoice_id": "Mã hóa đơn",
+                "time": "Thời gian",
+                "note": "Ghi chú",
+                "status": "Trạng thái",
+                "amount": "Số tiền"
+            },
+            "status": {
+                "paid": "Đã thanh toán",
+                "pending": "Đang chờ",
+                "cancelled": "Đã hủy"
+            },
+            "none": "Không có",
+            "pay": "Thanh toán",
+            "no_invoices_title": "Chưa có hóa đơn",
+            "no_invoices_description": "Giao dịch của bạn sẽ hiển thị ở đây"
+        },
+        "toast": {
+            "fetch_failed": "Không thể tải dữ liệu thanh toán",
+            "try_again": "Vui lòng thử lại sau"
+        }
+    },
+    "vps_detail": {
+        "configuring": "Đang cấu hình...",
+        "status": {
+            "running": "Đang chạy",
+            "stopped": "Đã dừng"
+        },
+        "actions": {
+            "stop": "Dừng",
+            "reboot": "Khởi động lại",
+            "start": "Khởi động"
+        },
+        "specs": {
+            "vcpu": "vCPU",
+            "ram": "GB RAM",
+            "network": "Mạng"
+        },
+        "suspension": {
+            "title": "VPS bị tạm ngưng",
+            "description": "VPS của bạn đã bị tạm ngưng do hết hạn. Vui lòng gia hạn để khôi phục quyền truy cập và tiếp tục hoạt động.",
+            "renew_now": "Gia hạn ngay"
+        },
+        "tabs": {
+            "overview": "Tổng quan",
+            "console": "Console (VNC)",
+            "snapshots": "Snapshots"
+        },
+        "overview": {
+            "cpu_usage": "Sử dụng CPU",
+            "of_cores": "trên {count} Core",
+            "memory": "Bộ nhớ",
+            "of_gb": "trên {count} GB",
+            "disk_usage": "Sử dụng đĩa",
+            "of_disk": "trên {size}",
+            "network": "Mạng",
+            "current_rate": "Tốc độ hiện tại",
+            "performance_title": "Hiệu suất (24h qua)",
+            "performance_description": "Dữ liệu thời gian thực từ Proxmox RRD",
+            "details": "Chi tiết",
+            "vm_id": "VM ID",
+            "node": "Node",
+            "ip_address": "Địa chỉ IP",
+            "pending": "Đang chờ",
+            "mac_address": "Địa chỉ MAC",
+            "uptime": "Thời gian hoạt động"
+        },
+        "snapshots": {
+            "title": "Snapshots",
+            "description": "Tạo điểm khôi phục cho VPS. Đã dùng {used}/{max} snapshots.",
+            "create_button": "Tạo Snapshot",
+            "create_title": "Tạo Snapshot mới",
+            "create_description": "Snapshot sẽ lưu trạng thái hiện tại của VPS, cho phép bạn khôi phục về thời điểm này sau đó.",
+            "name_label": "Tên snapshot *",
+            "name_placeholder": "VD: truoc-cap-nhat-v2",
+            "name_hint": "Chỉ cho phép chữ cái, số, gạch ngang và gạch dưới",
+            "description_label": "Mô tả (không bắt buộc)",
+            "description_placeholder": "Mô tả snapshot này...",
+            "cancel": "Hủy",
+            "creating": "Đang tạo...",
+            "with_ram": "Có trạng thái RAM",
+            "without_ram": "Không có trạng thái RAM",
+            "rollback": "Khôi phục",
+            "confirm_rollback": "Xác nhận khôi phục",
+            "rollback_warning": "Cảnh báo: Tất cả thay đổi sau snapshot ({date}) sẽ bị mất vĩnh viễn!",
+            "rollback_description": "Bạn sắp khôi phục VPS về snapshot",
+            "delete": "Xóa",
+            "confirm_delete": "Xác nhận xóa Snapshot",
+            "delete_question": "Bạn có chắc muốn xóa snapshot",
+            "delete_warning": "Hành động này không thể hoàn tác!",
+            "delete_snapshot": "Xóa Snapshot",
+            "no_snapshots": "Chưa có snapshot",
+            "no_snapshots_description": "Tạo snapshot để lưu trạng thái VPS và khôi phục bất cứ lúc nào",
+            "create_first": "Tạo snapshot đầu tiên",
+            "limit_reached": "Bạn đã đạt giới hạn {max} snapshots. Vui lòng xóa snapshot cũ để tạo mới."
+        },
+        "not_found": {
+            "title": "Không tìm thấy VPS",
+            "description": "Không thể tìm thông tin cho VPS này"
+        },
+        "toast": {
+            "fetch_failed": "Không thể tải thông tin VPS",
+            "rrd_failed": "Không thể tải dữ liệu RRD VPS",
+            "snapshots_failed": "Không thể tải snapshots",
+            "action_performing": "Đang thực hiện...",
+            "action_wait": "Vui lòng chờ một chút",
+            "action_success": "Thành công",
+            "action_success_description": "Vui lòng chờ hệ thống cập nhật trạng thái mới",
+            "action_failed": "Không thể thực hiện hành động",
+            "try_again": "Vui lòng thử lại sau",
+            "snapshot_name_required": "Tên snapshot là bắt buộc",
+            "snapshot_name_invalid": "Tên snapshot không hợp lệ",
+            "snapshot_name_invalid_description": "Chỉ cho phép ký tự chữ số, gạch ngang và gạch dưới",
+            "snapshot_create_initiated": "Đã bắt đầu tạo snapshot",
+            "snapshot_create_wait": "Vui lòng chờ vài phút để snapshot được tạo",
+            "snapshot_create_failed": "Không thể tạo snapshot",
+            "snapshot_restore_initiated": "Đã bắt đầu khôi phục snapshot",
+            "snapshot_restore_wait": "Vui lòng chờ vài phút để VPS được khôi phục",
+            "snapshot_restore_failed": "Không thể khôi phục snapshot",
+            "snapshot_delete_initiated": "Đã bắt đầu xóa snapshot",
+            "snapshot_delete_wait": "Vui lòng chờ vài phút để snapshot được xóa",
+            "snapshot_delete_failed": "Không thể xóa snapshot"
+        }
+    },
+    "renewal": {
+        "verifying": "Đang xác minh thanh toán...",
+        "success_message": "Gia hạn VPS thành công!",
+        "failed_message": "Thanh toán thất bại",
+        "verify_failed": "Không thể xác minh giao dịch",
+        "processing": "Đang xử lý...",
+        "renewal_successful": "Gia hạn thành công",
+        "renewal_failed": "Gia hạn thất bại",
+        "vps_label": "VPS",
+        "new_expiry_date": "Ngày hết hạn mới",
+        "order_number": "Mã đơn hàng",
+        "vnpay_transaction_id": "Mã giao dịch VNPay",
+        "momo_transaction_id": "Mã giao dịch MoMo",
+        "amount": "Số tiền",
+        "success_description": "VPS của bạn đã được gia hạn thành công. Bạn có thể tiếp tục sử dụng dịch vụ.",
+        "back_to_billing": "Quay lại Thanh toán",
+        "go_to_dashboard": "Đi đến Bảng điều khiển",
+        "try_again": "Thử lại"
     },
     "home": {
         "hero": {
@@ -120,7 +1053,7 @@
             "subtitle": "Chọn gói dịch vụ phù hợp với nhu cầu của bạn",
             "storage": "Dung lượng",
             "memory": "RAM",
-            "cpu_cores": "Số lõi CPU",
+            "cpu_cores": "vCPU",
             "network_speed": "Tốc độ mạng",
             "per_month": "/tháng",
             "select_plan": "Chọn gói",
@@ -148,21 +1081,632 @@
                     "description": "Toàn quyền kiểm soát môi trường máy chủ với root access và cấu hình tùy chỉnh."
                 }
             ]
+        },
+        "toast": {
+            "failed_load": "Không thể tải các gói phổ biến",
+            "try_again_later": "Vui lòng thử lại sau"
         }
     },
     "plans": {
-        "title": "Các gói VPS phổ biến",
-        "subtitle": "Chọn gói dịch vụ phù hợp với nhu cầu của bạn",
-        "storage": "Dung lượng",
-        "memory": "RAM",
-        "cpu_cores": "Số lõi CPU",
-        "bandwidth": "Băng thông",
-        "per_month": "/tháng",
-        "select_plan": "Chọn gói",
-        "most_popular": "Phổ biến nhất"
+        "title": "Chọn gói VPS của bạn",
+        "subtitle": "Giải pháp VPS hosting có khả năng mở rộng, đáng tin cậy và hiệu suất cao cho mọi nhu cầu",
+        "filter": {
+            "title": "Lọc gói",
+            "show": "Hiển thị {count} trong {total} gói",
+            "reset": "Đặt lại tất cả",
+            "category": "Loại gói",
+            "category_all": "Tất cả",
+            "category_basic": "Cơ bản",
+            "category_standard": "Tiêu chuẩn",
+            "category_premium": "Cao cấp",
+            "memory": "Bộ nhớ",
+            "memory_all": "Tất cả",
+            "memory_low": "Thấp (≤2GB RAM)",
+            "memory_medium": "Trung bình (3-8GB RAM)",
+            "memory_high": "Cao (9GB+ RAM)",
+            "price_range": "Khoảng giá",
+            "active_filters": "Bộ lọc đang áp dụng:",
+            "placeholder_category": "Chọn loại",
+            "placeholder_memory": "Chọn bộ nhớ"
+        },
+        "card": {
+            "per_month": "/tháng",
+            "billed_monthly": "Thanh toán hàng tháng",
+            "view_details": "Xem chi tiết",
+            "loading_details": "Đang tải..."
+        },
+        "empty": {
+            "title": "Không tìm thấy gói",
+            "description": "Chúng tôi không tìm thấy gói VPS nào phù hợp với tiêu chí lọc của bạn. Thử điều chỉnh bộ lọc hoặc duyệt tất cả các gói có sẵn.",
+            "reset_filters": "Đặt lại tất cả bộ lọc"
+        },
+        "included": {
+            "title": "Đã bao gồm trong tất cả các gói",
+            "security": "Bảo mật",
+            "security_desc": "Bảo vệ DDoS, tường lửa và giám sát bảo mật",
+            "support": "Hỗ trợ 24/7",
+            "support_desc": "Hỗ trợ kỹ thuật chuyên gia mọi lúc",
+            "root_access": "Quyền Root đầy đủ",
+            "root_access_desc": "Toàn quyền kiểm soát môi trường máy chủ",
+            "uptime": "Uptime 99.9%",
+            "uptime_desc": "Cam kết uptime với SLA"
+        },
+        "toast": {
+            "failed_load": "Không thể tải danh sách gói",
+            "try_again_later": "Vui lòng thử lại sau"
+        },
+        "plan_data": {
+            "_comment": "Thay các Index placeholder này bằng dữ liệu thực từ database",
+            "plan-id-76c93f75-50c8-4e69-bb4d-f22207ba4a66": {
+                "description": "VPS nhẹ cho các tác vụ đơn giản, trang tĩnh, proxy và tiện ích nhỏ",
+                "use_cases": [
+                    "Trang tĩnh, landing pages",
+                    "Công cụ nhẹ hoặc proxy",
+                    "Tác vụ nền đơn giản"
+                ]
+            },
+            "plan-id-bbd611a8-0e3d-40d0-8007-6339d005ca98": {
+                "description": "Hiệu năng giá rẻ cho website nhỏ, ứng dụng cơ bản và dự án khởi đầu",
+                "use_cases": [
+                    "Website & blog nhỏ",
+                    "API cơ bản",
+                    "Bot hoặc ứng dụng mini"
+                ]
+            },
+            "plan-id-debc0636-58d0-4ace-9223-18cd1d85f200": {
+                "description": "VPS đáng tin cậy cho website trung bình, API và CSDL nhỏ",
+                "use_cases": [
+                    "Web app trung bình",
+                    "1-2 trang WordPress",
+                    "CSDL nhỏ"
+                ]
+            },
+            "plan-id-3b2937bd-553f-49d1-be9d-3a6b454808e0": {
+                "description": "CPU tối ưu cho khối lượng công việc nặng và xử lý đồng thời cao",
+                "use_cases": [
+                    "Ứng dụng nặng CPU",
+                    "Lưu lượng API cao",
+                    "Docker workload nhỏ"
+                ]
+            },
+            "plan-id-7a9af9cd-1bbe-4b4c-9281-f3a3230d200c": {
+                "description": "VPS NVMe hiệu năng cao cho ứng dụng lưu lượng lớn và CSDL trung bình",
+                "use_cases": [
+                    "Ứng dụng đa dịch vụ",
+                    "CSDL trung bình",
+                    "Website lưu lượng cao"
+                ]
+            },
+            "plan-id-8d0f3b19-5a29-41ba-82c4-55ca2b754ff7": {
+                "description": "Sức mạnh cấp doanh nghiệp cho ứng dụng lớn, hệ thống backend và tải cao",
+                "use_cases": [
+                    "Hệ thống backend quy mô lớn",
+                    "Microservices hoặc Docker stacks",
+                    "Lưu lượng nặng và workload doanh nghiệp"
+                ]
+            }
+        }
+    },
+    "cart": {
+        "title": "Giỏ hàng",
+        "subtitle": "Xem lại các VPS đã chọn và tiến hành thanh toán",
+        "empty": {
+            "title": "Giỏ hàng trống",
+            "description": "Khám phá các giải pháp VPS hosting mạnh mẽ và bắt đầu hành trình cloud của bạn ngay hôm nay. Từ gói cơ bản đến giải pháp doanh nghiệp, chúng tôi có máy chủ hoàn hảo cho nhu cầu của bạn.",
+            "browse_plans": "Xem gói VPS",
+            "back_home": "Về trang chủ"
+        },
+        "header": {
+            "title": "Cấu hình VPS của bạn",
+            "title_short": "Cấu hình VPS",
+            "clear_cart": "Xóa giỏ hàng"
+        },
+        "dialog": {
+            "clear_title": "Xóa giỏ hàng",
+            "clear_description": "Bạn có chắc muốn xóa toàn bộ giỏ hàng? Hành động này không thể hoàn tác.",
+            "remove_title": "Xóa VPS khỏi giỏ hàng",
+            "remove_description": "Bạn có chắc muốn xóa {planName} - ({hostname}) khỏi giỏ hàng?",
+            "cancel": "Hủy",
+            "remove": "Xóa"
+        },
+        "specs": {
+            "title": "Thông số máy chủ",
+            "vcpu": "vCPU",
+            "ram": "RAM",
+            "network": "Mạng"
+        },
+        "config": {
+            "title": "Cấu hình",
+            "hostname": "Hostname",
+            "os": "Hệ điều hành",
+            "duration": "Thời hạn",
+            "month": "tháng",
+            "months": "tháng"
+        },
+        "summary": {
+            "title": "Tóm tắt đơn hàng",
+            "promo_code": "Mã khuyến mãi",
+            "loading_promos": "Đang tải khuyến mãi...",
+            "select_discount": "Chọn phiếu giảm giá:",
+            "no_promos": "Hiện không có khuyến mãi nào",
+            "subtotal": "Tạm tính",
+            "discount": "Giảm giá",
+            "setup_fee": "Phí cài đặt",
+            "free": "MIỄN PHÍ",
+            "total": "Tổng cộng"
+        },
+        "included": {
+            "title": "Đã bao gồm:",
+            "root_access": "Quyền root đầy đủ",
+            "no_setup_fee": "Không phí cài đặt",
+            "instant_deploy": "Triển khai tức thì",
+            "support": "Hỗ trợ 24/7",
+            "uptime": "SLA uptime 99.9%"
+        },
+        "buttons": {
+            "checkout": "Tiến hành thanh toán",
+            "continue": "Tiếp tục mua sắm"
+        },
+        "toast": {
+            "fetch_cart_error": "Không thể tải giỏ hàng",
+            "fetch_promos_error": "Không thể tải khuyến mãi",
+            "clear_cart_error": "Không thể xóa giỏ hàng",
+            "remove_item_error": "Không thể xóa sản phẩm",
+            "apply_promo_error": "Không thể áp dụng khuyến mãi",
+            "checkout_error": "Không thể tiến hành thanh toán",
+            "try_again": "Vui lòng thử lại sau"
+        }
+    },
+    "support": {
+        "title": "Trung tâm hỗ trợ",
+        "subtitle": "Nhận hỗ trợ cho nhu cầu VPS hosting của bạn",
+        "contact": {
+            "live_chat": "Chat trực tiếp",
+            "live_chat_desc": "Chat với trợ lý AI hoặc nhân viên hỗ trợ",
+            "available_24_7": "Hoạt động 24/7",
+            "email_support": "Hỗ trợ Email",
+            "response_time": "Phản hồi trong 2 giờ",
+            "phone_support": "Hỗ trợ điện thoại",
+            "emergency": "Khẩn cấp 24/7"
+        },
+        "tabs": {
+            "chat": "Chat AI Hỗ trợ",
+            "ticket": "Gửi Ticket",
+            "faq": "Câu hỏi thường gặp"
+        },
+        "chat": {
+            "title": "Trợ lý AI Hỗ trợ",
+            "description": "Nhận câu trả lời ngay lập tức cho các câu hỏi về VPS. AI của chúng tôi có thể giúp bạn với đề xuất gói, hướng dẫn cài đặt và hỗ trợ kỹ thuật.",
+            "quick_questions": "Câu hỏi nhanh:",
+            "placeholder": "Nhập tin nhắn của bạn...",
+            "welcome": "Xin chào! Tôi là trợ lý ảo của PCloud. Tôi có thể giúp bạn:\n- Tư vấn chọn gói VPS phù hợp\n- Giải đáp thắc mắc về dịch vụ\n- Hỗ trợ kỹ thuật\n\nBạn cần hỗ trợ gì ạ?",
+            "error_technical": "Xin lỗi, hiện tại đang gặp sự cố kỹ thuật. Vui lòng thử lại sau hoặc liên hệ đội ngũ hỗ trợ của chúng tôi.",
+            "error_service": "Đã xảy ra lỗi với dịch vụ chatbot PCloud. Vui lòng thử lại sau hoặc liên hệ đội ngũ hỗ trợ."
+        },
+        "ticket": {
+            "title": "Gửi Ticket Hỗ trợ",
+            "description": "Cần hỗ trợ cá nhân? Gửi ticket và đội ngũ hỗ trợ chuyên gia của chúng tôi sẽ phản hồi trong vòng 2 giờ.",
+            "view_tickets": "Xem Ticket của tôi",
+            "success_message": "Ticket hỗ trợ của bạn đã được gửi thành công! Chúng tôi sẽ phản hồi qua email trong vòng 2 giờ.",
+            "track_in": "Bạn có thể theo dõi trạng thái ticket trong",
+            "my_tickets": "Ticket của tôi",
+            "subject": "Tiêu đề",
+            "subject_placeholder": "Mô tả ngắn về vấn đề của bạn",
+            "email": "Địa chỉ Email",
+            "phone": "Số điện thoại",
+            "phone_placeholder": "+84 912 345 678",
+            "category": "Danh mục",
+            "category_placeholder": "Chọn danh mục",
+            "categories": {
+                "technical": "Hỗ trợ kỹ thuật",
+                "billing": "Thanh toán & Hóa đơn",
+                "setup": "Cài đặt Server",
+                "performance": "Vấn đề hiệu năng",
+                "security": "Lo ngại bảo mật",
+                "other": "Khác"
+            },
+            "priority": "Độ ưu tiên",
+            "priority_placeholder": "Chọn độ ưu tiên",
+            "priorities": {
+                "low": "Thấp",
+                "medium": "Trung bình",
+                "high": "Cao",
+                "urgent": "Khẩn cấp"
+            },
+            "description_input": "Mô tả",
+            "description_placeholder": "Vui lòng cung cấp thông tin chi tiết về vấn đề của bạn, bao gồm thông báo lỗi, các bước tái tạo và những gì bạn đã thử...",
+            "submitting": "Đang gửi...",
+            "submit": "Gửi Ticket"
+        },
+        "faq": {
+            "title": "Câu hỏi thường gặp",
+            "description": "Tìm câu trả lời nhanh cho các câu hỏi phổ biến về dịch vụ VPS hosting.",
+            "still_need_help": "Vẫn cần trợ giúp?",
+            "cant_find": "Không tìm thấy những gì bạn cần? Đội ngũ hỗ trợ sẵn sàng giúp đỡ.",
+            "chat_with_ai": "Chat với AI",
+            "items": {
+                "q1": {
+                    "question": "Tôi nên chọn gói VPS nào?",
+                    "answer": "Chọn dựa trên nhu cầu: Starter cho website nhỏ, Business cho ứng dụng đang phát triển, Professional cho site lưu lượng cao, và Enterprise cho ứng dụng cần nhiều tài nguyên.",
+                    "category": "Gói dịch vụ"
+                },
+                "q2": {
+                    "question": "Triển khai VPS mất bao lâu?",
+                    "answer": "Hầu hết VPS được triển khai trong vòng 5-10 phút sau khi xác nhận thanh toán thành công. Bạn sẽ nhận được thông tin cài đặt qua email.",
+                    "category": "Cài đặt"
+                },
+                "q3": {
+                    "question": "Tôi có thể nâng cấp hoặc hạ cấp gói không?",
+                    "answer": "Có, bạn có thể nâng cấp gói bất cứ lúc nào từ dashboard. Hạ cấp được xử lý vào cuối chu kỳ thanh toán.",
+                    "category": "Gói dịch vụ"
+                },
+                "q4": {
+                    "question": "Bạn chấp nhận phương thức thanh toán nào?",
+                    "answer": "Chúng tôi chấp nhận ví MoMo và VNPay (thẻ tín dụng/ghi nợ). Tất cả thanh toán được xử lý an toàn.",
+                    "category": "Thanh toán"
+                },
+                "q5": {
+                    "question": "Bạn có cung cấp dịch vụ sao lưu không?",
+                    "answer": "Có, chúng tôi cung cấp sao lưu tự động hàng ngày cho tất cả gói VPS. Bạn cũng có thể tạo bản sao lưu thủ công từ control panel.",
+                    "category": "Kỹ thuật"
+                },
+                "q6": {
+                    "question": "Bạn cung cấp mức hỗ trợ nào?",
+                    "answer": "Chúng tôi cung cấp hỗ trợ kỹ thuật 24/7 qua chat trực tiếp, email và điện thoại. Đội ngũ chuyên gia có thể giúp cấu hình server, khắc phục sự cố và tối ưu hóa.",
+                    "category": "Hỗ trợ"
+                }
+            }
+        },
+        "toast": {
+            "login_required": "Vui lòng đăng nhập để gửi ticket",
+            "login_info": "Vui lòng đăng nhập để truy cập đầy đủ tính năng hỗ trợ",
+            "login_info_desc": "Bạn vẫn có thể sử dụng chat AI và xem FAQ",
+            "fill_required": "Vui lòng điền đầy đủ thông tin bắt buộc",
+            "profile_error": "Không thể tải thông tin người dùng",
+            "ticket_success": "Gửi ticket thành công!",
+            "ticket_error": "Không thể gửi ticket",
+            "try_again": "Vui lòng thử lại sau"
+        }
+    },
+    "checkout": {
+        "processing": {
+            "title": "Đang xử lý thanh toán",
+            "description": "Vui lòng chờ trong khi chúng tôi xử lý thanh toán của bạn..."
+        },
+        "header": {
+            "back_to_cart": "Quay lại giỏ hàng",
+            "title": "Thanh toán an toàn",
+            "subtitle": "Hoàn tất mua VPS một cách an toàn và bảo mật"
+        },
+        "steps": {
+            "info": "Thông tin",
+            "payment": "Thanh toán"
+        },
+        "customer_info": {
+            "title": "Thông tin khách hàng",
+            "description": "Vui lòng điền thông tin để hoàn tất đơn hàng",
+            "personal_info": "Thông tin cá nhân",
+            "full_name": "Họ và tên",
+            "full_name_placeholder": "Nhập họ và tên của bạn",
+            "email": "Địa chỉ Email",
+            "email_placeholder": "email.cuaban@example.com",
+            "contact_info": "Thông tin liên hệ",
+            "phone": "Số điện thoại",
+            "phone_placeholder": "+84 123 456 789",
+            "address_info": "Thông tin địa chỉ",
+            "address": "Địa chỉ",
+            "address_placeholder": "Nhập địa chỉ của bạn",
+            "continue": "Tiếp tục thanh toán"
+        },
+        "payment": {
+            "title": "Phương thức thanh toán",
+            "description": "Chọn phương thức thanh toán ưu thích",
+            "select_method": "Chọn phương thức thanh toán",
+            "momo_wallet": "Ví MoMo",
+            "momo_desc": "Thanh toán an toàn qua ví điện tử MoMo",
+            "vnpay": "VNPay",
+            "vnpay_desc": "Thanh toán an toàn qua cổng VNPay",
+            "vnpay_info_title": "Thanh toán qua VNPay",
+            "vnpay_info_desc": "Bạn sẽ được chuyển hướng đến cổng thanh toán VNPay để hoàn tất giao dịch.",
+            "vnpay_secured": "Giao dịch được bảo mật bởi VNPay",
+            "momo_info_title": "Thanh toán qua MoMo",
+            "momo_info_desc": "Bạn sẽ được chuyển hướng đến cổng thanh toán MoMo để hoàn tất giao dịch.",
+            "momo_secured": "Giao dịch được bảo mật bởi MoMo",
+            "back_to_info": "Quay lại thông tin",
+            "processing": "Đang xử lý...",
+            "pay_vnpay": "Thanh toán VNPay",
+            "pay_momo": "Thanh toán MoMo"
+        },
+        "summary": {
+            "title": "Tóm tắt đơn hàng",
+            "months": "tháng",
+            "hostname": "Hostname",
+            "os": "Hệ điều hành",
+            "subtotal": "Tạm tính",
+            "discount": "Giảm giá",
+            "setup_fee": "Phí cài đặt",
+            "free": "MIỄN PHÍ",
+            "total": "Tổng cộng"
+        },
+        "toast": {
+            "cart_empty": "Giỏ hàng trống",
+            "failed_load": "Không thể tải giỏ hàng",
+            "try_again": "Vui lòng thử lại sau",
+            "fill_required": "Vui lòng điền đầy đủ thông tin bắt buộc",
+            "invalid_phone": "Vui lòng nhập số điện thoại hợp lệ",
+            "fields_invalid": "Vui lòng điền đầy đủ thông tin chính xác",
+            "fields_invalid_desc": "Một số trường không hợp lệ",
+            "payment_failed": "Không thể tạo thanh toán"
+        }
+    },
+    "plan_detail": {
+        "not_found": {
+            "title": "Không tìm thấy gói VPS",
+            "description": "Gói VPS được yêu cầu không tồn tại.",
+            "back": "Quay lại danh sách gói"
+        },
+        "specs": {
+            "title": "Thông số kỹ thuật",
+            "cores": "Cores",
+            "ram": "RAM",
+            "network": "Mạng"
+        },
+        "features": {
+            "title": "Tính năng bao gồm",
+            "root_access": "Quyền Root đầy đủ",
+            "ddos": "Bảo vệ DDoS miễn phí",
+            "support": "Hỗ trợ 24/7",
+            "uptime": "Uptime 99.9%",
+            "scalability": "Dễ dàng mở rộng",
+            "bandwidth": "Băng thông không giới hạn"
+        },
+        "order": {
+            "title": "Cấu hình đặt hàng",
+            "hostname": "Hostname",
+            "hostname_placeholder": "vd: my-vps-server",
+            "os": "Hệ điều hành",
+            "billing_period": "Chu kỳ thanh toán",
+            "monthly_price": "Giá hàng tháng",
+            "duration": "Thời hạn",
+            "month": "tháng",
+            "months": "tháng",
+            "subtotal": "Tạm tính",
+            "discount": "Giảm giá",
+            "total": "Tổng cộng",
+            "effective": "Hiệu lực",
+            "per_month": "/tháng",
+            "add_to_cart": "Thêm vào giỏ hàng",
+            "adding": "Đang thêm...",
+            "setup_note": "* Cài đặt thường hoàn thành trong vài phút sau thanh toán"
+        },
+        "duration": {
+            "1_month": "1 Tháng",
+            "3_months": "3 Tháng",
+            "6_months": "6 Tháng",
+            "12_months": "12 Tháng",
+            "24_months": "24 Tháng"
+        },
+        "toast": {
+            "failed_load": "Không thể tải gói VPS",
+            "try_again": "Vui lòng thử lại sau",
+            "invalid_hostname": "Hostname không hợp lệ",
+            "hostname_required": "Vui lòng nhập hostname hợp lệ cho VPS",
+            "added_success": "Đã thêm vào giỏ hàng",
+            "add_failed": "Không thể thêm vào giỏ hàng"
+        }
+    },
+    "my_orders": {
+        "header": {
+            "title": "Đơn hàng của tôi",
+            "subtitle": "Quản lý và theo dõi tất cả đơn hàng VPS",
+            "refresh": "Làm mới"
+        },
+        "search": {
+            "placeholder": "Tìm theo mã đơn hàng, tên gói, hoặc hostname ..."
+        },
+        "filter": {
+            "all": "Tất cả",
+            "pending": "Chờ xử lý",
+            "paid": "Đã thanh toán",
+            "cancelled": "Đã hủy"
+        },
+        "status": {
+            "paid": "Đã thanh toán",
+            "pending": "Chờ xử lý",
+            "cancelled": "Đã hủy",
+            "pending_payment": "Chờ thanh toán",
+            "payment_failed": "Thanh toán thất bại"
+        },
+        "card": {
+            "view_details": "Xem chi tiết",
+            "order_date": "Ngày đặt",
+            "payment_method": "Phương thức thanh toán",
+            "payment_status": "Trạng thái thanh toán",
+            "total_amount": "Tổng tiền"
+        },
+        "empty": {
+            "title": "Không tìm thấy đơn hàng",
+            "no_orders": "Bạn chưa đặt đơn hàng nào",
+            "no_results": "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
+        },
+        "detail": {
+            "title": "Chi tiết đơn hàng",
+            "description": "Thông tin chi tiết về đơn hàng và trạng thái thanh toán",
+            "order_status": "Trạng thái đơn hàng",
+            "payment_status": "Trạng thái thanh toán",
+            "order_date": "Ngày đặt",
+            "total_amount": "Tổng tiền",
+            "ordered_products": "Sản phẩm đã đặt",
+            "hostname": "Hostname",
+            "os": "Hệ điều hành",
+            "duration": "Thời hạn",
+            "months": "tháng",
+            "price": "Giá",
+            "pay_now": "Thanh toán ngay",
+            "note": "Ghi chú"
+        },
+        "payment": {
+            "title": "Hoàn tất thanh toán",
+            "description": "Chọn phương thức thanh toán để hoàn tất đơn hàng",
+            "amount_to_pay": "Số tiền thanh toán",
+            "momo_wallet": "Ví MoMo",
+            "momo_desc": "Thanh toán qua ví MoMo",
+            "vnpay": "VNPay",
+            "vnpay_desc": "Thanh toán qua cổng VNPay",
+            "secure": "Thanh toán được bảo mật",
+            "cancel": "Hủy",
+            "processing": "Đang xử lý...",
+            "pay_now": "Thanh toán ngay",
+            "cannot_process": "Không thể xử lý thanh toán",
+            "close": "Đóng"
+        },
+        "toast": {
+            "error_fetching": "Lỗi khi tải đơn hàng",
+            "try_again": "Vui lòng thử lại sau",
+            "payment_failed": "Thanh toán thất bại",
+            "check_failed": "Không thể kiểm tra trạng thái đơn hàng"
+        }
+    },
+    "my_tickets": {
+        "header": {
+            "title": "Ticket hỗ trợ của tôi",
+            "subtitle": "Theo dõi và quản lý ticket hỗ trợ của bạn",
+            "refresh": "Làm mới",
+            "create_new": "Tạo Ticket mới"
+        },
+        "search": {
+            "placeholder": "Tìm ticket theo tiêu đề..."
+        },
+        "filter": {
+            "all_status": "Tất cả trạng thái",
+            "open": "Mở",
+            "in_progress": "Đang xử lý",
+            "resolved": "Đã giải quyết",
+            "closed": "Đã đóng",
+            "all_priority": "Tất cả ưu tiên",
+            "urgent": "Khẩn cấp",
+            "high": "Cao",
+            "medium": "Trung bình",
+            "low": "Thấp"
+        },
+        "stats": {
+            "open": "Mở",
+            "in_progress": "Đang xử lý",
+            "resolved": "Đã giải quyết",
+            "total": "Tổng"
+        },
+        "table": {
+            "title": "Danh sách Ticket",
+            "id": "ID",
+            "ticket_title": "Tiêu đề",
+            "category": "Danh mục",
+            "status": "Trạng thái",
+            "priority": "Ưu tiên",
+            "created": "Ngày tạo",
+            "actions": "Thao tác",
+            "empty": "Không tìm thấy ticket. Tạo ticket đầu tiên để bắt đầu."
+        },
+        "create": {
+            "title": "Tạo Ticket Hỗ Trợ",
+            "description": "Mô tả vấn đề của bạn và chúng tôi sẽ phản hồi sớm nhất có thể.",
+            "title_label": "Tiêu đề",
+            "title_placeholder": "Mô tả ngắn gọn về vấn đề của bạn",
+            "phone_label": "Số điện thoại",
+            "phone_placeholder": "0912345678",
+            "phone_hint": "Chúng tôi sẽ liên hệ qua số điện thoại này cho các cập nhật khẩn cấp",
+            "category_label": "Danh mục",
+            "priority_label": "Ưu tiên",
+            "description_label": "Mô tả",
+            "description_placeholder": "Cung cấp thông tin chi tiết về vấn đề của bạn...",
+            "cancel": "Hủy",
+            "creating": "Đang tạo...",
+            "submit": "Tạo Ticket",
+            "categories": {
+                "technical_support": "Hỗ trợ kỹ thuật",
+                "payment": "Thanh toán",
+                "server_issue": "Vấn đề máy chủ",
+                "performance": "Hiệu suất",
+                "security": "Bảo mật",
+                "other": "Khác"
+            }
+        },
+        "detail": {
+            "phone": "Số điện thoại",
+            "email": "Email",
+            "created": "Ngày tạo",
+            "updated": "Cập nhật cuối",
+            "conversation": "Cuộc hội thoại",
+            "messages": "tin nhắn",
+            "you": "Bạn",
+            "support_team": "Đội hỗ trợ",
+            "reply_placeholder": "Nhập tin nhắn của bạn...",
+            "sending": "Đang gửi...",
+            "send_reply": "Gửi phản hồi"
+        },
+        "toast": {
+            "load_failed": "Không thể tải ticket",
+            "try_again": "Vui lòng thử lại sau",
+            "fill_required": "Vui lòng điền đầy đủ các trường bắt buộc",
+            "create_success": "Tạo ticket thành công",
+            "create_failed": "Không thể tạo ticket",
+            "reply_success": "Gửi phản hồi thành công",
+            "reply_failed": "Không thể gửi phản hồi"
+        }
+    },
+    "profile": {
+        "header": {
+            "title": "Hồ sơ người dùng",
+            "subtitle": "Quản lý thông tin tài khoản và cài đặt của bạn"
+        },
+        "tabs": {
+            "profile": "Hồ sơ",
+            "security": "Bảo mật"
+        },
+        "personal_info": {
+            "title": "Thông tin cá nhân",
+            "subtitle": "Cập nhật thông tin cá nhân của bạn",
+            "member_since": "Thành viên từ"
+        },
+        "form": {
+            "full_name": "Họ và tên",
+            "email": "Email",
+            "phone": "Số điện thoại",
+            "join_date": "Ngày tham gia",
+            "address": "Địa chỉ"
+        },
+        "buttons": {
+            "edit": "Chỉnh sửa",
+            "cancel": "Hủy",
+            "save": "Lưu thay đổi",
+            "saving": "Đang lưu..."
+        },
+        "security": {
+            "title": "Đổi mật khẩu",
+            "subtitle": "Cập nhật mật khẩu để bảo vệ tài khoản của bạn",
+            "current_password": "Mật khẩu hiện tại",
+            "new_password": "Mật khẩu mới",
+            "confirm_password": "Xác nhận mật khẩu",
+            "update_button": "Cập nhật mật khẩu",
+            "updating": "Đang cập nhật..."
+        },
+        "validation": {
+            "valid_email": "Vui lòng nhập địa chỉ email hợp lệ",
+            "fill_all_password": "Vui lòng điền tất cả các trường mật khẩu",
+            "password_min_length": "Mật khẩu phải có ít nhất 6 ký tự",
+            "password_uppercase": "Mật khẩu phải chứa ít nhất một chữ hoa",
+            "password_lowercase": "Mật khẩu phải chứa ít nhất một chữ thường",
+            "password_number": "Mật khẩu phải chứa ít nhất một số",
+            "password_mismatch": "Mật khẩu không khớp"
+        },
+        "toast": {
+            "get_profile_failed": "Không thể lấy thông tin hồ sơ",
+            "update_failed": "Không thể cập nhật hồ sơ",
+            "change_password_failed": "Không thể đổi mật khẩu",
+            "try_again": "Vui lòng thử lại sau"
+        }
     },
     "footer": {
-        "description": "Giải pháp VPS chuyên nghiệp với cam kết uptime 99.9%. Phát triển doanh nghiệp của bạn với hạ tầng đám mây đáng tin cậy và hỗ trợ 24/7.",
+        "description": "PCloud cung cấp giải pháp VPS hosting đáng tin cậy và giá cả phải chăng với cam kết uptime 99.9%, lưu trữ SSD/NVMe hiệu năng cao và hỗ trợ chuyên gia 24/7. Hoàn hảo cho website, ứng dụng và doanh nghiệp đang phát triển cần hạ tầng đám mây có khả năng mở rộng với toàn quyền kiểm soát.",
         "quick_links": "Liên kết nhanh",
         "plans": "Gói VPS",
         "support": "Trung tâm hỗ trợ",
@@ -358,9 +1902,327 @@
         "add": "Thêm",
         "search": "Tìm kiếm",
         "close": "Đóng",
-        "submit": "Gửi"
+        "submit": "Gửi",
+        "back": "Quay lại",
+        "next": "Tiếp theo",
+        "confirm": "Xác nhận",
+        "try_again": "Thử lại",
+        "or": "hoặc",
+        "and": "và",
+        "yes": "Có",
+        "no": "Không",
+        "vps": "VPS",
+        "users": "người dùng",
+        "tickets": "yêu cầu",
+        "orders": "đơn hàng",
+        "plans": "gói dịch vụ"
+    },
+    "auth": {
+        "login": {
+            "title": "Đăng nhập tài khoản",
+            "subtitle": "Chưa có tài khoản?",
+            "create_account": "Đăng ký ngay",
+            "welcome_back": "Chào mừng trở lại",
+            "description": "Nhập thông tin để truy cập bảng điều khiển VPS",
+            "email_label": "Địa chỉ email",
+            "email_placeholder": "Nhập email của bạn",
+            "password_label": "Mật khẩu",
+            "password_placeholder": "Nhập mật khẩu",
+            "remember_me": "Ghi nhớ đăng nhập",
+            "forgot_password": "Quên mật khẩu?",
+            "submit": "Đăng nhập",
+            "submitting": "Đang đăng nhập...",
+            "or_continue": "Hoặc tiếp tục với",
+            "connecting": "Đang kết nối...",
+            "terms_notice": "Bằng việc đăng nhập, bạn đồng ý với",
+            "terms_of_service": "Điều khoản dịch vụ",
+            "privacy_policy": "Chính sách bảo mật",
+            "toast": {
+                "fill_all_fields": "Vui lòng điền đầy đủ thông tin",
+                "invalid_email": "Vui lòng nhập địa chỉ email hợp lệ",
+                "invalid_credentials": "Email hoặc mật khẩu không đúng",
+                "verify_email": "Vui lòng xác minh email để tiếp tục",
+                "verify_email_desc": "Chúng tôi đã gửi email xác minh đến hộp thư của bạn",
+                "success": "Đăng nhập thành công",
+                "failed": "Đăng nhập thất bại",
+                "failed_desc": "Vui lòng thử lại sau"
+            }
+        },
+        "register": {
+            "title": "Tạo tài khoản",
+            "subtitle": "Đã có tài khoản?",
+            "sign_in": "Đăng nhập ngay",
+            "welcome": "Bắt đầu",
+            "description": "Tạo tài khoản để sử dụng dịch vụ VPS hosting",
+            "name_label": "Họ và tên",
+            "name_placeholder": "Nhập họ và tên",
+            "email_label": "Địa chỉ email",
+            "email_placeholder": "Nhập email của bạn",
+            "password_label": "Mật khẩu",
+            "password_placeholder": "Tạo mật khẩu",
+            "confirm_password_label": "Xác nhận mật khẩu",
+            "confirm_password_placeholder": "Nhập lại mật khẩu",
+            "phone_label": "Số điện thoại",
+            "phone_optional": "(Tùy chọn)",
+            "phone_placeholder": "Nhập số điện thoại",
+            "password_hint": "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số",
+            "newsletter_label": "Đăng ký nhận bản tin cập nhật sản phẩm và ưu đãi đặc biệt",
+            "submit": "Tạo tài khoản",
+            "submitting": "Đang tạo tài khoản...",
+            "terms_notice": "Bằng việc tạo tài khoản, bạn đồng ý với",
+            "terms_of_service": "Điều khoản dịch vụ",
+            "privacy_policy": "Chính sách bảo mật",
+            "toast": {
+                "fill_all_fields": "Vui lòng điền đầy đủ thông tin bắt buộc",
+                "password_mismatch": "Mật khẩu xác nhận không khớp",
+                "password_requirements": "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số",
+                "invalid_email": "Vui lòng nhập địa chỉ email hợp lệ",
+                "success": "Tạo tài khoản thành công",
+                "success_desc": "Vui lòng kiểm tra email để xác minh tài khoản",
+                "failed": "Đăng ký thất bại",
+                "failed_desc": "Vui lòng thử lại sau",
+                "user_exists": "Đã tồn tại tài khoản với email này",
+                "newsletter_error": "Bạn phải đồng ý nhận bản tin",
+                "invalid_phone": "Vui lòng nhập số điện thoại hợp lệ",
+                "password_length": "Mật khẩu phải có ít nhất 6 ký tự",
+                "password_uppercase": "Mật khẩu phải chứa ít nhất một chữ hoa",
+                "password_lowercase": "Mật khẩu phải chứa ít nhất một chữ thường",
+                "password_number": "Mật khẩu phải chứa ít nhất một số"
+            }
+        },
+        "forgot_password": {
+            "title": "Quên mật khẩu?",
+            "subtitle": "Nhớ mật khẩu?",
+            "sign_in": "Đăng nhập ngay",
+            "description": "Nhập email và chúng tôi sẽ gửi link đặt lại mật khẩu",
+            "card_title": "Đặt lại mật khẩu",
+            "card_description": "Nhập địa chỉ email đã liên kết với tài khoản của bạn",
+            "email_label": "Địa chỉ email",
+            "email_placeholder": "Nhập email của bạn",
+            "submit": "Gửi link đặt lại",
+            "submitting": "Đang gửi...",
+            "back_to_login": "Quay lại đăng nhập",
+            "success": {
+                "title": "Đã gửi email!",
+                "subtitle": "Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email của bạn",
+                "sent_to": "Email đã được gửi đến:",
+                "instructions": [
+                    "Kiểm tra hộp thư và nhấp vào link đặt lại mật khẩu",
+                    "Link sẽ hết hạn sau 1 giờ",
+                    "Kiểm tra thư mục spam nếu không thấy email"
+                ],
+                "resend": "Gửi lại email",
+                "resending": "Đang gửi lại..."
+            },
+            "toast": {
+                "invalid_email": "Vui lòng nhập địa chỉ email hợp lệ",
+                "success": "Đã gửi link đặt lại",
+                "success_desc": "Kiểm tra email để xem hướng dẫn đặt lại mật khẩu",
+                "failed": "Không thể gửi link đặt lại",
+                "failed_desc": "Vui lòng thử lại sau"
+            }
+        },
+        "reset_password": {
+            "title": "Đặt mật khẩu mới",
+            "description": "Nhập mật khẩu mới cho tài khoản",
+            "card_title": "Tạo mật khẩu mới",
+            "card_description": "Mật khẩu phải có ít nhất 6 ký tự",
+            "password_label": "Mật khẩu mới",
+            "password_placeholder": "Nhập mật khẩu mới",
+            "confirm_password_label": "Xác nhận mật khẩu",
+            "confirm_password_placeholder": "Nhập lại mật khẩu mới",
+            "submit": "Cập nhật mật khẩu",
+            "submitting": "Đang cập nhật...",
+            "back_to_login": "Quay lại đăng nhập",
+            "validating": "Đang xác thực link đặt lại mật khẩu...",
+            "invalid": {
+                "title": "Link không hợp lệ",
+                "subtitle": "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
+                "reason": "Link có thể đã hết hạn (1 giờ) hoặc đã được sử dụng",
+                "instructions": [
+                    "Link đặt lại mật khẩu chỉ có hiệu lực trong 1 giờ",
+                    "Mỗi link chỉ có thể sử dụng một lần",
+                    "Vui lòng yêu cầu link mới nếu cần"
+                ],
+                "request_new": "Yêu cầu link mới"
+            },
+            "success": {
+                "title": "Đặt lại mật khẩu thành công!",
+                "subtitle": "Mật khẩu của bạn đã được cập nhật",
+                "message": "Bạn có thể đăng nhập với mật khẩu mới",
+                "login_now": "Đăng nhập ngay"
+            },
+            "requirements": {
+                "title": "Yêu cầu mật khẩu:",
+                "min_length": "Ít nhất 6 ký tự",
+                "combine": "Nên kết hợp chữ và số",
+                "no_personal": "Không sử dụng thông tin cá nhân dễ đoán"
+            },
+            "toast": {
+                "invalid_link": "Link đặt lại mật khẩu không hợp lệ",
+                "password_mismatch": "Mật khẩu xác nhận không khớp",
+                "password_length": "Mật khẩu phải có ít nhất 6 ký tự",
+                "password_uppercase": "Mật khẩu phải chứa ít nhất một chữ hoa",
+                "password_lowercase": "Mật khẩu phải chứa ít nhất một chữ thường",
+                "password_number": "Mật khẩu phải chứa ít nhất một số",
+                "token_invalid": "Xác thực token thất bại",
+                "success": "Đặt lại mật khẩu thành công",
+                "success_desc": "Bạn có thể đăng nhập với mật khẩu mới",
+                "failed": "Đặt lại mật khẩu thất bại",
+                "failed_desc": "Vui lòng thử lại sau"
+            }
+        },
+        "verify_email": {
+            "loading": {
+                "title": "Đang xác minh email...",
+                "subtitle": "Vui lòng chờ trong giây lát"
+            },
+            "success": {
+                "title": "Xác minh thành công!",
+                "subtitle": "Email của bạn đã được xác minh thành công. Tài khoản của bạn đã được kích hoạt.",
+                "notice": "Bạn có thể đăng nhập và sử dụng tất cả tính năng hệ thống!",
+                "login_now": "Đăng nhập ngay",
+                "back_home": "Quay lại trang chủ"
+            },
+            "error": {
+                "resolution_guide": "Hướng dẫn xử lý:",
+                "login_now": "Đăng nhập ngay",
+                "register_again": "Đăng ký lại",
+                "login": "Đăng nhập",
+                "back_home": "Quay lại trang chủ",
+                "invalid_token": {
+                    "title": "Link xác minh không hợp lệ",
+                    "message": "Link xác minh đã hết hạn hoặc không hợp lệ. Vui lòng đăng ký lại.",
+                    "instructions": [
+                        "Link có thể đã hết hạn (24 giờ)",
+                        "Đăng ký lại để nhận link mới",
+                        "Kiểm tra xem link có đầy đủ không"
+                    ]
+                },
+                "user_not_found": {
+                    "title": "Không tìm thấy tài khoản",
+                    "message": "Tài khoản liên kết với email này không tồn tại. Vui lòng đăng ký lại.",
+                    "instructions": [
+                        "Tài khoản có thể đã bị xóa",
+                        "Đăng ký với email đúng"
+                    ]
+                },
+                "already_verified": {
+                    "title": "Email đã được xác minh",
+                    "message": "Email này đã được xác minh. Bạn có thể đăng nhập ngay.",
+                    "instructions": [
+                        "Tài khoản đã sẵn sàng sử dụng",
+                        "Đăng nhập với email và mật khẩu của bạn"
+                    ]
+                },
+                "server_error": {
+                    "title": "Đã xảy ra lỗi",
+                    "message": "Đã xảy ra lỗi trong quá trình xác minh. Vui lòng thử lại sau.",
+                    "instructions": [
+                        "Thử lại sau vài phút",
+                        "Liên hệ hỗ trợ nếu lỗi vẫn tiếp tục"
+                    ]
+                }
+            },
+            "toast": {
+                "invalid_token": "Token không hợp lệ",
+                "server_error": "Đã xảy ra lỗi khi xác minh email"
+            }
+        },
+        "pending_verification": {
+            "title": "Xác minh email của bạn",
+            "description": "Chúng tôi đã gửi link xác minh đến địa chỉ email của bạn",
+            "instruction": "Để hoàn tất đăng ký, vui lòng kiểm tra email và nhấp vào link xác minh.",
+            "steps": {
+                "check_inbox": "Kiểm tra hộp thư và thư mục spam",
+                "click_link": "Nhấp vào link xác minh trong email",
+                "redirect": "Bạn sẽ được chuyển đến trang đăng nhập tự động"
+            },
+            "didnt_receive": "Chưa nhận được email?",
+            "resend": "Gửi lại email xác minh",
+            "resending": "Đang gửi...",
+            "note": "Lưu ý:",
+            "note_text": "Link xác minh sẽ hết hạn sau 24 giờ. Nếu hết hạn, bạn cần yêu cầu link mới.",
+            "back_to_login": "Quay lại đăng nhập",
+            "need_help": "Cần hỗ trợ?",
+            "contact_support": "Liên hệ hỗ trợ",
+            "toast": {
+                "resend_success": "Đã gửi lại email xác minh",
+                "resend_success_desc": "Kiểm tra hộp thư để nhận link xác minh mới",
+                "resend_failed": "Không thể gửi lại email",
+                "resend_failed_desc": "Vui lòng thử lại sau"
+            }
+        }
+    },
+    "toast": {
+        "success": "Thành công",
+        "error": "Lỗi",
+        "info": "Thông tin",
+        "warning": "Cảnh báo",
+        "loading": "Đang tải...",
+        "cart": {
+            "added": "Đã thêm vào giỏ hàng",
+            "removed": "Đã xóa khỏi giỏ hàng",
+            "cleared": "Đã xóa giỏ hàng",
+            "failed_add": "Không thể thêm vào giỏ hàng",
+            "failed_remove": "Không thể xóa khỏi giỏ hàng",
+            "failed_clear": "Không thể xóa giỏ hàng",
+            "failed_fetch": "Không thể tải giỏ hàng"
+        },
+        "profile": {
+            "updated": "Cập nhật hồ sơ thành công",
+            "failed_update": "Cập nhật hồ sơ thất bại",
+            "failed_fetch": "Không thể tải hồ sơ"
+        },
+        "vps": {
+            "start_success": "Khởi động VPS thành công",
+            "stop_success": "Dừng VPS thành công",
+            "reboot_success": "Đã gửi lệnh khởi động lại VPS",
+            "action_failed": "Thao tác VPS thất bại",
+            "failed_fetch": "Không thể tải dữ liệu VPS"
+        },
+        "order": {
+            "created": "Tạo đơn hàng thành công",
+            "failed_create": "Tạo đơn hàng thất bại",
+            "failed_fetch": "Không thể tải đơn hàng"
+        },
+        "payment": {
+            "success": "Thanh toán thành công",
+            "failed": "Thanh toán thất bại",
+            "repay_failed": "Thanh toán lại thất bại"
+        },
+        "support": {
+            "ticket_created": "Đã tạo yêu cầu hỗ trợ",
+            "reply_sent": "Đã gửi phản hồi",
+            "failed_create": "Tạo yêu cầu thất bại",
+            "failed_reply": "Gửi phản hồi thất bại"
+        },
+        "validation": {
+            "fill_all_fields": "Vui lòng điền đầy đủ thông tin",
+            "invalid_email": "Vui lòng nhập email hợp lệ",
+            "invalid_phone": "Vui lòng nhập số điện thoại hợp lệ",
+            "invalid_hostname": "Định dạng hostname không hợp lệ"
+        },
+        "dashboard": {
+            "failed_load": "Không thể tải dữ liệu bảng điều khiển"
+        },
+        "plans": {
+            "failed_load": "Không thể tải danh sách gói"
+        },
+        "promotion": {
+            "applied": "Áp dụng mã giảm giá thành công",
+            "failed_apply": "Áp dụng mã giảm giá thất bại",
+            "failed_fetch": "Không thể tải mã giảm giá"
+        },
+        "checkout": {
+            "failed_proceed": "Không thể tiến hành thanh toán"
+        }
     },
     "errors": {
+        "common": {
+            "failed": "Thất bại khi {action}!",
+            "unknown": "Đã xảy ra lỗi không mong muốn trong quá trình {action}"
+        },
         "notFound": {
             "title": "Không tìm thấy trang",
             "subtitle": "Trang bạn tìm kiếm không tồn tại hoặc đã được di chuyển. Vui lòng kiểm tra lại URL hoặc quay về trang chủ.",

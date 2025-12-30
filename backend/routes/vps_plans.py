@@ -14,7 +14,7 @@ from backend.schemas import (
     VPSPlanUpdate,
     VPSPlanResponse,
 )
-from backend.utils import get_current_user, get_admin_user
+from backend.utils import get_current_user, get_admin_user, Translator, get_translator
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ async def get_vps_plans(
     skip: int = 0,
     limit: int = None,
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve a list of VPS plans with optional pagination.
@@ -40,6 +41,7 @@ async def get_vps_plans(
         skip (int, optional): Number of records to skip. Defaults to 0.
         limit (int, optional): Maximum number of records to return. Defaults to None.
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: If there is an error retrieving VPS plans.
@@ -62,7 +64,7 @@ async def get_vps_plans(
         logger.error(f">>> Error fetching VPS plans: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving VPS plans",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -73,13 +75,18 @@ async def get_vps_plans(
     summary="Get a VPS plan by ID",
     description="Retrieve a VPS plan by its unique identifier",
 )
-async def get_vps_plan(plan_id: uuid.UUID, session: Session = Depends(get_session)):
+async def get_vps_plan(
+    plan_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
+):
     """
     Retrieve a VPS plan by its ID.
 
     Args:
         plan_id (uuid.UUID): The unique identifier of the VPS plan.
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 404 if the VPS plan is not found.
@@ -93,7 +100,7 @@ async def get_vps_plan(plan_id: uuid.UUID, session: Session = Depends(get_sessio
         if not plan:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="VPS plan not found",
+                detail=translator.t("admin.plan_not_found"),
             )
 
         return plan
@@ -103,7 +110,7 @@ async def get_vps_plan(plan_id: uuid.UUID, session: Session = Depends(get_sessio
         logger.error(f">>> Error fetching VPS plan {plan_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving VPS plan",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -118,6 +125,7 @@ async def create_vps_plan(
     plan_data: VPSPlanCreate,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Create a new VPS plan (Admin only)
@@ -126,10 +134,12 @@ async def create_vps_plan(
         plan_data (VPSPlanCreate): The data for the new VPS plan
         session (Session, optional): Database session. Defaults to Depends(get_session).
         admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if the user is not authenticated
         HTTPException: 403 if the user is not an admin
+        HTTPException: 400 if a plan with the same name already exists
         HTTPException: 500 if there is an error creating the VPS plan
 
     Returns:
@@ -143,7 +153,7 @@ async def create_vps_plan(
         if existing_plan:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="A plan with this name already exists",
+                detail=translator.t("admin.plan_exists"),
             )
 
         plan = VPSPlan(**plan_data.model_dump())
@@ -159,7 +169,7 @@ async def create_vps_plan(
         logger.error(f">>> Error creating VPS plan: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating VPS plan",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -175,15 +185,17 @@ async def update_vps_plan(
     plan_update: VPSPlanUpdate,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Update a VPS plan (Admin only)
 
     Args:
-        plan_id (int): The ID of the VPS plan to update
+        plan_id (uuid.UUID): The ID of the VPS plan to update
         plan_update (VPSPlanUpdate): The updated data for the VPS plan
         session (Session, optional): Database session. Defaults to Depends(get_session).
         admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if the user is not authenticated
@@ -199,7 +211,7 @@ async def update_vps_plan(
         if not plan:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="VPS plan not found",
+                detail=translator.t("admin.plan_not_found"),
             )
 
         update_data = plan_update.model_dump(exclude_unset=True)
@@ -218,7 +230,7 @@ async def update_vps_plan(
         logger.error(f">>> Error updating VPS plan {plan_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error updating VPS plan",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -232,14 +244,16 @@ async def delete_vps_plan(
     plan_id: uuid.UUID,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Delete a VPS plan (Admin only)
 
     Args:
-        plan_id (int): The ID of the VPS plan to delete
+        plan_id (uuid.UUID): The ID of the VPS plan to delete
         session (Session, optional): Database session. Defaults to Depends(get_session).
         admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if the user is not authenticated
@@ -255,13 +269,13 @@ async def delete_vps_plan(
         if not plan:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="VPS plan not found",
+                detail=translator.t("admin.plan_not_found"),
             )
 
         session.delete(plan)
         session.commit()
 
-        return {"message": "VPS plan deleted successfully"}
+        return {"message": translator.t("admin.plan_deleted")}
     except HTTPException:
         raise
     except Exception as e:
@@ -269,7 +283,7 @@ async def delete_vps_plan(
         logger.error(f">>> Error deleting VPS plan {plan_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error deleting VPS plan",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -289,19 +303,21 @@ async def search_vps_plans(
     min_price: Optional[float] = Query(None, ge=0),
     max_price: Optional[float] = Query(None, ge=0),
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Search VPS plans with filters
 
     Args:
-        min_cpu (Optional[int], optional): _minimum CPU cores_. Defaults to Query(None, ge=1).
-        max_cpu (Optional[int], optional): _maximum CPU cores_. Defaults to Query(None, le=16).
-        min_ram (Optional[int], optional): _minimum RAM in GB_. Defaults to Query(None, ge=1).
-        max_ram (Optional[int], optional): _maximum RAM in GB_. Defaults to Query(None, le=64).
-        storage_type (Optional[str], optional): _type of storage (e.g., SSD, HDD)_. Defaults to Query(None).
-        min_price (Optional[float], optional): _minimum monthly price_. Defaults to Query(None, ge=0).
-        max_price (Optional[float], optional): _maximum monthly price_. Defaults to Query(None, ge=0).
-        session (Session, optional): _Database session_. Defaults to Depends(get_session).
+        min_cpu (Optional[int], optional): Minimum CPU cores. Defaults to Query(None, ge=1).
+        max_cpu (Optional[int], optional): Maximum CPU cores. Defaults to Query(None, le=16).
+        min_ram (Optional[int], optional): Minimum RAM in GB. Defaults to Query(None, ge=1).
+        max_ram (Optional[int], optional): Maximum RAM in GB. Defaults to Query(None, le=64).
+        storage_type (Optional[str], optional): Type of storage (e.g., SSD, HDD). Defaults to Query(None).
+        min_price (Optional[float], optional): Minimum monthly price. Defaults to Query(None, ge=0).
+        max_price (Optional[float], optional): Maximum monthly price. Defaults to Query(None, ge=0).
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Returns:
         List[VPSPlanResponse]: A list of VPS plans matching the filters

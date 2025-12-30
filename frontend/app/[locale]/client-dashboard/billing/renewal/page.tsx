@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2, RefreshCw, Calendar, Server } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import usePayment from '@/hooks/usePayment';
 import { formatPrice } from '@/utils/currency';
 import { formatDateTime } from '@/utils/string';
@@ -24,15 +24,15 @@ interface RenewalResult {
     };
 }
 
-const RenewalReturnPage = () => {
-    const locale = useLocale();
+const RenewalReturnContent = () => {
+    const t = useTranslations('renewal');
     const router = useRouter();
     const searchParams = useSearchParams();
     const { verifyRenewalPayment } = usePayment();
 
     const [result, setResult] = useState<RenewalResult>({
         status: 'loading',
-        message: 'Verifying payment...'
+        message: t('verifying')
     });
 
     // Detect payment method from query parameters
@@ -73,7 +73,7 @@ const RenewalReturnPage = () => {
 
                 setResult({
                     status: 'success',
-                    message: 'VPS renewal successful!',
+                    message: t('success_message'),
                     transactionId,
                     momoTransId,
                     amount,
@@ -85,7 +85,7 @@ const RenewalReturnPage = () => {
                     }
                 });
             } else {
-                let errorMessage = 'Payment failed';
+                let errorMessage = t('failed_message');
 
                 if (response.data?.message) {
                     errorMessage = response.data.message;
@@ -106,7 +106,7 @@ const RenewalReturnPage = () => {
         } catch {
             setResult({
                 status: 'failed',
-                message: 'Unable to verify transaction'
+                message: t('verify_failed')
             });
         }
     };
@@ -148,10 +148,10 @@ const RenewalReturnPage = () => {
                             `text-${primaryColor}-500`
                         }`}>
                         {result.status === 'loading'
-                            ? 'Processing...'
+                            ? t('processing')
                             : result.status === 'success'
-                                ? 'Renewal Successful'
-                                : 'Renewal Failed'
+                                ? t('renewal_successful')
+                                : t('renewal_failed')
                         }
                     </CardTitle>
                 </CardHeader>
@@ -165,7 +165,7 @@ const RenewalReturnPage = () => {
                                 <div className="bg-secondary p-4 rounded-lg">
                                     <div className="flex items-center justify-center gap-2 mb-2">
                                         <Server className="h-4 w-4 text-muted-foreground" />
-                                        <p className="text-sm font-medium text-muted-foreground">VPS</p>
+                                        <p className="text-sm font-medium text-muted-foreground">{t('vps_label')}</p>
                                     </div>
                                     <p className="text-lg font-bold">{result.vpsInfo.hostname}</p>
                                     {result.vpsInfo.planName && (
@@ -179,7 +179,7 @@ const RenewalReturnPage = () => {
                                 <div className="bg-secondary p-4 rounded-lg">
                                     <div className="flex items-center justify-center gap-2 mb-2">
                                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                                        <p className="text-sm font-medium text-muted-foreground">New Expiry Date</p>
+                                        <p className="text-sm font-medium text-muted-foreground">{t('new_expiry_date')}</p>
                                     </div>
                                     <p className="text-lg font-bold text-green-600">
                                         {formatDateTime(new Date(result.vpsInfo.newExpiryDate))}
@@ -190,7 +190,7 @@ const RenewalReturnPage = () => {
                             {/* Order Number */}
                             {result.orderNumber && (
                                 <div className="bg-secondary p-4 rounded-lg">
-                                    <p className="text-sm font-medium text-muted-foreground">Order Number</p>
+                                    <p className="text-sm font-medium text-muted-foreground">{t('order_number')}</p>
                                     <p className="text-lg font-mono font-bold">{result.orderNumber}</p>
                                 </div>
                             )}
@@ -198,13 +198,13 @@ const RenewalReturnPage = () => {
                             {/* Transaction ID */}
                             {result.transactionId && (
                                 <div className="bg-secondary p-4 rounded-lg">
-                                    <p className="text-sm font-medium text-muted-foreground">VNPay Transaction ID</p>
+                                    <p className="text-sm font-medium text-muted-foreground">{t('vnpay_transaction_id')}</p>
                                     <p className="text-lg font-mono">{result.transactionId}</p>
                                 </div>
                             )}
                             {result.momoTransId && (
                                 <div className="bg-secondary p-4 rounded-lg">
-                                    <p className="text-sm font-medium text-muted-foreground">MoMo Transaction ID</p>
+                                    <p className="text-sm font-medium text-muted-foreground">{t('momo_transaction_id')}</p>
                                     <p className="text-lg font-mono font-bold">{result.momoTransId}</p>
                                 </div>
                             )}
@@ -212,7 +212,7 @@ const RenewalReturnPage = () => {
                             {/* Amount */}
                             {result.amount && (
                                 <div className="bg-secondary p-4 rounded-lg">
-                                    <p className="text-sm font-medium text-muted-foreground">Amount</p>
+                                    <p className="text-sm font-medium text-muted-foreground">{t('amount')}</p>
                                     <p className={`text-lg font-bold text-${paymentMethod === 'momo' ? 'pink' : 'blue'}-600`}>
                                         {result.amount}
                                     </p>
@@ -220,14 +220,14 @@ const RenewalReturnPage = () => {
                             )}
 
                             <p className="text-sm text-muted-foreground mt-4">
-                                Your VPS has been successfully renewed. You can continue using the service.
+                                {t('success_description')}
                             </p>
                         </div>
                     )}
 
                     {result.status === 'failed' && result.orderNumber && (
                         <div className="bg-secondary p-4 rounded-lg">
-                            <p className="text-sm font-medium text-muted-foreground">Order Number</p>
+                            <p className="text-sm font-medium text-muted-foreground">{t('order_number')}</p>
                             <p className="text-lg font-mono">{result.orderNumber}</p>
                         </div>
                     )}
@@ -237,33 +237,33 @@ const RenewalReturnPage = () => {
                             <>
                                 <Button
                                     className={`w-full bg-linear-to-r ${gradientClasses}`}
-                                    onClick={() => router.push(`/${locale}/client-dashboard/billing`)}
+                                    onClick={() => router.push(`/client-dashboard/billing`)}
                                 >
                                     <RefreshCw className="mr-2 h-4 w-4" />
-                                    Back to Billing
+                                    {t('back_to_billing')}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     className="w-full"
-                                    onClick={() => router.push(`/${locale}/client-dashboard`)}
+                                    onClick={() => router.push(`/client-dashboard`)}
                                 >
-                                    Go to Dashboard
+                                    {t('go_to_dashboard')}
                                 </Button>
                             </>
                         ) : result.status === 'failed' ? (
                             <>
                                 <Button
                                     className={`w-full bg-linear-to-r ${gradientClasses}`}
-                                    onClick={() => router.push(`/${locale}/client-dashboard/billing`)}
+                                    onClick={() => router.push(`/client-dashboard/billing`)}
                                 >
-                                    Try Again
+                                    {t('try_again')}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     className="w-full"
-                                    onClick={() => router.push(`/${locale}/client-dashboard`)}
+                                    onClick={() => router.push(`/client-dashboard`)}
                                 >
-                                    Go to Dashboard
+                                    {t('go_to_dashboard')}
                                 </Button>
                             </>
                         ) : null}
@@ -271,6 +271,22 @@ const RenewalReturnPage = () => {
                 </CardContent>
             </Card>
         </div>
+    );
+};
+
+const RenewalReturnPage = () => {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+                <Card className="max-w-md w-full">
+                    <CardContent className="flex items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                    </CardContent>
+                </Card>
+            </div>
+        }>
+            <RenewalReturnContent />
+        </Suspense>
     );
 };
 

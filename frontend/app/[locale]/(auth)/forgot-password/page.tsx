@@ -24,11 +24,12 @@ import { BeamsBackground } from '@/components/ui/beam-background';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import useAuth from '@/hooks/useAuth';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 const ForgotPasswordPage = () => {
     const router = useRouter();
     const locale = useLocale();
+    const t = useTranslations('auth.forgot_password');
     const { forgotPassword, resendResetPasswordEmail } = useAuth();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +47,8 @@ const ForgotPasswordPage = () => {
 
         try {
             if (!/\S+@\S+\.\S+/.test(formData.email)) {
-                toast.error('Please enter a valid email address');
+                toast.error(t('toast.invalid_email'));
+                setIsLoading(false);
                 return;
             }
 
@@ -66,7 +68,7 @@ const ForgotPasswordPage = () => {
                     toast.info(result.message);
             }
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'An error occurred');
+            toast.error(error instanceof Error ? error.message : t('toast.failed'));
         } finally {
             setIsLoading(false);
         }
@@ -86,13 +88,15 @@ const ForgotPasswordPage = () => {
                 toast.info(result.message);
             }
         } catch {
-            toast.error('Failed to resend email', {
-                description: 'Please try again later'
+            toast.error(t('toast.failed'), {
+                description: t('toast.failed_desc')
             });
         } finally {
             setIsLoading(false);
         }
     };
+
+    const instructions = t.raw('success.instructions') as string[];
 
     if (isSuccess) {
         return (
@@ -108,10 +112,10 @@ const ForgotPasswordPage = () => {
                             </div>
                         </div>
                         <h2 className="text-3xl font-bold">
-                            Email sent!
+                            {t('success.title')}
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            We&apos;ve sent password reset instructions to your email
+                            {t('success.subtitle')}
                         </p>
                     </div>
 
@@ -121,7 +125,7 @@ const ForgotPasswordPage = () => {
                             <div className="space-y-4 text-center">
                                 <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
                                     <p className="text-sm text-green-700 dark:text-green-400">
-                                        Email has been sent to:
+                                        {t('success.sent_to')}
                                     </p>
                                     <p className="font-medium text-green-800 dark:text-green-300">
                                         {email}
@@ -129,9 +133,9 @@ const ForgotPasswordPage = () => {
                                 </div>
 
                                 <div className="space-y-2 text-sm text-muted-foreground">
-                                    <p>• Check your inbox and click the password reset link</p>
-                                    <p>• The link will expire in 1 hour</p>
-                                    <p>• Check your spam folder if you don&apos;t see the email</p>
+                                    {instructions.map((instruction, index) => (
+                                        <p key={index}>• {instruction}</p>
+                                    ))}
                                 </div>
                             </div>
 
@@ -142,16 +146,16 @@ const ForgotPasswordPage = () => {
                                     className="w-full"
                                     disabled={isLoading}
                                 >
-                                    {isLoading ? 'Resending...' : 'Resend email'}
+                                    {isLoading ? t('success.resending') : t('success.resend')}
                                 </Button>
 
                                 <Button
-                                    onClick={() => router.push(`/${locale}/login`)}
+                                    onClick={() => router.push(`/login`)}
                                     className="w-full"
                                     disabled={isLoading}
                                 >
                                     <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to login
+                                    {t('back_to_login')}
                                 </Button>
                             </div>
                         </CardContent>
@@ -174,19 +178,19 @@ const ForgotPasswordPage = () => {
                         </div>
                     </div>
                     <h2 className="text-3xl font-bold">
-                        Forgot password?
+                        {t('title')}
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        No worries! Enter your email and we&apos;ll send you a password reset link
+                        {t('description')}
                     </p>
                 </div>
 
                 {/* Forgot Password Form */}
                 <Card>
                     <CardHeader className="space-y-1">
-                        <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
+                        <CardTitle className="text-2xl text-center">{t('card_title')}</CardTitle>
                         <CardDescription className="text-center">
-                            Enter the email address associated with your account
+                            {t('card_description')}
                         </CardDescription>
                     </CardHeader>
 
@@ -194,7 +198,7 @@ const ForgotPasswordPage = () => {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Email Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">{t('email_label')}</Label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Mail className="h-4 w-4 text-accent-foreground" />
@@ -205,7 +209,7 @@ const ForgotPasswordPage = () => {
                                         type="email"
                                         autoComplete="email"
                                         required
-                                        placeholder="Enter your email"
+                                        placeholder={t('email_placeholder')}
                                         className="pl-10"
                                         disabled={isLoading}
                                     />
@@ -221,11 +225,11 @@ const ForgotPasswordPage = () => {
                                 {isLoading ? (
                                     <>
                                         <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                        Sending...
+                                        {t('submitting')}
                                     </>
                                 ) : (
                                     <>
-                                        Send reset link
+                                        {t('submit')}
                                     </>
                                 )}
                             </Button>
@@ -241,7 +245,7 @@ const ForgotPasswordPage = () => {
                                 )}
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back to login
+                                {t('back_to_login')}
                             </Link>
                         </div>
                     </CardContent>

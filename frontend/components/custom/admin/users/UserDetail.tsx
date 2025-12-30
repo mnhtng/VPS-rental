@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { formatDate } from "@/utils/string"
 import { User, AdminUserCreate, AdminUserUpdate } from "@/types/types"
+import { useTranslations } from "next-intl"
 
 interface UserDetailSheetProps {
     user: User
@@ -42,6 +43,8 @@ interface CreateUserSheetProps {
 export const UserDetailSheet = ({
     user, onUpdate, isUpdating
 }: UserDetailSheetProps) => {
+    const t = useTranslations('admin.components.user_detail')
+    const tCommon = useTranslations('admin.components.common')
     const [isEditing, setIsEditing] = useState(false)
     const [editForm, setEditForm] = useState<AdminUserUpdate>({
         name: user.name || '',
@@ -67,16 +70,16 @@ export const UserDetailSheet = ({
             return
 
         if (editForm.name && (editForm.name.trim() === '' || editForm.name.length < 2)) {
-            toast.error('Name must be at least 2 characters long');
+            toast.error(t('validation.name_min'));
         }
 
         if (editForm.email && !/\S+@\S+\.\S+/.test(editForm.email)) {
-            toast.error('Please enter a valid email address');
+            toast.error(t('validation.email_invalid'));
             return;
         }
 
         if (editForm.phone && editForm.phone.length < 10) {
-            toast.error('Please enter a valid phone number');
+            toast.error(t('validation.phone_invalid'));
             return;
         }
 
@@ -99,7 +102,7 @@ export const UserDetailSheet = ({
         <Sheet>
             <SheetTrigger asChild>
                 <Button variant="link" className="p-0 h-auto font-medium text-foreground hover:text-primary transition-colors">
-                    {user.name || 'N/A'}
+                    {user.name || tCommon('na')}
                 </Button>
             </SheetTrigger>
             <SheetContent
@@ -112,9 +115,9 @@ export const UserDetailSheet = ({
                 {/* Header */}
                 <div className="bg-linear-to-br from-primary/20 via-primary/10 to-background p-6 pb-8">
                     <SheetHeader className="text-left">
-                        <SheetTitle className="text-xl">User Details</SheetTitle>
+                        <SheetTitle className="text-xl">{t('title')}</SheetTitle>
                         <SheetDescription>
-                            View and manage user account information
+                            {t('description')}
                         </SheetDescription>
                     </SheetHeader>
                 </div>
@@ -129,10 +132,10 @@ export const UserDetailSheet = ({
                                 </span>
                             </div>
                             <div className="min-w-0 flex-1">
-                                <h3 className="text-lg font-semibold truncate">{user.name || 'N/A'}</h3>
+                                <h3 className="text-lg font-semibold truncate">{user.name || tCommon('na')}</h3>
                                 <div className="flex flex-wrap gap-2 mt-1">
                                     <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                                        {user.role === 'ADMIN' ? 'Admin' : 'User'}
+                                        {user.role === 'ADMIN' ? t('admin') : t('user')}
                                     </Badge>
                                     {getProviderBadge(user.account?.provider)}
                                 </div>
@@ -153,13 +156,13 @@ export const UserDetailSheet = ({
                     {/* Contact Info / Edit Form */}
                     <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '50ms' }}>
                         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                            {isEditing ? 'Edit Information' : 'Contact Information'}
+                            {isEditing ? t('edit_info') : t('contact_info')}
                         </h4>
                         <div className="grid gap-3 bg-muted/50 rounded-lg p-4">
                             {isEditing ? (
                                 <>
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-name">Name</Label>
+                                        <Label htmlFor="edit-name">{t('name')}</Label>
                                         <Input
                                             id="edit-name"
                                             value={editForm.name}
@@ -168,7 +171,7 @@ export const UserDetailSheet = ({
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-email">Email</Label>
+                                        <Label htmlFor="edit-email">{t('email')}</Label>
                                         <Input
                                             id="edit-email"
                                             type="email"
@@ -179,7 +182,7 @@ export const UserDetailSheet = ({
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-phone">Phone</Label>
+                                        <Label htmlFor="edit-phone">{t('phone')}</Label>
                                         <Input
                                             id="edit-phone"
                                             value={editForm.phone}
@@ -189,7 +192,7 @@ export const UserDetailSheet = ({
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-address">Address</Label>
+                                        <Label htmlFor="edit-address">{t('address')}</Label>
                                         <Input
                                             id="edit-address"
                                             value={editForm.address}
@@ -199,7 +202,7 @@ export const UserDetailSheet = ({
                                         />
                                     </div>
                                     <div className="flex items-center justify-between gap-2 space-y-2 pt-2">
-                                        <Label htmlFor="edit-role">Role</Label>
+                                        <Label htmlFor="edit-role">{t('role')}</Label>
                                         <Select
                                             value={editForm.role}
                                             onValueChange={(value: 'USER' | 'ADMIN') => setEditForm(prev => ({ ...prev, role: value }))}
@@ -208,8 +211,8 @@ export const UserDetailSheet = ({
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="USER">User</SelectItem>
-                                                <SelectItem value="ADMIN">Admin</SelectItem>
+                                                <SelectItem value="USER">{t('user')}</SelectItem>
+                                                <SelectItem value="ADMIN">{t('admin')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -218,7 +221,7 @@ export const UserDetailSheet = ({
                                             <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center">
                                                 <CheckCircle2 className="h-3 w-3 text-green-500" />
                                             </div>
-                                            {user.email_verified ? 'Email Verified' : 'Verify Email'}
+                                            {user.email_verified ? t('email_verified') : t('verify_email')}
                                         </Label>
                                         <Switch
                                             id="edit-verify-email"
@@ -238,7 +241,7 @@ export const UserDetailSheet = ({
                                         </div>
                                         {user.email_verified && (
                                             <Badge className="bg-green-500/10 text-green-600 border-0 shrink-0">
-                                                ✓ Verified
+                                                ✓ {tCommon('verified')}
                                             </Badge>
                                         )}
                                     </div>
@@ -274,22 +277,22 @@ export const UserDetailSheet = ({
                     {isEditing ? (
                         <>
                             <Button variant="outline" onClick={() => setIsEditing(false)} className="flex-1">
-                                Cancel
+                                {tCommon('cancel')}
                             </Button>
                             <Button onClick={handleSave} disabled={isUpdating} className="flex-1">
                                 {isUpdating ? (
                                     <>
                                         <Loader className="h-4 w-4 mr-2 animate-spin" />
-                                        Saving...
+                                        {tCommon('saving')}
                                     </>
                                 ) : (
-                                    'Save Changes'
+                                    tCommon('save')
                                 )}
                             </Button>
                         </>
                     ) : (
                         <SheetClose asChild>
-                            <Button variant="outline" className="w-full">Close</Button>
+                            <Button variant="outline" className="w-full">{tCommon('close')}</Button>
                         </SheetClose>
                     )}
                 </SheetFooter>
@@ -301,6 +304,8 @@ export const UserDetailSheet = ({
 export const CreateUserSheet = ({
     onCreate, isCreating
 }: CreateUserSheetProps) => {
+    const t = useTranslations('admin.components.user_detail')
+    const tCommon = useTranslations('admin.components.common')
     const [isOpen, setIsOpen] = useState(false)
     const [formData, setFormData] = useState<AdminUserCreate>({
         name: '',
@@ -313,31 +318,31 @@ export const CreateUserSheet = ({
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.email || !formData.password) {
-            toast.error('Please fill in all required fields')
+            toast.error(t('validation.required_fields'))
             return
         }
 
         if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            toast.error('Please enter a valid email address');
+            toast.error(t('validation.email_invalid'));
             return;
         }
 
         if (formData.phone && formData.phone.length < 10) {
-            toast.error('Please enter a valid phone number');
+            toast.error(t('validation.phone_invalid'));
             return;
         }
 
         if (formData.password.length < 6) {
-            toast.error('Password must be at least 6 characters long');
+            toast.error(t('validation.password_min'));
             return;
         } else if (!/[A-Z]/.test(formData.password)) {
-            toast.error('Password must contain at least one uppercase letter');
+            toast.error(t('validation.password_uppercase'));
             return;
         } else if (!/[a-z]/.test(formData.password)) {
-            toast.error('Password must contain at least one lowercase letter');
+            toast.error(t('validation.password_lowercase'));
             return;
         } else if (!/[0-9]/.test(formData.password)) {
-            toast.error('Password must contain at least one number');
+            toast.error(t('validation.password_number'));
             return;
         }
 
@@ -351,8 +356,8 @@ export const CreateUserSheet = ({
             <SheetTrigger asChild>
                 <Button className="shrink-0">
                     <PlusIcon className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Add User</span>
-                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">{t('add_user')}</span>
+                    <span className="sm:hidden">{tCommon('create')}</span>
                 </Button>
             </SheetTrigger>
             <SheetContent
@@ -370,9 +375,9 @@ export const CreateUserSheet = ({
                                 <UserPlus className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <SheetTitle className="text-xl">Add New User</SheetTitle>
+                                <SheetTitle className="text-xl">{t('add_new_user')}</SheetTitle>
                                 <SheetDescription>
-                                    Fill in the details to create a new account
+                                    {t('fill_details')}
                                 </SheetDescription>
                             </div>
                         </div>
@@ -382,7 +387,7 @@ export const CreateUserSheet = ({
                 <div className="p-6 space-y-6">
                     {/* Form Fields */}
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Basic Information</h4>
+                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('basic_info')}</h4>
 
                         <div className="space-y-4 bg-muted/50 rounded-lg p-4">
                             <div className="space-y-2">
@@ -390,7 +395,7 @@ export const CreateUserSheet = ({
                                     <div className="h-6 w-6 rounded-full bg-blue-500/10 flex items-center justify-center">
                                         <Users className="h-3 w-3 text-blue-500" />
                                     </div>
-                                    Full Name *
+                                    {t('full_name')} *
                                 </Label>
                                 <Input
                                     id="name"
@@ -405,7 +410,7 @@ export const CreateUserSheet = ({
                                     <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center">
                                         <Mail className="h-3 w-3 text-green-500" />
                                     </div>
-                                    Email *
+                                    {t('email')} *
                                 </Label>
                                 <Input
                                     id="email"
@@ -421,7 +426,7 @@ export const CreateUserSheet = ({
                                     <div className="h-6 w-6 rounded-full bg-red-500/10 flex items-center justify-center">
                                         <Lock className="h-3 w-3 text-red-500" />
                                     </div>
-                                    Password *
+                                    {t('password')} *
                                 </Label>
                                 <Input
                                     id="password"
@@ -437,7 +442,7 @@ export const CreateUserSheet = ({
                                     <div className="h-6 w-6 rounded-full bg-purple-500/10 flex items-center justify-center">
                                         <Phone className="h-3 w-3 text-purple-500" />
                                     </div>
-                                    Phone Number
+                                    {t('phone_number')}
                                 </Label>
                                 <Input
                                     id="phone"
@@ -451,7 +456,7 @@ export const CreateUserSheet = ({
                     </div>
 
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '50ms' }}>
-                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Account Information</h4>
+                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('account_info')}</h4>
 
                         <div className="bg-muted/50 rounded-lg p-4">
                             <div className="flex items-center justify-between gap-2 space-y-2">
@@ -459,7 +464,7 @@ export const CreateUserSheet = ({
                                     <div className="h-6 w-6 rounded-full bg-orange-500/10 flex items-center justify-center">
                                         <Shield className="h-3 w-3 text-orange-500" />
                                     </div>
-                                    Role
+                                    {t('role')}
                                 </Label>
                                 <Select
                                     value={formData.role}
@@ -470,10 +475,10 @@ export const CreateUserSheet = ({
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="USER">
-                                            <span className="flex items-center gap-2">User</span>
+                                            <span className="flex items-center gap-2">{t('user')}</span>
                                         </SelectItem>
                                         <SelectItem value="ADMIN">
-                                            <span className="flex items-center gap-2">Admin</span>
+                                            <span className="flex items-center gap-2">{t('admin')}</span>
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -483,7 +488,7 @@ export const CreateUserSheet = ({
                                     <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center">
                                         <CheckCircle2 className="h-3 w-3 text-green-500" />
                                     </div>
-                                    Verify Email
+                                    {t('verify_email')}
                                 </Label>
                                 <Switch
                                     id="verify-email"
@@ -497,18 +502,18 @@ export const CreateUserSheet = ({
 
                 <SheetFooter className="px-6 pb-6 gap-2">
                     <SheetClose asChild>
-                        <Button variant="outline" className="flex-1">Cancel</Button>
+                        <Button variant="outline" className="flex-1">{tCommon('cancel')}</Button>
                     </SheetClose>
                     <Button onClick={handleSubmit} disabled={isCreating} className="flex-1">
                         {isCreating ? (
                             <>
                                 <Loader className="h-4 w-4 mr-2 animate-spin" />
-                                Creating...
+                                {tCommon('creating')}
                             </>
                         ) : (
                             <>
                                 <PlusIcon className="h-4 w-4 mr-2" />
-                                Create Account
+                                {t('create_account')}
                             </>
                         )}
                     </Button>

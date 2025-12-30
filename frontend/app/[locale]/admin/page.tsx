@@ -26,8 +26,10 @@ import { toast } from "sonner"
 import { formatPrice } from "@/utils/currency"
 import { formatDate } from "@/utils/string"
 import { DashboardPlaceholder } from "@/components/custom/placeholder/admin/dashboard"
+import { useTranslations } from "next-intl"
 
 const Dashboard = () => {
+  const t = useTranslations('admin.dashboard')
   const { getDashboardStats } = useAdminDashboard()
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -47,13 +49,13 @@ const Dashboard = () => {
       }
 
       setStats(result.data)
+      setIsLoading(false)
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return
 
-      toast.error("Failed to load dashboard data", {
-        description: "Please try again later",
+      toast.error(t('errors.failed_load'), {
+        description: t('errors.try_again'),
       })
-    } finally {
       setIsLoading(false)
     }
   }
@@ -70,22 +72,22 @@ const Dashboard = () => {
 
   const revenueChartConfig = {
     revenue: {
-      label: "Revenue",
+      label: t('charts.revenue_title'),
       color: "#22c55e",
     },
   } satisfies ChartConfig
 
   const vpsStatusChartConfig = {
     running: {
-      label: "Running",
+      label: t('charts.running'),
       color: "#22c55e",
     },
     stopped: {
-      label: "Stopped",
+      label: t('charts.stopped'),
       color: "#f59e0b",
     },
     terminated: {
-      label: "Terminated",
+      label: t('charts.terminated'),
       color: "#ef4444",
     },
   } satisfies ChartConfig
@@ -98,19 +100,19 @@ const Dashboard = () => {
     const diffMinutes = Math.floor(diffMs / 60000)
     const diffHours = Math.floor(diffMs / 3600000)
 
-    if (diffMinutes < 60) return `${diffMinutes} min ago`
-    if (diffHours < 24) return `${diffHours} hours ago`
+    if (diffMinutes < 60) return t('recent_orders.min_ago', { value: diffMinutes })
+    if (diffHours < 24) return t('recent_orders.hours_ago', { value: diffHours })
     return formatDate(new Date(dateString))
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
-        return <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-0">Paid</Badge>
+        return <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-0">{t('status.paid')}</Badge>
       case 'pending':
-        return <Badge className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 border-0">Pending</Badge>
+        return <Badge className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 border-0">{t('status.pending')}</Badge>
       case 'cancelled':
-        return <Badge className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0">Cancelled</Badge>
+        return <Badge className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0">{t('status.cancelled')}</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -141,7 +143,7 @@ const Dashboard = () => {
   if (!stats) {
     return (
       <div className="flex items-center justify-center min-h-100">
-        <p className="text-muted-foreground">Failed to load dashboard data</p>
+        <p className="text-muted-foreground">{t('errors.failed_load')}</p>
       </div>
     )
   }
@@ -152,7 +154,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <GlowingCard color={'blue'} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '0ms' }}>
           <div className="flex justify-between items-center gap-3">
-            <span className="text-sm text-muted-foreground">Total Users</span>
+            <span className="text-sm text-muted-foreground">{t('stats.total_users')}</span>
             <div className={`p-2 ${colors.blue.active} rounded-lg`}>
               <Users size={20} />
             </div>
@@ -173,14 +175,14 @@ const Dashboard = () => {
               <TrendingDown size={16} className={colors.red.text} />
             )}
             <span className={`text-sm ${stats.user_growth >= 0 ? colors.green.text : colors.red.text}`}>
-              {stats.user_growth >= 0 ? '+' : ''}{stats.user_growth}% this month
+              {stats.user_growth >= 0 ? '+' : ''}{t('stats.this_month', { value: stats.user_growth })}
             </span>
           </div>
         </GlowingCard>
 
         <GlowingCard color={'green'} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '50ms' }}>
           <div className="flex justify-between items-center gap-3">
-            <span className="text-sm text-muted-foreground">Active VPS</span>
+            <span className="text-sm text-muted-foreground">{t('stats.active_vps')}</span>
             <div className={`p-2 ${colors.green.active} rounded-lg`}>
               <Server size={20} />
             </div>
@@ -201,14 +203,14 @@ const Dashboard = () => {
               <TrendingDown size={16} className={colors.red.text} />
             )}
             <span className={`text-sm ${stats.vps_growth >= 0 ? colors.green.text : colors.red.text}`}>
-              {stats.vps_growth >= 0 ? '+' : ''}{stats.vps_growth}% this month
+              {stats.vps_growth >= 0 ? '+' : ''}{t('stats.this_month', { value: stats.vps_growth })}
             </span>
           </div>
         </GlowingCard>
 
         <GlowingCard color={'gold'} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '100ms' }}>
           <div className="flex justify-between items-center gap-3">
-            <span className="text-sm text-muted-foreground">Monthly Revenue</span>
+            <span className="text-sm text-muted-foreground">{t('stats.monthly_revenue')}</span>
             <div className={`p-2 ${colors.orange.active} rounded-lg`}>
               <DollarSign size={20} />
             </div>
@@ -231,14 +233,14 @@ const Dashboard = () => {
               <TrendingDown size={16} className={colors.red.text} />
             )}
             <span className={`text-sm ${stats.revenue_growth >= 0 ? colors.green.text : colors.red.text}`}>
-              {stats.revenue_growth >= 0 ? '+' : ''}{stats.revenue_growth}% vs last month
+              {stats.revenue_growth >= 0 ? '+' : ''}{t('stats.vs_last_month', { value: stats.revenue_growth })}
             </span>
           </div>
         </GlowingCard>
 
         <GlowingCard color={'purple'} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '150ms' }}>
           <div className="flex justify-between items-center gap-3">
-            <span className="text-sm text-muted-foreground">Monthly Orders</span>
+            <span className="text-sm text-muted-foreground">{t('stats.monthly_orders')}</span>
             <div className={`p-2 ${colors.violet.active} rounded-lg`}>
               <ShoppingCart size={20} />
             </div>
@@ -258,7 +260,7 @@ const Dashboard = () => {
               <TrendingDown size={16} className={colors.red.text} />
             )}
             <span className={`text-sm ${stats.order_growth >= 0 ? colors.green.text : colors.red.text}`}>
-              {stats.order_growth >= 0 ? '+' : ''}{stats.order_growth}% vs last month
+              {stats.order_growth >= 0 ? '+' : ''}{t('stats.vs_last_month', { value: stats.order_growth })}
             </span>
           </div>
         </GlowingCard>
@@ -269,8 +271,8 @@ const Dashboard = () => {
         {/* Revenue Chart */}
         <Card className="lg:col-span-2 animate-in fade-in slide-in-from-left-4 duration-700 hover:shadow-lg transition-shadow">
           <AreaChartComponent
-            title="Monthly Revenue"
-            description="Revenue chart for the current year"
+            title={t('charts.revenue_title')}
+            description={t('charts.revenue_description')}
             data={revenueChartData}
             chartConfig={revenueChartConfig}
             xAxisKey="month"
@@ -287,8 +289,8 @@ const Dashboard = () => {
         {/* VPS Status Distribution */}
         <Card className="animate-in fade-in slide-in-from-right-4 duration-700 hover:shadow-lg transition-shadow">
           <PieChartComponent
-            title="VPS Status"
-            description="Distribution by status"
+            title={t('charts.vps_status_title')}
+            description={t('charts.vps_status_description')}
             data={vpsStatusPieData}
             chartConfig={vpsStatusChartConfig}
             dataKey="value"
@@ -310,16 +312,16 @@ const Dashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-purple-500" />
-            Recent Orders
+            {t('recent_orders.title')}
           </CardTitle>
           <CardDescription>
-            The 5 most recent orders
+            {t('recent_orders.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {stats.recent_orders.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">No orders yet</p>
+              <p className="text-muted-foreground text-center py-4">{t('recent_orders.no_orders')}</p>
             ) : (
               stats.recent_orders.map((order: RecentOrder, index: number) => (
                 <div

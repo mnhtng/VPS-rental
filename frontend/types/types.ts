@@ -648,6 +648,7 @@ export interface ChatResponse {
 export interface VPSItem {
     name: string;
     hostname: string;
+    vmid: number;
     os: string;
     duration_months?: number;
     cpu: number;

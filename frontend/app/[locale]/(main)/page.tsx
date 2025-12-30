@@ -26,6 +26,7 @@ import { useSession } from 'next-auth/react';
 import { VPSPlan } from '@/types/types';
 import { toast } from 'sonner';
 import useProduct from '@/hooks/useProduct';
+import { getDiskSize, getNetworkSpeed } from '@/utils/string';
 
 const HomePage = () => {
   const locale = useLocale();
@@ -36,22 +37,6 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [popularPlans, setPopularPlans] = useState<VPSPlan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-
-  const getNetworkSpeed = (mbps: number) => {
-    if (mbps >= 1000) {
-      const gbps = (mbps / 1000).toFixed(1);
-      return `${gbps} Gbps`;
-    }
-    return `${mbps} Mbps`;
-  };
-
-  const getDiskSize = (storage_gb: number, storage_type?: string) => {
-    if (storage_gb >= 1000) {
-      const tb = (storage_gb / 1000).toFixed(1);
-      return `${tb} TB ${storage_type || ''}`;
-    }
-    return `${storage_gb} GB ${storage_type || ''}`;
-  }
 
   useEffect(() => {
     if (status === 'loading') {
@@ -86,8 +71,8 @@ const HomePage = () => {
       // Ignore abort errors
       if (error instanceof Error && error.name === 'AbortError') return;
 
-      toast.error("Failed to load popular plans", {
-        description: "Please try again later",
+      toast.error(t('toast.failed_load'), {
+        description: t('toast.try_again_later'),
       });
 
       setPopularPlans([]);
@@ -250,11 +235,11 @@ const HomePage = () => {
                       </div>
                       <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
                         <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
-                        <span>{getDiskSize(plan.storage_gb, plan.storage_type)} {t('popular_plans.storage')}</span>
+                        <span>{locale === 'vi' && t('popular_plans.storage')} {getDiskSize(plan.storage_gb, plan.storage_type)} {locale === 'en' && t('popular_plans.storage')}</span>
                       </div>
                       <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
                         <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />
-                        <span>{getNetworkSpeed(plan.bandwidth_mbps)} {t('popular_plans.network_speed')}</span>
+                        <span>{locale === 'vi' && t('popular_plans.network_speed')} {getNetworkSpeed(plan.bandwidth_mbps)} {locale === 'en' && t('popular_plans.network_speed')}</span>
                       </div>
                       <div className="flex items-center group/item hover:translate-x-1 transition-transform duration-200">
                         <CheckCircle className="h-5 w-5 text-green-500 mr-3 group-hover/item:scale-110 transition-transform" />

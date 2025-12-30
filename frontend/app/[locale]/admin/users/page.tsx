@@ -42,8 +42,11 @@ import useUsers from "@/hooks/useUsers"
 import { User, UserStatistics, AdminUserCreate, AdminUserUpdate } from "@/types/types"
 import Pagination from "@/components/ui/pagination"
 import { UserDetailSheet, CreateUserSheet } from "@/components/custom/admin/users/UserDetail"
+import { useTranslations } from "next-intl"
 
 const UsersPage = () => {
+    const tCommon = useTranslations('common')
+    const t = useTranslations('admin.users')
     const {
         getUsers,
         getUserStatistics,
@@ -87,13 +90,13 @@ const UsersPage = () => {
                 setFilteredUsers(usersRes.data || [])
                 setStatistics(statsRes.data || null)
             }
+            setIsLoading(false)
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return
 
-            toast.error('Failed to fetch users', {
-                description: "Please try again later",
+            toast.error(t('toast.fetch_failed'), {
+                description: t('toast.fetch_failed'),
             })
-        } finally {
             setIsLoading(false)
         }
     }
@@ -172,13 +175,11 @@ const UsersPage = () => {
                     description: result.error.detail,
                 })
             } else {
-                toast.success('User created successfully')
+                toast.success(t('toast.create_success'))
                 fetchUsers()
             }
         } catch {
-            toast.error('Failed to create user', {
-                description: "Please try again later",
-            })
+            toast.error(t('toast.create_failed'))
         } finally {
             setIsCreating(false)
         }
@@ -194,7 +195,7 @@ const UsersPage = () => {
                     description: result.error.detail,
                 })
             } else {
-                toast.success('User updated successfully')
+                toast.success(t('toast.update_success'))
                 setUsers(prev => prev.map(u => u.id === userId ? result.data : u))
                 setFilteredUsers(prev => prev.map(u => u.id === userId ? result.data : u))
 
@@ -204,9 +205,7 @@ const UsersPage = () => {
                 }
             }
         } catch {
-            toast.error('Failed to update user', {
-                description: "Please try again later",
-            })
+            toast.error(t('toast.update_failed'))
         } finally {
             setIsUpdating(false)
         }
@@ -222,7 +221,7 @@ const UsersPage = () => {
                     description: result.error.detail,
                 })
             } else {
-                toast.success('User deleted successfully')
+                toast.success(t('toast.delete_success'))
                 setUsers(prev => prev.filter(u => u.id !== userId))
                 setFilteredUsers(prev => prev.filter(u => u.id !== userId))
 
@@ -232,9 +231,7 @@ const UsersPage = () => {
                 }
             }
         } catch {
-            toast.error('Failed to delete user', {
-                description: "Please try again later",
-            })
+            toast.error(t('toast.delete_failed'))
         } finally {
             setIsDeleting(null)
         }
@@ -255,7 +252,7 @@ const UsersPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Total Users</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.total')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -272,7 +269,7 @@ const UsersPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Administrators</p>
+                                <p className="text-sm text-muted-foreground">{t('role.admin')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -289,7 +286,7 @@ const UsersPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Email Verified</p>
+                                <p className="text-sm text-muted-foreground">{t('filter.verified')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -310,7 +307,7 @@ const UsersPage = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         ref={searchRef}
-                        placeholder="Search users..."
+                        placeholder={t('filter.search')}
                         className="pl-10"
                         onChange={debounce(handleSearch, 400)}
                     />
@@ -319,12 +316,12 @@ const UsersPage = () => {
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <Select value={roleFilter} onValueChange={setRoleFilter}>
                         <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Filter by role" />
+                            <SelectValue placeholder={t('filter.placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Roles</SelectItem>
-                            <SelectItem value="USER">Users</SelectItem>
-                            <SelectItem value="ADMIN">Admins</SelectItem>
+                            <SelectItem value="all">{t('filter.all')}</SelectItem>
+                            <SelectItem value="USER">{t('filter.user')}</SelectItem>
+                            <SelectItem value="ADMIN">{t('filter.admin')}</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -333,7 +330,7 @@ const UsersPage = () => {
                         size="icon"
                         onClick={() => fetchUsers()}
                         disabled={isLoading}
-                        title="Refresh"
+                        title={t('filter.refresh')}
                     >
                         <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
                     </Button>
@@ -347,19 +344,19 @@ const UsersPage = () => {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Users className="h-5 w-5 text-blue-500" />
-                        Users List
+                        {t('title')}
                     </CardTitle>
                 </CardHeader>
                 <div className="overflow-x-auto px-3">
                     <Table>
                         <TableHeader className="bg-secondary">
                             <TableRow>
-                                <TableHead>User</TableHead>
-                                <TableHead className="hidden md:table-cell">Email</TableHead>
-                                <TableHead className="hidden sm:table-cell">Provider</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead className="hidden xl:table-cell">Joined</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead>{t('table.name')}</TableHead>
+                                <TableHead className="hidden md:table-cell">{t('table.email')}</TableHead>
+                                <TableHead className="hidden sm:table-cell">{t('table.provider')}</TableHead>
+                                <TableHead>{t('table.role')}</TableHead>
+                                <TableHead className="hidden xl:table-cell">{t('table.joined')}</TableHead>
+                                <TableHead className="text-right">{t('table.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -402,7 +399,7 @@ const UsersPage = () => {
                             ) : filteredUsers.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                                        No users found
+                                        {t('table.no_users')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -430,7 +427,7 @@ const UsersPage = () => {
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                                                {user.role === 'ADMIN' ? 'Admin' : 'User'}
+                                                {user.role === 'ADMIN' ? t('role.admin') : t('role.user')}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-muted-foreground hidden xl:table-cell">
@@ -498,7 +495,7 @@ const UsersPage = () => {
                     endIndex={Math.min(endIndex, totalItems)}
                     onPageChange={setCurrentPage}
                     onItemsPerPageChange={setItemsPerPage}
-                    itemLabel="users"
+                    itemLabel={tCommon('users')}
                 />
             )}
         </div>

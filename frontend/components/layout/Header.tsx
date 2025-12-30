@@ -87,10 +87,10 @@ export const Header = () => {
             setIsLoggingOut(true);
             setMobileMenuOpen(false);
             await logout();
-            toast.success('Logged out successfully');
+            toast.success(t('logout_success'));
         } catch {
-            toast.error('Failed to logout', {
-                description: 'Please try again later',
+            toast.error(t('logout_failed'), {
+                description: t('try_again'),
             });
         } finally {
             setIsLoggingOut(false);
@@ -233,7 +233,7 @@ export const Header = () => {
                                             {isLoggingOut ? (
                                                 <>
                                                     <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                                    Logging out...
+                                                    {t('logging_out')}
                                                 </>
                                             ) : (
                                                 <>
@@ -410,7 +410,7 @@ export const Header = () => {
                                                     {isLoggingOut ? (
                                                         <>
                                                             <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                                            Logging out...
+                                                            {t('logging_out')}
                                                         </>
                                                     ) : (
                                                         <>

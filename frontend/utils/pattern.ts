@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/authStore';
+import { getClientLocale } from '@/utils/locale';
 
 // Default timeout of 30 seconds
 const DEFAULT_TIMEOUT = 30000;
@@ -8,7 +9,7 @@ interface ApiPatternOptions extends RequestInit {
 }
 
 /**
- * Helper function to handle API calls with automatic token refresh
+ * Handle API calls with automatic token refresh
  * 
  * @param url The API endpoint URL
  * @param options Fetch options (method, headers, body, signal, timeout, etc.)
@@ -16,6 +17,8 @@ interface ApiPatternOptions extends RequestInit {
  */
 export const apiPattern = async (url: string, options: ApiPatternOptions = {}): Promise<Response> => {
     const { timeout = DEFAULT_TIMEOUT, signal: externalSignal, ...fetchOptions } = options;
+
+    const locale = getClientLocale();
 
     // Create internal AbortController for timeout (skip if timeout is 0 = no timeout)
     const timeoutController = new AbortController();
@@ -48,6 +51,7 @@ export const apiPattern = async (url: string, options: ApiPatternOptions = {}): 
             headers: {
                 'Authorization': `Bearer ${currentToken}`,
                 'Content-Type': 'application/json',
+                'Accept-Language': locale,
                 ...fetchOptions.headers,
             },
             credentials: 'include', // Send HttpOnly cookie
@@ -65,6 +69,7 @@ export const apiPattern = async (url: string, options: ApiPatternOptions = {}): 
                     headers: {
                         'Authorization': `Bearer ${newToken}`,
                         'Content-Type': 'application/json',
+                        'Accept-Language': locale,
                         ...fetchOptions.headers,
                     },
                     credentials: 'include',

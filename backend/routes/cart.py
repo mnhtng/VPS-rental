@@ -10,7 +10,7 @@ from backend.schemas import (
     CartAdd,
     CartResponse,
 )
-from backend.utils import get_current_user, normalize_hostname
+from backend.utils import get_current_user, normalize_hostname, Translator, get_translator
 
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,7 @@ router = APIRouter(prefix="/cart", tags=["Cart"])
 async def get_cart(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve the shopping cart for the current user.
@@ -34,6 +35,7 @@ async def get_cart(
     Args:
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -56,7 +58,7 @@ async def get_cart(
         logger.error(f">>> Error fetching cart for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving cart",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -70,6 +72,7 @@ async def get_cart(
 async def get_cart_total(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get the total number of items in the current user's cart.
@@ -77,6 +80,7 @@ async def get_cart_total(
     Args:
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -98,7 +102,7 @@ async def get_cart_total(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error calculating cart total",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -113,6 +117,7 @@ async def add_to_cart(
     cart_data: CartAdd,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Add a VPS plan to the shopping cart for the current user.
@@ -121,6 +126,7 @@ async def add_to_cart(
         cart_data (CartAdd): Data for the cart item to be added.
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 400 if the VPS with the same hostname already exists.
@@ -136,7 +142,7 @@ async def add_to_cart(
         if not plan:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="VPS plan not found",
+                detail=translator.t("admin.plan_not_found"),
             )
 
         statement = select(VMTemplate).where(
@@ -151,7 +157,7 @@ async def add_to_cart(
         if not template:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No matching VM template found for the selected VPS plan and OS",
+                detail=translator.t("proxmox.template_not_found"),
             )
 
         statement = select(ProxmoxVM).where(
@@ -164,7 +170,7 @@ async def add_to_cart(
         if exist_vm:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS with the same hostname already exists",
+                detail=translator.t("cart.item_not_found"),
             )
 
         statement = select(Cart).where(Cart.user_id == current_user.id)
@@ -179,7 +185,7 @@ async def add_to_cart(
             if existing_cart_item:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Item with the same hostname already in cart",
+                    detail=translator.t("cart.item_not_found"),
                 )
 
         cart = Cart(
@@ -205,7 +211,7 @@ async def add_to_cart(
         logger.error(f">>> Error adding to cart for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error adding to cart",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -218,6 +224,7 @@ async def add_to_cart(
 async def clear_cart(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Clear the shopping cart for the current user.
@@ -225,6 +232,7 @@ async def clear_cart(
     Args:
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -240,7 +248,7 @@ async def clear_cart(
             session.delete(cart)
         session.commit()
 
-        return {"message": "Cart cleared successfully"}
+        return {"message": translator.t("cart.cart_cleared")}
     except HTTPException:
         raise
     except Exception as e:
@@ -248,7 +256,7 @@ async def clear_cart(
         logger.error(f">>> Error clearing cart for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error clearing cart",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -262,6 +270,7 @@ async def remove_cart_item(
     cart_id: uuid.UUID,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Remove a specific item from the current user's cart.
@@ -270,6 +279,7 @@ async def remove_cart_item(
         cart_id (uuid.UUID): The ID of the cart item to remove.
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 404 if the cart item is not found or does not belong to the user.
@@ -283,13 +293,13 @@ async def remove_cart_item(
         if not cart or cart.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cart item not found",
+                detail=translator.t("cart.item_not_found"),
             )
 
         session.delete(cart)
         session.commit()
 
-        return {"message": "Cart item removed successfully"}
+        return {"message": translator.t("cart.item_removed")}
     except HTTPException:
         raise
     except Exception as e:
@@ -299,5 +309,5 @@ async def remove_cart_item(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error removing cart item",
+            detail=translator.t("errors.internal_server"),
         )

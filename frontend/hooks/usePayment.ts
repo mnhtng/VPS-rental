@@ -1,8 +1,11 @@
 import { apiPattern } from '@/utils/pattern';
 import { ApiResponse, PaymentResponse, OrderConfirmationEmailData } from '@/types/types';
 import { sendOrderConfirmationEmail } from '@/lib/email/resend';
+import { getClientLocale } from '@/utils/locale';
 
 const usePayment = () => {
+    const locale = getClientLocale();
+
     const proceedToCheckout = async (
         promotionCode: string | null = null
     ): Promise<ApiResponse> => {
@@ -144,6 +147,7 @@ const usePayment = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
             });
 
@@ -507,6 +511,7 @@ const usePayment = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
             });
 

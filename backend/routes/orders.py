@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 from backend.db import get_session
 from backend.models import Order, User
 from backend.schemas import OrderResponse
-from backend.utils import get_current_user, get_admin_user
+from backend.utils import get_current_user, get_admin_user, Translator, get_translator
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +26,7 @@ admin_router = APIRouter(prefix="/admin/orders", tags=["Admin - Orders Managemen
 async def get_user_orders(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve all orders for the current user.
@@ -33,6 +34,7 @@ async def get_user_orders(
     Args:
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -84,7 +86,7 @@ async def get_user_orders(
         logger.error(f">>> Error fetching orders for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving orders",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -99,6 +101,7 @@ async def get_order_by_id(
     order_id: str,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve a specific order by its ID for the current user.
@@ -107,6 +110,7 @@ async def get_order_by_id(
         order_id (str): The ID of the order to retrieve.
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -127,7 +131,7 @@ async def get_order_by_id(
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                detail=translator.t("order.not_found"),
             )
 
         order_dict = {
@@ -162,7 +166,7 @@ async def get_order_by_id(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving order",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -179,13 +183,16 @@ async def get_total_revenue(
     ),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve the total revenue generated from all orders.
 
     Args:
+        month (Optional[int], optional): Month to filter (1-12). Defaults to None.
         session (Session, optional): Database session. Defaults to Depends(get_session).
         admin_user (optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 500 if there is a server error.
@@ -208,7 +215,7 @@ async def get_total_revenue(
         logger.error(f">>> Error calculating total revenue: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error calculating total revenue",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -222,6 +229,7 @@ async def get_total_revenue(
 async def get_user_total_revenue(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve the total revenue generated from the current user's orders.
@@ -229,6 +237,7 @@ async def get_user_total_revenue(
     Args:
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 500 if there is a server error.
@@ -251,7 +260,7 @@ async def get_user_total_revenue(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error calculating total revenue",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -275,6 +284,7 @@ async def admin_get_all_orders(
     ),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve all orders for admin management.
@@ -285,6 +295,7 @@ async def admin_get_all_orders(
         status_filter (str, optional): Filter by order status. Defaults to None.
         session (Session, optional): Database session. Defaults to Depends(get_session).
         admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -341,7 +352,7 @@ async def admin_get_all_orders(
         logger.error(f">>> Error fetching all orders: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving orders",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -354,9 +365,15 @@ async def admin_get_all_orders(
 async def admin_get_order_statistics(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve order statistics for admin dashboard.
+
+    Args:
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Returns:
         Dict with total_orders, paid_orders, pending_orders, cancelled_orders,
@@ -389,7 +406,7 @@ async def admin_get_order_statistics(
         logger.error(f">>> Error calculating order statistics: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error calculating order statistics",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -403,9 +420,16 @@ async def admin_get_monthly_revenue(
     year: Optional[int] = Query(None, description="Year to get data for (defaults to current year)"),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Retrieve monthly revenue data for admin dashboard charts.
+
+    Args:
+        year (Optional[int], optional): Year to filter. Defaults to current year.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Returns:
         List of monthly revenue data with month name and revenue amount
@@ -441,6 +465,5 @@ async def admin_get_monthly_revenue(
         logger.error(f">>> Error calculating monthly revenue: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error calculating monthly revenue",
+            detail=translator.t("errors.internal_server"),
         )
-

@@ -21,8 +21,10 @@ import { AnalyticsStats } from "@/types/types"
 import { toast } from "sonner"
 import { formatPrice } from "@/utils/currency"
 import { AnalyticsPlaceholder } from "@/components/custom/placeholder/admin/analytics"
+import { useTranslations } from "next-intl"
 
 export default function AnalyticsPage() {
+    const t = useTranslations('admin.analytics')
     const [analyticsData, setAnalyticsData] = useState<AnalyticsStats | null>(null)
     const [loading, setLoading] = useState(true)
     const { getAnalyticsStats } = useAdminDashboard()
@@ -45,8 +47,8 @@ export default function AnalyticsPage() {
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return
 
-            toast.error("Failed to load analytics data", {
-                description: "Please try again later",
+            toast.error(t('toast.fetch_failed'), {
+                description: t('toast.fetch_failed'),
             })
         } finally {
             setLoading(false)
@@ -75,10 +77,10 @@ export default function AnalyticsPage() {
     }
 
     const chartConfig = {
-        revenue: { label: "Revenue", color: "#22c55e" },
-        orders: { label: "Orders", color: "#3b82f6" },
-        users: { label: "Users", color: "#8b5cf6" },
-        count: { label: "Count", color: "#3b82f6" },
+        revenue: { label: t('charts.revenue'), color: "#22c55e" },
+        orders: { label: t('stats.orders'), color: "#3b82f6" },
+        users: { label: t('stats.users'), color: "#8b5cf6" },
+        count: { label: t('charts.count'), color: "#3b82f6" },
     } satisfies ChartConfig
 
     // Color mapping for plan categories
@@ -191,7 +193,7 @@ export default function AnalyticsPage() {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <Server className="h-4 w-4" />
-                            Total VPS
+                            {t('stats.total_vps')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -202,7 +204,7 @@ export default function AnalyticsPage() {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <Users className="h-4 w-4" />
-                            Users
+                            {t('stats.users')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -213,7 +215,7 @@ export default function AnalyticsPage() {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <DollarSign className="h-4 w-4" />
-                            Yearly Revenue
+                            {t('stats.yearly_revenue')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -224,7 +226,7 @@ export default function AnalyticsPage() {
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <TrendingUp className="h-4 w-4" />
-                            Orders
+                            {t('stats.orders')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -237,8 +239,8 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Revenue Trend */}
                 <BarChartComponent
-                    title="Monthly Revenue"
-                    description="Revenue over the past 12 months"
+                    title={t('charts.monthly_revenue')}
+                    description={t('charts.monthly_revenue_desc')}
                     data={monthlyRevenueData}
                     chartConfig={chartConfig}
                     xAxisKey="month"
@@ -249,10 +251,10 @@ export default function AnalyticsPage() {
 
                 {/* User Growth */}
                 <LineChartComponent
-                    title="User Growth"
-                    description="Cumulative user count by month"
+                    title={t('charts.user_growth')}
+                    description={t('charts.user_growth_desc')}
                     data={userGrowthData}
-                    chartConfig={{ users: { label: "Users", color: colorsHex.red } }}
+                    chartConfig={{ users: { label: t('stats.users'), color: colorsHex.red } }}
                     xAxisKey="month"
                     lines={[{ dataKey: "users", stroke: colorsHex.red, strokeWidth: 2, dot: true }]}
                     className="animate-in fade-in slide-in-from-right-4 duration-700 hover:shadow-lg transition-shadow"
@@ -263,10 +265,10 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-center justify-center">
                 {/* VPS by Plan */}
                 <BarChartComponent
-                    title="VPS by Plan"
-                    description="Distribution by plan"
+                    title={t('charts.vps_by_plan')}
+                    description={t('charts.vps_by_plan_desc')}
                     data={vpsByPlanData}
-                    chartConfig={{ count: { label: "Count", color: colorsHex.blue } }}
+                    chartConfig={{ count: { label: t('charts.count'), color: colorsHex.blue } }}
                     xAxisKey="plan"
                     variant="horizontal"
                     className="animate-in fade-in slide-in-from-bottom-4 duration-700 hover:shadow-lg transition-shadow"
@@ -275,8 +277,8 @@ export default function AnalyticsPage() {
                 {/* VPS by OS */}
                 {vpsByOsPieData.length > 0 ? (
                     <PieChartComponent
-                        title="VPS by OS"
-                        description="Operating system distribution"
+                        title={t('charts.vps_by_os')}
+                        description={t('charts.vps_by_os_desc')}
                         data={vpsByOsPieData}
                         chartConfig={vpsOsChartConfig}
                         dataKey="value"
@@ -290,11 +292,11 @@ export default function AnalyticsPage() {
                 ) : (
                     <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <CardHeader>
-                            <CardTitle>VPS by OS</CardTitle>
-                            <CardDescription>Operating system distribution</CardDescription>
+                            <CardTitle>{t('charts.vps_by_os')}</CardTitle>
+                            <CardDescription>{t('charts.vps_by_os_desc')}</CardDescription>
                         </CardHeader>
                         <CardContent className="flex items-center justify-center h-50">
-                            <p className="text-muted-foreground">No data available</p>
+                            <p className="text-muted-foreground">{t('no_data')}</p>
                         </CardContent>
                     </Card>
                 )}
@@ -302,8 +304,8 @@ export default function AnalyticsPage() {
                 {/* Payment Method */}
                 {paymentMethodPieData.some(item => item.value > 0) ? (
                     <PieChartComponent
-                        title="Payment Methods"
-                        description="Payment distribution"
+                        title={t('charts.payment_methods')}
+                        description={t('charts.payment_methods_desc')}
                         data={paymentMethodPieData}
                         chartConfig={paymentChartConfig}
                         dataKey="value"
@@ -318,11 +320,11 @@ export default function AnalyticsPage() {
                 ) : (
                     <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700 md:col-span-2 lg:col-span-1">
                         <CardHeader>
-                            <CardTitle>Payment Methods</CardTitle>
-                            <CardDescription>Payment distribution</CardDescription>
+                            <CardTitle>{t('charts.payment_methods')}</CardTitle>
+                            <CardDescription>{t('charts.payment_methods_desc')}</CardDescription>
                         </CardHeader>
                         <CardContent className="flex items-center justify-center h-50">
-                            <p className="text-muted-foreground">No data available</p>
+                            <p className="text-muted-foreground">{t('no_data')}</p>
                         </CardContent>
                     </Card>
                 )}
@@ -331,19 +333,19 @@ export default function AnalyticsPage() {
             {/* Statistics Table */}
             <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700 overflow-hidden">
                 <CardHeader>
-                    <CardTitle>Detailed Statistics by Plan</CardTitle>
-                    <CardDescription>VPS count and revenue by service plan</CardDescription>
+                    <CardTitle>{t('table.title')}</CardTitle>
+                    <CardDescription>{t('table.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader className="bg-secondary">
                                 <TableRow>
-                                    <TableHead>Service Plan</TableHead>
-                                    <TableHead className="text-center">VPS Count</TableHead>
-                                    <TableHead className="text-center hidden sm:table-cell">Percentage</TableHead>
-                                    <TableHead className="text-right">Revenue</TableHead>
-                                    <TableHead className="text-right hidden md:table-cell">Revenue %</TableHead>
+                                    <TableHead>{t('table.service_plan')}</TableHead>
+                                    <TableHead className="text-center">{t('table.vps_count')}</TableHead>
+                                    <TableHead className="text-center hidden sm:table-cell">{t('table.percentage')}</TableHead>
+                                    <TableHead className="text-right">{t('table.revenue')}</TableHead>
+                                    <TableHead className="text-right hidden md:table-cell">{t('table.revenue_percent')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -370,7 +372,7 @@ export default function AnalyticsPage() {
                                     )
                                 })}
                                 <TableRow className="font-bold bg-muted/50">
-                                    <TableCell>Total</TableCell>
+                                    <TableCell>{t('table.total')}</TableCell>
                                     <TableCell className="text-center">{totalVps}</TableCell>
                                     <TableCell className="text-center hidden sm:table-cell">100%</TableCell>
                                     <TableCell className="text-right text-green-600">

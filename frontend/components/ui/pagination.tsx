@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTranslations } from "next-intl"
 
 interface PaginationProps {
     currentPage: number;
@@ -25,20 +26,23 @@ const Pagination = ({
     endIndex,
     onPageChange,
     onItemsPerPageChange,
-    itemLabel = "items"
+    itemLabel
 }: PaginationProps) => {
+    const t = useTranslations("pagination")
+    const label = itemLabel || t('default_label')
+
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-4 border-t animate-in fade-in slide-in-from-bottom duration-700">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>
-                    Showing {startIndex + 1} - {Math.min(endIndex, totalItems)} of {totalItems} {itemLabel}
+                    {t('showing', { start: startIndex + 1, end: Math.min(endIndex, totalItems), total: totalItems, label })}
                 </span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-2">
                 {/* Items per page selector */}
                 <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Per page:</span>
+                    <span className="text-sm text-muted-foreground">{t('per_page')}</span>
                     <Select
                         value={itemsPerPage.toString()}
                         onValueChange={(value) => {
@@ -80,7 +84,7 @@ const Pagination = ({
                     </Button>
 
                     <span className="flex items-center justify-center min-w-25 text-sm">
-                        Page {currentPage} of {totalPages}
+                        {t('page_of', { current: currentPage, total: totalPages })}
                     </span>
 
                     <Button

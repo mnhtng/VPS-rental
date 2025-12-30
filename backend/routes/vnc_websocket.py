@@ -3,7 +3,6 @@ import ssl
 import logging
 from urllib.parse import quote
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
-from typing import Optional
 
 from backend.core import settings
 
@@ -49,8 +48,8 @@ async def vnc_websocket_proxy(
     vnc_path = f"/api2/json/nodes/{node}/qemu/{vmid}/vncwebsocket?port={port}&vncticket={encoded_ticket}"
     proxmox_ws_url = f"wss://{proxmox_host}:{proxmox_port}{vnc_path}"
 
-    logger.info(f"🔌 VNC Proxy: Connecting to Proxmox VNC for VM {vmid}")
-    logger.debug(f"🔌 VNC Proxy URL: {proxmox_ws_url[:100]}...")
+    logger.info(f">>> VNC Proxy: Connecting to Proxmox VNC for VM {vmid}")
+    logger.debug(f">>> VNC Proxy URL: {proxmox_ws_url[:100]}...")
 
     # SSL context that doesn't verify certificates (for self-signed Proxmox certs)
     ssl_context = ssl.create_default_context()
@@ -68,7 +67,7 @@ async def vnc_websocket_proxy(
             ping_timeout=30,
             close_timeout=10,
         ) as proxmox_ws:
-            logger.info(f"✅ VNC Proxy: Connected to Proxmox VNC for VM {vmid}")
+            logger.info(f">>> VNC Proxy: Connected to Proxmox VNC for VM {vmid}")
 
             async def forward_to_proxmox():
                 """Forward messages from browser to Proxmox"""
@@ -82,12 +81,12 @@ async def vnc_websocket_proxy(
                             elif "text" in message and message["text"]:
                                 await proxmox_ws.send(message["text"])
                         elif message["type"] == "websocket.disconnect":
-                            logger.info("🔌 Browser sent disconnect")
+                            logger.info(">>> Browser sent disconnect")
                             break
                 except WebSocketDisconnect:
-                    logger.info("🔌 Browser disconnected")
+                    logger.info(">>> Browser disconnected")
                 except Exception as e:
-                    logger.error(f"❌ Error forwarding to Proxmox: {e}")
+                    logger.error(f">>> Error forwarding to Proxmox: {e}")
 
             async def forward_to_browser():
                 """Forward messages from Proxmox to browser"""
@@ -98,7 +97,7 @@ async def vnc_websocket_proxy(
                         else:
                             await websocket.send_text(data)
                 except Exception as e:
-                    logger.error(f"❌ Error forwarding to browser: {e}")
+                    logger.error(f">>> Error forwarding to browser: {e}")
 
             # Run both forwarding tasks concurrently
             await asyncio.gather(
@@ -106,10 +105,10 @@ async def vnc_websocket_proxy(
             )
 
     except websockets.exceptions.InvalidStatusCode as e:
-        logger.error(f"❌ Proxmox rejected connection: {e}")
+        logger.error(f">>> Proxmox rejected connection: {e}")
         await websocket.close(code=1008, reason=f"Proxmox auth failed: {e}")
     except Exception as e:
-        logger.error(f"❌ VNC Proxy error: {e}")
+        logger.error(f">>> VNC Proxy error: {e}")
         try:
             await websocket.close(code=1011, reason=str(e))
         except:

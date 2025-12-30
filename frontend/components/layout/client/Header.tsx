@@ -32,10 +32,10 @@ const ClientHeader = () => {
         try {
             setIsLoggingOut(true);
             await logout();
-            toast.success('Logged out successfully');
+            toast.success(t('logout_success'));
         } catch {
-            toast.error('Failed to logout', {
-                description: 'Please try again later',
+            toast.error(t('logout_failed'), {
+                description: t('try_again'),
             });
         } finally {
             setIsLoggingOut(false);
@@ -60,7 +60,7 @@ const ClientHeader = () => {
                         <DropdownMenuLabel className="font-normal">
                             <div className="flex flex-col space-y-1">
                                 <p className="text-sm font-medium leading-none">
-                                    {session?.user?.name || 'User'}
+                                    {session?.user?.name || t('default_user')}
                                 </p>
                                 <p className="text-xs leading-none text-muted-foreground">
                                     {session?.user?.email}
@@ -125,7 +125,7 @@ const ClientHeader = () => {
                             {isLoggingOut ? (
                                 <>
                                     <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                    Logging out...
+                                    {t('logging_out')}
                                 </>
                             ) : (
                                 <>

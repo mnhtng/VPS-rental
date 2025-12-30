@@ -39,8 +39,11 @@ import useSupport from "@/hooks/useSupport"
 import { SupportTicket, TicketStatistics } from "@/types/types"
 import Pagination from "@/components/ui/pagination"
 import { TicketDetailSheet } from "@/components/custom/admin/support/TicketDetail"
+import { useTranslations } from "next-intl"
 
 export default function AdminSupportPage() {
+    const tCommon = useTranslations('common')
+    const t = useTranslations('admin.support')
     const {
         adminGetAllTickets,
         adminGetTicketStatistics,
@@ -87,13 +90,13 @@ export default function AdminSupportPage() {
                 setFilteredTickets(ticketsRes.data || [])
                 setStatistics(statsRes.data || null)
             }
+            setIsLoading(false)
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return
 
-            toast.error('Failed to fetch support information', {
-                description: "Please try again later",
+            toast.error(t('toast.fetch_failed'), {
+                description: t('toast.fetch_failed'),
             })
-        } finally {
             setIsLoading(false)
         }
     }
@@ -111,20 +114,20 @@ export default function AdminSupportPage() {
 
     const getStatusConfig = (status: string) => {
         const configs: Record<string, { icon: typeof AlertCircle; color: string; label: string }> = {
-            open: { icon: AlertCircle, color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', label: 'Open' },
-            in_progress: { icon: Clock, color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', label: 'In Progress' },
-            resolved: { icon: CheckCircle2, color: 'bg-green-500/10 text-green-500 border-green-500/20', label: 'Resolved' },
-            closed: { icon: XCircle, color: 'bg-gray-500/10 text-gray-500 border-gray-500/20', label: 'Closed' },
+            open: { icon: AlertCircle, color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', label: t('status.open') },
+            in_progress: { icon: Clock, color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', label: t('status.in_progress') },
+            resolved: { icon: CheckCircle2, color: 'bg-green-500/10 text-green-500 border-green-500/20', label: t('status.resolved') },
+            closed: { icon: XCircle, color: 'bg-gray-500/10 text-gray-500 border-gray-500/20', label: t('status.closed') },
         }
         return configs[status] || configs.open
     }
 
     const getPriorityConfig = (priority: string) => {
         const configs: Record<string, { color: string; label: string }> = {
-            low: { color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', label: 'Low' },
-            medium: { color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', label: 'Medium' },
-            high: { color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', label: 'High' },
-            urgent: { color: 'bg-red-500/10 text-red-600 border-red-500/20', label: 'Urgent' },
+            low: { color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', label: t('priority.low') },
+            medium: { color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', label: t('priority.medium') },
+            high: { color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', label: t('priority.high') },
+            urgent: { color: 'bg-red-500/10 text-red-600 border-red-500/20', label: t('priority.urgent') },
         }
         return configs[priority] || configs.medium
     }
@@ -171,7 +174,7 @@ export default function AdminSupportPage() {
                     description: result.error.detail
                 })
             } else {
-                toast.success('Status updated successfully')
+                toast.success(t('toast.status_updated'))
 
                 const updatedTicket = result.data
                 setTickets(prev => prev.map(t => t.id === ticketId ? updatedTicket : t))
@@ -183,9 +186,7 @@ export default function AdminSupportPage() {
                     setStatistics(statsRes.data)
             }
         } catch {
-            toast.error('Failed to update status', {
-                description: 'Please try again later',
-            })
+            toast.error(t('toast.status_failed'))
         } finally {
             setIsUpdatingStatus(false)
         }
@@ -202,15 +203,13 @@ export default function AdminSupportPage() {
                     description: result.error.detail
                 })
             } else {
-                toast.success('Reply sent successfully')
+                toast.success(t('toast.reply_sent'))
 
                 setSelectedTicket(result.data)
                 fetchAdminSupport()
             }
         } catch {
-            toast.error('Failed to send reply', {
-                description: 'Please try again later',
-            })
+            toast.error(t('toast.reply_failed'))
         } finally {
             setIsSendingReply(false)
         }
@@ -235,7 +234,7 @@ export default function AdminSupportPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Open</p>
+                                <p className="text-sm text-muted-foreground">{t('status.open')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -253,7 +252,7 @@ export default function AdminSupportPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">In Progress</p>
+                                <p className="text-sm text-muted-foreground">{t('status.in_progress')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -271,7 +270,7 @@ export default function AdminSupportPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Resolved</p>
+                                <p className="text-sm text-muted-foreground">{t('status.resolved')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -289,7 +288,7 @@ export default function AdminSupportPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Closed</p>
+                                <p className="text-sm text-muted-foreground">{t('status.closed')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -307,7 +306,7 @@ export default function AdminSupportPage() {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Total</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.total')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -327,7 +326,7 @@ export default function AdminSupportPage() {
                 <div className="relative w-full sm:w-80">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search tickets..."
+                        placeholder={t('filter.search')}
                         className="pl-10"
                         onChange={debounce(handleSearch, 400)}
                     />
@@ -336,27 +335,27 @@ export default function AdminSupportPage() {
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
                         <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Status" />
+                            <SelectValue placeholder={t('filter.placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="open">Open</SelectItem>
-                            <SelectItem value="in_progress">In Progress</SelectItem>
-                            <SelectItem value="resolved">Resolved</SelectItem>
-                            <SelectItem value="closed">Closed</SelectItem>
+                            <SelectItem value="all">{t('filter.all')}</SelectItem>
+                            <SelectItem value="open">{t('filter.open')}</SelectItem>
+                            <SelectItem value="in_progress">{t('filter.in_progress')}</SelectItem>
+                            <SelectItem value="resolved">{t('filter.resolved')}</SelectItem>
+                            <SelectItem value="closed">{t('filter.closed')}</SelectItem>
                         </SelectContent>
                     </Select>
 
                     <Select value={filterPriority} onValueChange={setFilterPriority}>
                         <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Priority" />
+                            <SelectValue placeholder={t('table.priority')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="urgent">Urgent</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="all">{t('filter.all')}</SelectItem>
+                            <SelectItem value="urgent">{t('priority.urgent')}</SelectItem>
+                            <SelectItem value="high">{t('priority.high')}</SelectItem>
+                            <SelectItem value="medium">{t('priority.medium')}</SelectItem>
+                            <SelectItem value="low">{t('priority.low')}</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -365,7 +364,7 @@ export default function AdminSupportPage() {
                         size="icon"
                         onClick={() => fetchAdminSupport()}
                         disabled={isLoading}
-                        title="Refresh"
+                        title={t('filter.refresh')}
                     >
                         <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
                     </Button>
@@ -377,19 +376,19 @@ export default function AdminSupportPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Headset className="h-5 w-5 text-cyan-500" />
-                        Support Tickets List
+                        {t('title')}
                     </CardTitle>
                 </CardHeader>
                 <div className="overflow-x-auto px-3">
                     <Table>
                         <TableHeader className="bg-secondary">
                             <TableRow>
-                                <TableHead>Sender</TableHead>
-                                <TableHead>Subject</TableHead>
-                                <TableHead className="hidden md:table-cell">Category</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="hidden sm:table-cell">Priority</TableHead>
-                                <TableHead className="hidden lg:table-cell">Created</TableHead>
+                                <TableHead>{t('table.user')}</TableHead>
+                                <TableHead>{t('table.subject')}</TableHead>
+                                <TableHead className="hidden md:table-cell">{t('table.category')}</TableHead>
+                                <TableHead>{t('table.status')}</TableHead>
+                                <TableHead className="hidden sm:table-cell">{t('table.priority')}</TableHead>
+                                <TableHead className="hidden lg:table-cell">{t('table.created')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -435,7 +434,7 @@ export default function AdminSupportPage() {
                             ) : filteredTickets.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                                        No tickets found
+                                        {t('table.no_tickets')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -507,7 +506,7 @@ export default function AdminSupportPage() {
                     endIndex={Math.min(endIndex, totalItems)}
                     onPageChange={setCurrentPage}
                     onItemsPerPageChange={setItemsPerPage}
-                    itemLabel="tickets"
+                    itemLabel={tCommon('tickets')}
                 />
             )}
 

@@ -42,7 +42,7 @@ export function LanguageBadge({
                 ? pathname.substring(locale.length + 1)
                 : pathname;
 
-            const newPath = `/${newLocale}${pathWithoutLocale}`;
+            const newPath = `${pathWithoutLocale}`;
             router.replace(newPath);
         });
     };

@@ -20,7 +20,7 @@ from backend.schemas import (
     CallbackResponse,
 )
 from backend.services import PaymentService
-from backend.utils import get_current_user
+from backend.utils import get_current_user, Translator, get_translator
 
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,7 @@ async def proceed_to_checkout(
     data: CartProceedToCheckout,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ) -> Dict[str, Any]:
     """
     Proceed to checkout by applying promotion code to all cart items.
@@ -62,7 +63,7 @@ async def proceed_to_checkout(
         if not cart:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cart is empty",
+                detail=translator.t("cart.empty_cart"),
             )
 
         for item in cart:
@@ -81,7 +82,7 @@ async def proceed_to_checkout(
         logger.error(f">>> Error proceeding to checkout: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error proceeding to checkout",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -96,6 +97,7 @@ async def check_order_can_repay(
     order_id: uuid.UUID,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ) -> Dict[str, Any]:
     """
     Check if a pending order can be repaid.
@@ -108,6 +110,7 @@ async def check_order_can_repay(
         order_id (uuid.UUID): Order ID to check.
         session (Session): Database session.
         current_user (User): Current authenticated user.
+        translator (Translator): Translator for error messages.
 
     Returns:
         Dict[str, Any]: Result with can_repay flag and reason if not.
@@ -117,19 +120,19 @@ async def check_order_can_repay(
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                detail=translator.t("order.not_found"),
             )
 
         if order.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to access this order",
+                detail=translator.t("order.not_owner"),
             )
 
         if order.status != "pending":
             return {
                 "can_repay": False,
-                "reason": "Order is not in a payable state",
+                "reason": translator.t("order.not_pending"),
             }
 
         # Check if any order item has a VPS instance
@@ -137,7 +140,7 @@ async def check_order_can_repay(
             if order_item.vps_instance is not None:
                 return {
                     "can_repay": False,
-                    "reason": "VPS service has already been provided",
+                    "reason": translator.t("payment.vps_already_provided"),
                 }
 
         return {
@@ -151,7 +154,7 @@ async def check_order_can_repay(
         logger.error(f">>> Error checking order repay status: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error checking order repay status",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -166,6 +169,7 @@ async def check_renewal_order_can_repay(
     order_id: uuid.UUID,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ) -> Dict[str, Any]:
     """
     Check if a pending renewal order can be repaid.
@@ -179,6 +183,7 @@ async def check_renewal_order_can_repay(
         order_id (uuid.UUID): Order ID to check.
         session (Session): Database session.
         current_user (User): Current authenticated user.
+        translator (Translator): Translator for error messages.
 
     Returns:
         Dict[str, Any]: Result with can_repay flag, vps_instance_id and reason if not.
@@ -188,25 +193,25 @@ async def check_renewal_order_can_repay(
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                detail=translator.t("order.not_found"),
             )
 
         if order.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to access this order",
+                detail=translator.t("order.not_owner"),
             )
 
         if order.status != "pending":
             return {
                 "can_repay": False,
-                "reason": "Order is not in a payable state",
+                "reason": translator.t("order.not_pending"),
             }
 
         if not order.note or not order.note.startswith("VPS Renewal"):
             return {
                 "can_repay": False,
-                "reason": "This is not a renewal order",
+                "reason": translator.t("payment.not_renewal_order"),
             }
 
         statement = select(PaymentTransaction).where(
@@ -217,7 +222,7 @@ async def check_renewal_order_can_repay(
         if not payment or not payment.gateway_response:
             return {
                 "can_repay": False,
-                "reason": "Payment transaction not found",
+                "reason": translator.t("payment.transaction_not_found"),
             }
 
         vps_instance_id = payment.gateway_response.get("vps_instance_id")
@@ -226,20 +231,20 @@ async def check_renewal_order_can_repay(
         if not vps_instance_id:
             return {
                 "can_repay": False,
-                "reason": "VPS instance information not found",
+                "reason": translator.t("vps.not_found"),
             }
 
         vps_instance = session.get(VPSInstance, uuid.UUID(vps_instance_id))
         if not vps_instance:
             return {
                 "can_repay": False,
-                "reason": "VPS instance not found",
+                "reason": translator.t("vps.not_found"),
             }
 
         if vps_instance.status in ["terminated", "error"]:
             return {
                 "can_repay": False,
-                "reason": "VPS instance has been terminated or is in error state",
+                "reason": translator.t("vps.already_terminated"),
             }
 
         return {
@@ -255,7 +260,7 @@ async def check_renewal_order_can_repay(
         logger.error(f">>> Error checking renewal order repay status: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error checking renewal order repay status",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -270,6 +275,7 @@ async def create_momo_payment(
     payment_request: PaymentRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Create demo MoMo payment for testing.
@@ -278,6 +284,7 @@ async def create_momo_payment(
         payment_request (PaymentRequest): Payment request data
         session (Session, optional): Database session, defaults to Depends(get_session)
         current_user (User, optional): Currently authenticated user, defaults to Depends(get_current_user)
+        translator (Translator, optional): Translator for error messages, defaults to Depends(get_translator)
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -302,19 +309,19 @@ async def create_momo_payment(
         if not order_initialized:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Not found order",
+                detail=translator.t("order.not_found"),
             )
 
         if order_initialized.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to pay for this order",
+                detail=translator.t("order.not_owner"),
             )
 
         if order_initialized.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order is not in a payable state",
+                detail=translator.t("order.not_pending"),
             )
 
         result = payment_service.create_momo_payment(
@@ -336,7 +343,7 @@ async def create_momo_payment(
         logger.error(f">>> Error creating demo MoMo payment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating demo MoMo payment",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -350,6 +357,7 @@ async def repay_momo_payment(
     payment_request: PaymentRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Repay a pending order with MoMo.
@@ -359,6 +367,7 @@ async def repay_momo_payment(
         payment_request (PaymentRequest): Payment request data with existing order_number
         session (Session): Database session
         current_user (User): Currently authenticated user
+        translator (Translator): Translator for error messages
 
     Returns:
         PaymentResponse: Response containing payment details or error information
@@ -373,19 +382,19 @@ async def repay_momo_payment(
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                detail=translator.t("order.not_found"),
             )
 
         if order.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to pay for this order",
+                detail=translator.t("order.not_owner"),
             )
 
         if order.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order is not in a payable state",
+                detail=translator.t("order.not_pending"),
             )
 
         # Check if any VPS instance exists for this order
@@ -393,7 +402,7 @@ async def repay_momo_payment(
             if order_item.vps_instance is not None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="VPS service has already been provided",
+                    detail=translator.t("vps.setup_success"),
                 )
 
         payment_service = PaymentService(session)
@@ -417,7 +426,7 @@ async def repay_momo_payment(
         logger.error(f">>> Error creating MoMo repayment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating MoMo repayment",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -437,6 +446,7 @@ async def momo_return(
     Args:
         request (Request): HTTP request object containing query parameters from MoMo redirect
         session (Session, optional): Database session, defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages, defaults to Depends(get_translator).
 
     Returns:
         CallbackResponse: Response model indicating the result of the callback
@@ -499,6 +509,7 @@ async def momo_notify(
     Args:
         request (Request): The incoming request from MoMo containing payment notification data.
         session (Session, optional): Database session, defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages, defaults to Depends(get_translator).
 
     Returns:
         Dict[str, Any]: Response indicating the result of the IPN processing.
@@ -542,6 +553,7 @@ async def create_vnpay_payment(
     request: Request,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Create demo VNPay payment for testing.
@@ -551,6 +563,7 @@ async def create_vnpay_payment(
         request (Request): HTTP request object
         session (Session, optional): Database session, defaults to Depends(get_session)
         current_user (User, optional): Currently authenticated user, defaults to Depends(get_current_user)
+        translator (Translator, optional): Translator for error messages, defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -575,19 +588,19 @@ async def create_vnpay_payment(
         if not order_initialized:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Not found order",
+                detail=translator.t("order.not_found"),
             )
 
         if order_initialized.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to pay for this order",
+                detail=translator.t("order.not_owner"),
             )
 
         if order_initialized.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order is not in a payable state",
+                detail=translator.t("order.not_pending"),
             )
 
         # Get client IP
@@ -616,7 +629,7 @@ async def create_vnpay_payment(
         logger.error(f">>> Error creating VNPay payment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating demo VNPay payment",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -631,6 +644,7 @@ async def repay_vnpay_payment(
     request: Request,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Repay a pending order with VNPay.
@@ -641,6 +655,7 @@ async def repay_vnpay_payment(
         request (Request): HTTP request object
         session (Session): Database session
         current_user (User): Currently authenticated user
+        translator (Translator): Translator for error messages
 
     Returns:
         PaymentResponse: Response containing payment details or error information
@@ -655,19 +670,19 @@ async def repay_vnpay_payment(
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                detail=translator.t("order.not_found"),
             )
 
         if order.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to pay for this order",
+                detail=translator.t("order.not_owner"),
             )
 
         if order.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order is not in a payable state",
+                detail=translator.t("order.not_pending"),
             )
 
         # Check if any VPS instance exists for this order
@@ -675,7 +690,7 @@ async def repay_vnpay_payment(
             if order_item.vps_instance is not None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="VPS service has already been provided",
+                    detail=translator.t("vps.setup_success"),
                 )
 
         # Get client IP
@@ -706,7 +721,7 @@ async def repay_vnpay_payment(
         logger.error(f">>> Error creating VNPay repayment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating VNPay repayment",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -719,6 +734,7 @@ async def repay_vnpay_payment(
 async def vnpay_return(
     request: Request,
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Handle VNPay redirect after payment.
@@ -726,6 +742,7 @@ async def vnpay_return(
     Args:
         request (Request): HTTP request object
         session (Session, optional): Database session. Defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages, defaults to Depends(get_translator).
 
     Returns:
         CallbackResponse: Response model indicating the result of the callback
@@ -751,7 +768,7 @@ async def vnpay_return(
         logger.error(f">>> VNPay return error: {str(e)}")
         return CallbackResponse(
             valid=False,
-            error="An error occurred while processing VNPay return",
+            error=translator.t("errors.internal_server"),
         )
 
 
@@ -764,6 +781,7 @@ async def vnpay_return(
 async def vnpay_ipn(
     request: Request,
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Handle VNPay Instant Payment Notification (IPN).
@@ -772,6 +790,7 @@ async def vnpay_ipn(
     Args:
         request (Request): HTTP request object
         session (Session, optional): Database session, defaults to Depends(get_session).
+        translator (Translator, optional): Translator for error messages, defaults to Depends(get_translator).
 
     Returns:
         Dict[str, str]: Response indicating the result of the IPN processing.
@@ -799,7 +818,7 @@ async def vnpay_ipn(
         logger.error(f">>> VNPay IPN error: {str(e)}")
         return {
             "RspCode": "99",
-            "Message": "An error occurred while processing VNPay IPN",
+            "Message": translator.t("errors.internal_server"),
         }
 
 
@@ -819,6 +838,7 @@ async def create_vnpay_renewal(
     request: Request,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Create VNPay payment for VPS renewal.
@@ -828,6 +848,7 @@ async def create_vnpay_renewal(
         request: HTTP request object
         session: Database session
         current_user: Currently authenticated user
+        translator: Translator for error messages
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -844,19 +865,19 @@ async def create_vnpay_renewal(
         if not vps_instance:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="VPS instance not found",
+                detail=translator.t("vps.not_found"),
             )
 
         if vps_instance.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="VPS instance does not belong to user",
+                detail=translator.t("vps.not_owner"),
             )
 
         if not vps_instance.vps_plan:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS plan not found for this instance",
+                detail=translator.t("vps.plan_not_found"),
             )
 
         payment_service = PaymentService(session)
@@ -898,7 +919,7 @@ async def create_vnpay_renewal(
         logger.error(f">>> Error creating VNPay renewal: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating VNPay renewal payment",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -912,6 +933,7 @@ async def create_momo_renewal(
     renewal_request: RenewalPaymentRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Create MoMo payment for VPS renewal.
@@ -920,6 +942,7 @@ async def create_momo_renewal(
         renewal_request: Renewal payment request with VPS ID and duration
         session: Database session
         current_user: Currently authenticated user
+        translator: Translator for error messages
 
     Raises:
         HTTPException: 401 if user is not authenticated
@@ -936,19 +959,19 @@ async def create_momo_renewal(
         if not vps_instance:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="VPS instance not found",
+                detail=translator.t("vps.not_found"),
             )
 
         if vps_instance.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="VPS instance does not belong to user",
+                detail=translator.t("vps.not_owner"),
             )
 
         if not vps_instance.vps_plan:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS plan not found for this instance",
+                detail=translator.t("vps.plan_not_found"),
             )
 
         payment_service = PaymentService(session)
@@ -983,7 +1006,7 @@ async def create_momo_renewal(
         logger.error(f">>> Error creating MoMo renewal: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating MoMo renewal payment",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -998,6 +1021,7 @@ async def repay_renewal_vnpay(
     request: Request,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Repay a pending renewal order with VNPay.
@@ -1008,6 +1032,7 @@ async def repay_renewal_vnpay(
         request (Request): HTTP request object
         session (Session): Database session
         current_user (User): Currently authenticated user
+        translator (Translator): Translator for error messages
 
     Returns:
         PaymentResponse: Response containing payment details or error information
@@ -1021,25 +1046,25 @@ async def repay_renewal_vnpay(
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                detail=translator.t("order.not_found"),
             )
 
         if order.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to pay for this order",
+                detail=translator.t("order.not_owner"),
             )
 
         if order.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order is not in a payable state",
-            )
+                detail=translator.t("order.not_payable"),
+            )   
 
         if not order.note or not order.note.startswith("VPS Renewal"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="This is not a renewal order",
+                detail=translator.t("order.not_renewal"),
             )
 
         payment_statement = select(PaymentTransaction).where(
@@ -1050,7 +1075,7 @@ async def repay_renewal_vnpay(
         if not existing_payment or not existing_payment.gateway_response:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Payment transaction not found",
+                detail=translator.t("order.not_payment_transaction"),
             )
 
         vps_instance_id = existing_payment.gateway_response.get("vps_instance_id")
@@ -1059,20 +1084,20 @@ async def repay_renewal_vnpay(
         if not vps_instance_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS instance information not found",
+                detail=translator.t("order.not_vps_instance_info"),
             )
 
         vps_instance = session.get(VPSInstance, uuid.UUID(vps_instance_id))
         if not vps_instance:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS instance not found",
+                detail=translator.t("vps.not_found"),
             )
 
         if vps_instance.status in ["terminated", "error"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS instance has been terminated or is in error state",
+                detail=translator.t("vps.terminated_or_error"),
             )
 
         # Get client IP
@@ -1105,7 +1130,7 @@ async def repay_renewal_vnpay(
         logger.error(f">>> Error creating VNPay renewal repayment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating VNPay renewal repayment",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -1119,6 +1144,7 @@ async def repay_renewal_momo(
     payment_request: PaymentRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Repay a pending renewal order with MoMo.
@@ -1128,6 +1154,7 @@ async def repay_renewal_momo(
         payment_request (PaymentRequest): Payment request data with existing order_number
         session (Session): Database session
         current_user (User): Currently authenticated user
+        translator (Translator): Translator object
 
     Returns:
         PaymentResponse: Response containing payment details or error information
@@ -1141,25 +1168,25 @@ async def repay_renewal_momo(
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Order not found",
+                detail=translator.t("order.not_found"),
             )
 
         if order.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to pay for this order",
+                detail=translator.t("order.not_owner"),
             )
 
         if order.status != "pending":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order is not in a payable state",
+                detail=translator.t("order.not_payable"),
             )
 
         if not order.note or not order.note.startswith("VPS Renewal"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="This is not a renewal order",
+                detail=translator.t("order.not_renewal"),
             )
 
         payment_statement = select(PaymentTransaction).where(
@@ -1170,7 +1197,7 @@ async def repay_renewal_momo(
         if not existing_payment or not existing_payment.gateway_response:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Payment transaction not found",
+                detail=translator.t("order.not_payment_transaction"),
             )
 
         vps_instance_id = existing_payment.gateway_response.get("vps_instance_id")
@@ -1179,20 +1206,20 @@ async def repay_renewal_momo(
         if not vps_instance_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS instance information not found",
+                detail=translator.t("order.not_vps_instance_info"),
             )
 
         vps_instance = session.get(VPSInstance, uuid.UUID(vps_instance_id))
         if not vps_instance:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS instance not found",
+                detail=translator.t("vps.not_found"),
             )
 
         if vps_instance.status in ["terminated", "error"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="VPS instance has been terminated or is in error state",
+                detail=translator.t("vps.terminated_or_error"),
             )
 
         payment_service = PaymentService(session)
@@ -1218,7 +1245,7 @@ async def repay_renewal_momo(
         logger.error(f">>> Error creating MoMo renewal repayment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating MoMo renewal repayment",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -1231,6 +1258,7 @@ async def repay_renewal_momo(
 async def vnpay_renewal_return(
     request: Request,
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Handle VNPay redirect after renewal payment.
@@ -1238,6 +1266,7 @@ async def vnpay_renewal_return(
     Args:
         request: HTTP request object
         session: Database session
+        translator: Translator object
 
     Returns:
         CallbackResponse: Response with verification result and VPS info
@@ -1287,7 +1316,7 @@ async def vnpay_renewal_return(
         logger.error(f">>> VNPay renewal return error: {str(e)}")
         return CallbackResponse(
             valid=False,
-            error="An error occurred while processing VNPay renewal return",
+            error=translator.t("errors.internal_server"),
         )
 
 
@@ -1300,6 +1329,7 @@ async def vnpay_renewal_return(
 async def momo_renewal_return(
     request: Request,
     session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Handle MoMo redirect after renewal payment.
@@ -1307,6 +1337,7 @@ async def momo_renewal_return(
     Args:
         request: HTTP request object containing query parameters from MoMo redirect
         session: Database session
+        translator: Translator object
 
     Returns:
         CallbackResponse: Response with verification result and VPS info
@@ -1372,5 +1403,5 @@ async def momo_renewal_return(
         logger.error(f">>> MoMo renewal return error: {str(e)}")
         return CallbackResponse(
             valid=False,
-            error="An error occurred while processing MoMo renewal return",
+            error=translator.t("errors.internal_server"),
         )

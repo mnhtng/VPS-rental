@@ -1,6 +1,7 @@
 "use client"
 
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
+import { useTranslations } from "next-intl"
 import { VPSRRDDataPoint } from "@/types/types"
 import { Loader } from "lucide-react"
 
@@ -10,6 +11,8 @@ interface UsageChartProps {
 }
 
 export function UsageChart({ data, loading = false }: UsageChartProps) {
+  const t = useTranslations("usage_chart")
+
   // Process RRD data to chart format
   const chartData = data.map((point: VPSRRDDataPoint) => {
     const date = new Date(point.time * 1000)
@@ -34,7 +37,7 @@ export function UsageChart({ data, loading = false }: UsageChartProps) {
         <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/50 backdrop-blur-sm rounded-lg">
           <div className="flex flex-col items-center gap-3">
             <Loader className="h-8 w-8 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground font-medium">Loading chart data...</p>
+            <p className="text-sm text-muted-foreground font-medium">{t('loading')}</p>
           </div>
         </div>
       </div>
@@ -60,8 +63,8 @@ export function UsageChart({ data, loading = false }: UsageChartProps) {
           </svg>
         </div>
         <div className="text-center space-y-1">
-          <p className="text-sm font-medium text-foreground">No data available</p>
-          <p className="text-xs text-muted-foreground">Chart data will appear here when available</p>
+          <p className="text-sm font-medium text-foreground">{t('no_data')}</p>
+          <p className="text-xs text-muted-foreground">{t('no_data_desc')}</p>
         </div>
       </div>
     )
@@ -107,7 +110,7 @@ export function UsageChart({ data, loading = false }: UsageChartProps) {
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
-            name="CPU Usage"
+            name={t('cpu_usage')}
           />
           <Line
             type="monotone"
@@ -116,7 +119,7 @@ export function UsageChart({ data, loading = false }: UsageChartProps) {
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
-            name="Memory Usage"
+            name={t('memory_usage')}
           />
         </LineChart>
       </ResponsiveContainer>

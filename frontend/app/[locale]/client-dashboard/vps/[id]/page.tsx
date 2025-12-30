@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -22,11 +22,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatDateTime } from "@/utils/string"
+import { formatDateTime, getDiskSize, getNetworkSpeed } from "@/utils/string"
 import { VPSSnapshot } from "@/types/types"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function VPSDetail() {
+  const t = useTranslations('vps_detail')
   const params = useParams();
   const locale = useLocale();
   const vpsId = params.id as string;
@@ -103,8 +104,8 @@ export default function VPSDetail() {
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
 
-      toast.error('Failed to fetch VPS info', {
-        description: "Please try again later"
+      toast.error(t('toast.fetch_failed'), {
+        description: t('toast.try_again')
       })
       setLoading(false)
     }
@@ -128,8 +129,8 @@ export default function VPSDetail() {
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
 
-      toast.error('Failed to fetch VPS RRD data', {
-        description: "Please try again later"
+      toast.error(t('toast.rrd_failed'), {
+        description: t('toast.try_again')
       })
       setRrdLoading(false)
     }
@@ -148,13 +149,13 @@ export default function VPSDetail() {
       } else {
         setSnapshots(result.data || null)
       }
+      setSnapshotsLoading(false)
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
 
-      toast.error('Failed to fetch snapshots', {
-        description: "Please try again later"
+      toast.error(t('toast.snapshots_failed'), {
+        description: t('toast.try_again')
       })
-    } finally {
       setSnapshotsLoading(false)
     }
   }
@@ -199,22 +200,6 @@ export default function VPSDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vpsInfo?.vm_info.status])
 
-  const getNetworkSpeed = (mbps: number) => {
-    if (mbps >= 1000) {
-      const gbps = (mbps / 1000).toFixed(1);
-      return `${gbps} Gbps`;
-    }
-    return `${mbps} Mbps`;
-  };
-
-  const getDiskSize = (storage_gb: number, storage_type?: string) => {
-    if (storage_gb >= 1000) {
-      const tb = (storage_gb / 1000).toFixed(1);
-      return `${tb} TB ${storage_type || ''}`;
-    }
-    return `${storage_gb} GB ${storage_type || ''}`;
-  }
-
   const formatUptime = (uptime: number) => {
     const d = Math.floor(uptime / 86400)
     const h = Math.floor((uptime % 86400) / 3600)
@@ -235,8 +220,8 @@ export default function VPSDetail() {
     }
 
     setActionLoading(true)
-    toast.info('Performing action...', {
-      description: 'Please wait a moment'
+    toast.info(t('toast.action_performing'), {
+      description: t('toast.action_wait')
     })
 
     try {
@@ -252,8 +237,8 @@ export default function VPSDetail() {
           description: result.error.detail
         })
       } else {
-        toast.success('Success', {
-          description: "Please wait a moment for the system to update the new status"
+        toast.success(t('toast.action_success'), {
+          description: t('toast.action_success_description')
         })
 
         setTimeout(() => {
@@ -265,8 +250,8 @@ export default function VPSDetail() {
             : 10000)
       }
     } catch {
-      toast.error('Failed to perform action', {
-        description: "Please try again later"
+      toast.error(t('toast.action_failed'), {
+        description: t('toast.try_again')
       })
       setActionLoading(false)
     }
@@ -274,14 +259,14 @@ export default function VPSDetail() {
 
   const handleCreateSnapshot = async () => {
     if (!newSnapshotName.trim()) {
-      toast.error('Snapshot name is required')
+      toast.error(t('toast.snapshot_name_required'))
       return
     }
 
     const nameRegex = /^[a-zA-Z0-9_-]+$/
     if (!nameRegex.test(newSnapshotName)) {
-      toast.error('Invalid snapshot name', {
-        description: 'Only alphanumeric characters, hyphens, and underscores are allowed'
+      toast.error(t('toast.snapshot_name_invalid'), {
+        description: t('toast.snapshot_name_invalid_description')
       })
       return
     }
@@ -296,8 +281,8 @@ export default function VPSDetail() {
           description: result.error.detail
         })
       } else {
-        toast.success('Snapshot creation initiated', {
-          description: 'Please wait a few minutes for the snapshot to be created'
+        toast.success(t('toast.snapshot_create_initiated'), {
+          description: t('toast.snapshot_create_wait')
         })
 
         setCreateDialogOpen(false)
@@ -306,8 +291,8 @@ export default function VPSDetail() {
         setTimeout(() => fetchSnapshots(), 3000)
       }
     } catch {
-      toast.error('Failed to create snapshot', {
-        description: "Please try again later"
+      toast.error(t('toast.snapshot_create_failed'), {
+        description: t('toast.try_again')
       })
     } finally {
       setSnapshotActionLoading(null)
@@ -325,13 +310,13 @@ export default function VPSDetail() {
           description: result.error.detail
         })
       } else {
-        toast.success('Snapshot restore initiated', {
-          description: 'Please wait a few minutes for the VPS to be restored'
+        toast.success(t('toast.snapshot_restore_initiated'), {
+          description: t('toast.snapshot_restore_wait')
         })
       }
     } catch {
-      toast.error('Failed to restore snapshot', {
-        description: "Please try again later"
+      toast.error(t('toast.snapshot_restore_failed'), {
+        description: t('toast.try_again')
       })
     } finally {
       setSnapshotActionLoading(null)
@@ -349,14 +334,14 @@ export default function VPSDetail() {
           description: result.error.detail
         })
       } else {
-        toast.success('Snapshot deletion initiated', {
-          description: 'Please wait a few minutes for the snapshot to be deleted'
+        toast.success(t('toast.snapshot_delete_initiated'), {
+          description: t('toast.snapshot_delete_wait')
         })
         setTimeout(() => fetchSnapshots(), 2000)
       }
     } catch {
-      toast.error('Failed to delete snapshot', {
-        description: "Please try again later"
+      toast.error(t('toast.snapshot_delete_failed'), {
+        description: t('toast.try_again')
       })
     } finally {
       setSnapshotActionLoading(null)
@@ -455,7 +440,7 @@ export default function VPSDetail() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {vpsInfo?.vm?.hostname || 'Configuring...'}
+                  {vpsInfo?.vm?.hostname || t('configuring')}
                 </h1>
                 <div className="flex items-center gap-2">
                   <div
@@ -470,12 +455,12 @@ export default function VPSDetail() {
                     'hidden sm:inline-flex',
                     vpsInfo.vm_info.status === 'running' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
                   )}>
-                    {vpsInfo.vm_info.status === 'running' ? 'Running' : vpsInfo.vm_info.status === 'stopped' ? 'Stopped' : vpsInfo.vm_info.status}
+                    {vpsInfo.vm_info.status === 'running' ? t('status.running') : vpsInfo.vm_info.status === 'stopped' ? t('status.stopped') : vpsInfo.vm_info.status}
                   </Badge>
                 </div>
               </div>
               <p className="text-muted-foreground mt-1">
-                {vpsInfo.vm_info?.ostype.toUpperCase() || 'N/A'} • {vpsInfo.vm?.vcpu || 0} vCPU • {vpsInfo.vm?.ram_gb || 0}GB RAM • {getDiskSize(vpsInfo.vm?.storage_gb || 0, vpsInfo.vm?.storage_type)} • {getNetworkSpeed(vpsInfo.vm?.bandwidth_mbps || 0)} Network
+                {vpsInfo.vm_info?.ostype.toUpperCase() || 'N/A'} • {vpsInfo.vm?.vcpu || 0} {t('specs.vcpu')} • {vpsInfo.vm?.ram_gb || 0}{t('specs.ram')} • {getDiskSize(vpsInfo.vm?.storage_gb || 0, vpsInfo.vm?.storage_type)} • {getNetworkSpeed(vpsInfo.vm?.bandwidth_mbps || 0)}
               </p>
             </div>
 
@@ -488,7 +473,7 @@ export default function VPSDetail() {
                   onClick={() => handleActionVM('stop')}
                 >
                   <Square className="mr-0 sm:mr-2 h-4 w-4" />
-                  <span>Stop</span>
+                  <span>{t('actions.stop')}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -497,7 +482,7 @@ export default function VPSDetail() {
                   onClick={() => handleActionVM('reboot')}
                 >
                   <RefreshCw className={`mr-0 sm:mr-2 h-4 w-4 ${actionLoading ? 'animate-spin' : ''}`} />
-                  <span>Reboot</span>
+                  <span>{t('actions.reboot')}</span>
                 </Button>
                 <Button
                   className="bg-linear-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 hover:scale-105 transition-all"
@@ -505,7 +490,7 @@ export default function VPSDetail() {
                   onClick={() => handleActionVM('start')}
                 >
                   <Power className="mr-0 sm:mr-2 h-4 w-4" />
-                  <span>Start</span>
+                  <span>{t('actions.start')}</span>
                 </Button>
               </div>
             )}
@@ -520,15 +505,15 @@ export default function VPSDetail() {
                     <AlertTriangle className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-amber-700 dark:text-amber-500">VPS Suspended</h3>
+                    <h3 className="font-semibold text-amber-700 dark:text-amber-500">{t('suspension.title')}</h3>
                     <p className="text-sm text-amber-600/80 dark:text-amber-400/80">
-                      Your VPS has been suspended due to expiration. Please renew to restore access and resume operations.
+                      {t('suspension.description')}
                     </p>
                   </div>
                 </div>
                 <Button asChild className="bg-amber-500 hover:bg-amber-600 text-white shrink-0">
                   <Link href={`/${locale}/client-dashboard/billing`}>
-                    Renew Now
+                    {t('suspension.renew_now')}
                   </Link>
                 </Button>
               </CardContent>
@@ -538,9 +523,9 @@ export default function VPSDetail() {
           <Tabs defaultValue="overview" className="space-y-4">
             {vpsInfo.vm?.vps_instance?.status !== 'suspended' && (
               <TabsList className="w-full justify-start overflow-x-auto">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="console">Console (VNC)</TabsTrigger>
-                <TabsTrigger value="snapshots">Snapshots</TabsTrigger>
+                <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
+                <TabsTrigger value="console">{t('tabs.console')}</TabsTrigger>
+                <TabsTrigger value="snapshots">{t('tabs.snapshots')}</TabsTrigger>
               </TabsList>
             )}
 
@@ -548,48 +533,48 @@ export default function VPSDetail() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '0ms' }}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">CPU Usage</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('overview.cpu_usage')}</CardTitle>
                     <Activity className="h-4 w-4 text-blue-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-blue-600">{cpu_usage || '0'}%</div>
-                    <p className="text-xs text-muted-foreground">of {max_cpu || 0} Cores</p>
+                    <p className="text-xs text-muted-foreground">{t('overview.of_cores', { count: max_cpu || 0 })}</p>
                   </CardContent>
                 </Card>
                 <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '50ms' }}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Memory</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('overview.memory')}</CardTitle>
                     <Activity className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-green-600">
                       {memory_usage || '0'}%
                     </div>
-                    <p className="text-xs text-muted-foreground">of {max_memory || 0} GB</p>
+                    <p className="text-xs text-muted-foreground">{t('overview.of_gb', { count: max_memory || 0 })}</p>
                   </CardContent>
                 </Card>
                 <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '100ms' }}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Disk Usage</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('overview.disk_usage')}</CardTitle>
                     <HardDrive className="h-4 w-4 text-purple-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-purple-600">
                       {disk_usage || '0'}%
                     </div>
-                    <p className="text-xs text-muted-foreground">of {max_disk}</p>
+                    <p className="text-xs text-muted-foreground">{t('overview.of_disk', { size: max_disk })}</p>
                   </CardContent>
                 </Card>
                 <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '150ms' }}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Network</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('overview.network')}</CardTitle>
                     <Network className="h-4 w-4 text-orange-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-orange-600">
                       {network_rate}
                     </div>
-                    <p className="text-xs text-muted-foreground">Current rate</p>
+                    <p className="text-xs text-muted-foreground">{t('overview.current_rate')}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -597,8 +582,8 @@ export default function VPSDetail() {
               <div className="grid gap-4 lg:grid-cols-7">
                 <Card className="lg:col-span-4 animate-in fade-in slide-in-from-left-4 duration-500">
                   <CardHeader>
-                    <CardTitle>Performance (Last 24h)</CardTitle>
-                    <CardDescription>Real-time data from Proxmox RRD</CardDescription>
+                    <CardTitle>{t('overview.performance_title')}</CardTitle>
+                    <CardDescription>{t('overview.performance_description')}</CardDescription>
                   </CardHeader>
                   <CardContent className="pl-2">
                     <UsageChart data={rrdData} loading={rrdLoading} />
@@ -606,19 +591,19 @@ export default function VPSDetail() {
                 </Card>
                 <Card className="lg:col-span-3 animate-in fade-in slide-in-from-right-4 duration-500">
                   <CardHeader>
-                    <CardTitle>Details</CardTitle>
+                    <CardTitle>{t('overview.details')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="text-muted-foreground">VM ID</div>
+                      <div className="text-muted-foreground">{t('overview.vm_id')}</div>
                       <div className="font-medium">{vpsInfo.vm?.vmid || 'N/A'}</div>
-                      <div className="text-muted-foreground">Node</div>
+                      <div className="text-muted-foreground">{t('overview.node')}</div>
                       <div className="font-medium">{vpsInfo.node_name || 'N/A'}</div>
-                      <div className="text-muted-foreground">IP Address</div>
-                      <div className="font-medium font-mono">{vpsInfo.vm?.ip_address || 'Pending'}</div>
-                      <div className="text-muted-foreground">MAC Address</div>
+                      <div className="text-muted-foreground">{t('overview.ip_address')}</div>
+                      <div className="font-medium font-mono">{vpsInfo.vm?.ip_address || t('overview.pending')}</div>
+                      <div className="text-muted-foreground">{t('overview.mac_address')}</div>
                       <div className="font-medium font-mono">{vpsInfo.vm?.mac_address || 'N/A'}</div>
-                      <div className="text-muted-foreground">Uptime</div>
+                      <div className="text-muted-foreground">{t('overview.uptime')}</div>
                       <div className="font-medium">{formatUptime(vpsInfo.vm_info?.uptime) || 'N/A'}</div>
                     </div>
                   </CardContent>
@@ -639,10 +624,10 @@ export default function VPSDetail() {
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <Camera className="h-5 w-5 text-blue-600" />
-                        Snapshots
+                        {t('snapshots.title')}
                       </CardTitle>
                       <CardDescription className="mt-1">
-                        Create restore points for your VPS. Used {snapshots?.total}/{snapshots?.max_snapshots} snapshots.
+                        {t('snapshots.description', { used: snapshots?.total || 0, max: snapshots?.max_snapshots || 0 })}
                       </CardDescription>
                     </div>
                     <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -651,40 +636,40 @@ export default function VPSDetail() {
                           className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:scale-105 transition-all"
                           disabled={snapshots && snapshots?.total >= snapshots?.max_snapshots || snapshotActionLoading !== null}
                         >
-                          <Plus className="mr-2 h-4 w-4" /> Create Snapshot
+                          <Plus className="mr-2 h-4 w-4" /> {t('snapshots.create_button')}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
                             <Camera className="h-5 w-5 text-blue-600" />
-                            Create New Snapshot
+                            {t('snapshots.create_title')}
                           </DialogTitle>
                           <DialogDescription>
-                            Snapshot will save the current state of your VPS, allowing you to restore to this point later.
+                            {t('snapshots.create_description')}
                           </DialogDescription>
                         </DialogHeader>
                         <ScrollArea className="flex-1 overflow-y-auto">
                           <ScrollArea className="py-4">
                             <div className="grid gap-4 py-4 px-1">
                               <div className="grid gap-2">
-                                <Label htmlFor="snapshot-name">Snapshot name *</Label>
+                                <Label htmlFor="snapshot-name">{t('snapshots.name_label')}</Label>
                                 <Input
                                   id="snapshot-name"
-                                  placeholder="e.g. before-update-v2"
+                                  placeholder={t('snapshots.name_placeholder')}
                                   value={newSnapshotName}
                                   onChange={(e) => setNewSnapshotName(e.target.value)}
                                   maxLength={40}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                  Only letters, numbers, hyphens and underscores allowed
+                                  {t('snapshots.name_hint')}
                                 </p>
                               </div>
                               <div className="grid gap-2">
-                                <Label htmlFor="snapshot-desc">Description (optional)</Label>
+                                <Label htmlFor="snapshot-desc">{t('snapshots.description_label')}</Label>
                                 <Textarea
                                   id="snapshot-desc"
-                                  placeholder="Describe this snapshot..."
+                                  placeholder={t('snapshots.description_placeholder')}
                                   value={newSnapshotDescription}
                                   onChange={(e) => setNewSnapshotDescription(e.target.value)}
                                   maxLength={500}
@@ -699,7 +684,7 @@ export default function VPSDetail() {
                               onClick={() => setCreateDialogOpen(false)}
                               disabled={snapshotActionLoading === 'create'}
                             >
-                              Cancel
+                              {t('snapshots.cancel')}
                             </Button>
                             <Button
                               onClick={handleCreateSnapshot}
@@ -709,12 +694,12 @@ export default function VPSDetail() {
                               {snapshotActionLoading === 'create' ? (
                                 <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Creating...
+                                  {t('snapshots.creating')}
                                 </>
                               ) : (
                                 <>
                                   <Plus className="mr-2 h-4 w-4" />
-                                  Create Snapshot
+                                  {t('snapshots.create_button')}
                                 </>
                               )}
                             </Button>
@@ -745,15 +730,15 @@ export default function VPSDetail() {
                       <div className="rounded-full bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 p-4 mb-4">
                         <Camera className="h-8 w-8 text-blue-600" />
                       </div>
-                      <h3 className="text-lg font-semibold mb-2">No snapshots yet</h3>
+                      <h3 className="text-lg font-semibold mb-2">{t('snapshots.no_snapshots')}</h3>
                       <p className="text-sm text-muted-foreground mb-4 max-w-sm">
-                        Create a snapshot to save your VPS state and restore anytime
+                        {t('snapshots.no_snapshots_description')}
                       </p>
                       <Button
                         onClick={() => setCreateDialogOpen(true)}
                         className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                       >
-                        <Plus className="mr-2 h-4 w-4" /> Create first snapshot
+                        <Plus className="mr-2 h-4 w-4" /> {t('snapshots.create_first')}
                       </Button>
                     </div>
                   ) : (
@@ -772,7 +757,7 @@ export default function VPSDetail() {
                               <p className="font-medium">{snap.name}</p>
                               <p className="text-sm text-muted-foreground">
                                 {formatSnapshotDate(snap.snaptime)}
-                                {snap.vmstate ? ' • With RAM state' : ' • Without RAM state'}
+                                {snap.vmstate ? ` • ${t('snapshots.with_ram')}` : ` • ${t('snapshots.without_ram')}`}
                               </p>
                               {snap.description && (
                                 <p className="text-sm text-muted-foreground mt-1 max-w-md truncate">
@@ -795,31 +780,31 @@ export default function VPSDetail() {
                                   ) : (
                                     <RotateCcw className="mr-1 h-3 w-3" />
                                   )}
-                                  Rollback
+                                  {t('snapshots.rollback')}
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="flex items-center gap-2">
                                     <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                                    Confirm Rollback
+                                    {t('snapshots.confirm_rollback')}
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    You are about to restore VPS to snapshot <strong>&quot;{snap.name}&quot;</strong>.
+                                    {t('snapshots.rollback_description')} <strong>&quot;{snap.name}&quot;</strong>.
                                     <br /><br />
                                     <span className="text-yellow-600 dark:text-yellow-500 font-medium">
-                                      ⚠️ Warning: All changes made after the snapshot ({formatSnapshotDate(snap.snaptime)}) will be permanently lost!
+                                      ⚠️ {t('snapshots.rollback_warning', { date: formatSnapshotDate(snap.snaptime) })}
                                     </span>
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogCancel>{t('snapshots.cancel')}</AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => handleRestoreSnapshot(snap.name)}
                                     className="bg-blue-600 hover:bg-blue-700"
                                   >
                                     <RotateCcw className="mr-2 h-4 w-4" />
-                                    Confirm Rollback
+                                    {t('snapshots.confirm_rollback')}
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -838,31 +823,31 @@ export default function VPSDetail() {
                                   ) : (
                                     <Trash2 className="mr-1 h-3 w-3" />
                                   )}
-                                  Delete
+                                  {t('snapshots.delete')}
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="flex items-center gap-2 text-red-600">
                                     <AlertTriangle className="h-5 w-5" />
-                                    Confirm Delete Snapshot
+                                    {t('snapshots.confirm_delete')}
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete snapshot <strong>&quot;{snap.name}&quot;</strong>?
+                                    {t('snapshots.delete_question')} <strong>&quot;{snap.name}&quot;</strong>?
                                     <br /><br />
                                     <span className="text-red-600 dark:text-red-500 font-medium">
-                                      This action cannot be undone!
+                                      {t('snapshots.delete_warning')}
                                     </span>
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogCancel>{t('snapshots.cancel')}</AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => handleDeleteSnapshot(snap.name)}
                                     className="bg-red-600 hover:bg-red-700"
                                   >
                                     <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete Snapshot
+                                    {t('snapshots.delete_snapshot')}
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -875,7 +860,7 @@ export default function VPSDetail() {
                         <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-500 text-sm">
                           <AlertTriangle className="h-4 w-4 shrink-0" />
                           <span>
-                            You have reached the limit of {snapshots?.max_snapshots} snapshots. Please delete old snapshots to create new ones.
+                            {t('snapshots.limit_reached', { max: snapshots?.max_snapshots || 0 })}
                           </span>
                         </div>
                       )}
@@ -891,8 +876,8 @@ export default function VPSDetail() {
           <div className="rounded-full bg-linear-to-br from-blue-100 to-purple-100 p-6 mb-4">
             <Server className="h-16 w-16 text-blue-600" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">VPS not found</h3>
-          <p className="text-muted-foreground mb-6">Could not find information for this VPS</p>
+          <h3 className="text-lg font-semibold mb-2">{t('not_found.title')}</h3>
+          <p className="text-muted-foreground mb-6">{t('not_found.description')}</p>
         </div>
       )}
     </div>

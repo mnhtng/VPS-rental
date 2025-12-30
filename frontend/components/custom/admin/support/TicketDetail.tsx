@@ -40,6 +40,7 @@ import {
 import { cn } from "@/lib/utils"
 import { formatDateTime } from "@/utils/string"
 import { SupportTicket, TicketReply } from "@/types/types"
+import { useTranslations } from "next-intl"
 
 export const TicketDetailSheet = ({
     ticket,
@@ -58,6 +59,8 @@ export const TicketDetailSheet = ({
     isUpdatingStatus: boolean
     isSendingReply: boolean
 }) => {
+    const t = useTranslations('admin.components.ticket_detail')
+    const tCommon = useTranslations('admin.components.common')
     const [replyMessage, setReplyMessage] = useState('')
 
     const getStatusConfig = (status: string) => {
@@ -118,10 +121,10 @@ export const TicketDetailSheet = ({
                     <SheetHeader className="text-left">
                         <SheetTitle className="text-xl flex items-center gap-2">
                             <Headset className="h-5 w-5 text-cyan-500" />
-                            Ticket Details
+                            {t('title')}
                         </SheetTitle>
                         <SheetDescription>
-                            View and respond to support requests
+                            {t('description')}
                         </SheetDescription>
                     </SheetHeader>
                 </div>
@@ -154,13 +157,13 @@ export const TicketDetailSheet = ({
                     <div className="p-6 space-y-6">
                         {/* User & Contact Info */}
                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '50ms' }}>
-                            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Sender Information</h4>
+                            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('customer_info')}</h4>
                             <div className="grid gap-3 bg-muted/50 rounded-lg p-4">
                                 <div className="flex items-center gap-3 text-sm">
                                     <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
                                         <User className="h-4 w-4 text-blue-500" />
                                     </div>
-                                    <span>{ticket.user?.name || 'N/A'}</span>
+                                    <span>{ticket.user?.name || tCommon('na')}</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm">
                                     <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
@@ -187,7 +190,7 @@ export const TicketDetailSheet = ({
                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '100ms' }}>
                             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                                 <Tag className="h-4 w-4" />
-                                Update Status
+                                {t('update_status')}
                             </h4>
                             <Select
                                 value={ticket.status}
@@ -230,7 +233,7 @@ export const TicketDetailSheet = ({
                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '150ms' }}>
                             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                                 <MessageSquare className="h-4 w-4" />
-                                Conversation ({(ticket.replies?.length || 0) + 1} messages)
+                                {t('conversation')} ({(ticket.replies?.length || 0) + 1} messages)
                             </h4>
                             <div className="border rounded-lg p-4 bg-muted/30 max-h-80 overflow-y-auto space-y-4">
                                 {/* Initial message from user */}
@@ -307,10 +310,10 @@ export const TicketDetailSheet = ({
                         {ticket.status !== 'closed' && (
                             <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '200ms' }}>
                                 <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                                    Reply
+                                    {t('reply')}
                                 </h4>
                                 <Textarea
-                                    placeholder="Enter your reply..."
+                                    placeholder={t('type_reply')}
                                     value={replyMessage}
                                     onChange={(e) => setReplyMessage(e.target.value)}
                                     className="resize-none"
@@ -324,12 +327,12 @@ export const TicketDetailSheet = ({
                                     {isSendingReply ? (
                                         <>
                                             <Loader className="h-4 w-4 animate-spin mr-2" />
-                                            Sending...
+                                            {t('sending')}
                                         </>
                                     ) : (
                                         <>
                                             <Send className="h-4 w-4 mr-2" />
-                                            Send Reply
+                                            {t('send_reply')}
                                         </>
                                     )}
                                 </Button>
@@ -340,7 +343,7 @@ export const TicketDetailSheet = ({
 
                 <SheetFooter className="px-6 pb-6">
                     <SheetClose asChild>
-                        <Button variant="outline" className="w-full">Close</Button>
+                        <Button variant="outline" className="w-full">{tCommon('close')}</Button>
                     </SheetClose>
                 </SheetFooter>
             </SheetContent>

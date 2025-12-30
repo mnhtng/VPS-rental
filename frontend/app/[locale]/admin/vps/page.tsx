@@ -30,8 +30,11 @@ import Pagination from "@/components/ui/pagination"
 import useAdminVPS from "@/hooks/useAdminVPS"
 import { VPSInstance, VPSStatistics } from "@/types/types"
 import { VPSDetailSheet } from "@/components/custom/admin/vps/VPSDetail"
+import { useTranslations } from "next-intl"
 
 const VPSPage = () => {
+    const tCommon = useTranslations('common')
+    const t = useTranslations('admin.vps')
     const { getAllVps, getVpsStatistics, adminStartVps, adminStopVps, adminRebootVps } = useAdminVPS()
 
     const [vpsList, setVpsList] = useState<VPSInstance[]>([])
@@ -67,13 +70,13 @@ const VPSPage = () => {
                 setFilteredVpsList(vpsRes.data || [])
                 setStatistics(statsRes.data || null)
             }
+            setIsLoading(false)
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return
 
-            toast.error('Failed to fetch VPS data', {
-                description: "Please try again later",
+            toast.error(t('toast.fetch_failed'), {
+                description: t('toast.fetch_failed'),
             })
-        } finally {
             setIsLoading(false)
         }
     }
@@ -101,35 +104,35 @@ const VPSPage = () => {
                 return (
                     <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-0">
                         <div className="w-2 h-2 rounded-full bg-green-500 mr-1.5 animate-pulse" />
-                        Active
+                        {t('status.active')}
                     </Badge>
                 )
             case 'suspended':
                 return (
                     <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-0">
                         <div className="w-2 h-2 rounded-full bg-yellow-500 mr-1.5" />
-                        Suspended
+                        {t('status.suspended')}
                     </Badge>
                 )
             case 'terminated':
                 return (
                     <Badge className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border-0">
                         <div className="w-2 h-2 rounded-full bg-red-500 mr-1.5" />
-                        Terminated
+                        {t('status.terminated')}
                     </Badge>
                 )
             case 'creating':
                 return (
                     <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-0">
                         <div className="w-2 h-2 rounded-full bg-blue-500 mr-1.5 animate-pulse" />
-                        Creating
+                        {t('status.creating')}
                     </Badge>
                 )
             case 'error':
                 return (
                     <Badge className="bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 border-0">
                         <div className="w-2 h-2 rounded-full bg-orange-500 mr-1.5" />
-                        Error
+                        {t('status.error')}
                     </Badge>
                 )
             default:
@@ -197,11 +200,11 @@ const VPSPage = () => {
             if (result.error) {
                 toast.error(result.message, { description: result.error.detail })
             } else {
-                toast.success(result.message || 'VPS started successfully')
+                toast.success(result.message || t('toast.start_success'))
                 fetchVpsData()
             }
         } catch {
-            toast.error('Failed to start VPS')
+            toast.error(t('toast.start_failed'))
         } finally {
             setIsActionLoading(null)
         }
@@ -215,11 +218,11 @@ const VPSPage = () => {
             if (result.error) {
                 toast.error(result.message, { description: result.error.detail })
             } else {
-                toast.success(result.message || 'VPS stopped successfully')
+                toast.success(result.message || t('toast.stop_success'))
                 fetchVpsData()
             }
         } catch {
-            toast.error('Failed to stop VPS')
+            toast.error(t('toast.stop_failed'))
         } finally {
             setIsActionLoading(null)
         }
@@ -233,11 +236,11 @@ const VPSPage = () => {
             if (result.error) {
                 toast.error(result.message, { description: result.error.detail })
             } else {
-                toast.success(result.message || 'VPS reboot initiated')
+                toast.success(result.message || t('toast.reboot_success'))
                 fetchVpsData()
             }
         } catch {
-            toast.error('Failed to reboot VPS')
+            toast.error(t('toast.reboot_failed'))
         } finally {
             setIsActionLoading(null)
         }
@@ -258,7 +261,7 @@ const VPSPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Total VPS</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.total')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -275,7 +278,7 @@ const VPSPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Active</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.active')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -292,7 +295,7 @@ const VPSPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Suspended</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.suspended')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -309,7 +312,7 @@ const VPSPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Terminated</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.terminated')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -330,7 +333,7 @@ const VPSPage = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         ref={searchRef}
-                        placeholder="Search VPS..."
+                        placeholder={t('filter.search')}
                         className="pl-10"
                         onChange={debounce(handleSearch, 300)}
                     />
@@ -339,15 +342,15 @@ const VPSPage = () => {
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Status" />
+                            <SelectValue placeholder={t('filter.placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="active">Running</SelectItem>
-                            <SelectItem value="suspended">Suspended</SelectItem>
-                            <SelectItem value="terminated">Terminated</SelectItem>
-                            <SelectItem value="creating">Creating</SelectItem>
-                            <SelectItem value="error">Error</SelectItem>
+                            <SelectItem value="all">{t('filter.all')}</SelectItem>
+                            <SelectItem value="active">{t('filter.running')}</SelectItem>
+                            <SelectItem value="suspended">{t('filter.suspended')}</SelectItem>
+                            <SelectItem value="terminated">{t('filter.terminated')}</SelectItem>
+                            <SelectItem value="creating">{t('filter.creating')}</SelectItem>
+                            <SelectItem value="error">{t('filter.error')}</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -356,7 +359,7 @@ const VPSPage = () => {
                         size="icon"
                         onClick={() => fetchVpsData()}
                         disabled={isLoading}
-                        title="Refresh"
+                        title={t('filter.refresh')}
                     >
                         <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
                     </Button>
@@ -368,22 +371,22 @@ const VPSPage = () => {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Server className="h-5 w-5 text-blue-500" />
-                        VPS List
+                        {t('title')}
                     </CardTitle>
                 </CardHeader>
                 <div className="overflow-x-auto px-3">
                     <Table>
                         <TableHeader className="bg-secondary">
                             <TableRow>
-                                <TableHead className="hidden sm:table-cell">VMID</TableHead>
-                                <TableHead>Hostname</TableHead>
-                                <TableHead className="hidden lg:table-cell">IP Address</TableHead>
-                                <TableHead className="hidden md:table-cell">OS</TableHead>
-                                <TableHead className="hidden xl:table-cell">Plan</TableHead>
-                                <TableHead className="hidden lg:table-cell">User</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="hidden md:table-cell">Expires</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead className="hidden sm:table-cell">{t('table.vmid')}</TableHead>
+                                <TableHead>{t('table.hostname')}</TableHead>
+                                <TableHead className="hidden lg:table-cell">{t('table.ip_address')}</TableHead>
+                                <TableHead className="hidden md:table-cell">{t('table.os')}</TableHead>
+                                <TableHead className="hidden xl:table-cell">{t('table.plan')}</TableHead>
+                                <TableHead className="hidden lg:table-cell">{t('table.user')}</TableHead>
+                                <TableHead>{t('table.status')}</TableHead>
+                                <TableHead className="hidden md:table-cell">{t('table.expires')}</TableHead>
+                                <TableHead className="text-right">{t('table.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -444,7 +447,7 @@ const VPSPage = () => {
                             ) : filteredVpsList.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={9} className="text-center py-10 text-muted-foreground">
-                                        No VPS found
+                                        {t('table.no_vps')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -515,7 +518,7 @@ const VPSPage = () => {
                     endIndex={Math.min(endIndex, totalItems)}
                     onPageChange={setCurrentPage}
                     onItemsPerPageChange={setItemsPerPage}
-                    itemLabel="VPS"
+                    itemLabel={tCommon('vps')}
                 />
             )}
         </div>

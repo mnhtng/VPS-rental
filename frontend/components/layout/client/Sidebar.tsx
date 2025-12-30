@@ -16,42 +16,43 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
-import { useLocale } from "next-intl"
-
-const routes = [
-    {
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        href: "/client-dashboard",
-        color: "text-sky-500",
-    },
-    {
-        label: "VPS",
-        icon: Server,
-        href: "/client-dashboard/vps",
-        color: "text-violet-500",
-    },
-    {
-        label: "Billing",
-        icon: CreditCard,
-        href: "/client-dashboard/billing",
-        color: "text-pink-700",
-    }
-]
-
-const bottomRoutes = [
-    {
-        label: "Support",
-        icon: LifeBuoy,
-        href: "/support",
-        color: "text-orange-500",
-    },
-]
+import { useLocale, useTranslations } from "next-intl"
 
 const ClientSidebar = () => {
     const pathname = usePathname()
     const locale = useLocale()
     const { setOpenMobile } = useSidebar()
+    const t = useTranslations("sidebar")
+
+    const routes = [
+        {
+            label: t('dashboard'),
+            icon: LayoutDashboard,
+            href: "/client-dashboard",
+            color: "text-sky-500",
+        },
+        {
+            label: t('vps'),
+            icon: Server,
+            href: "/client-dashboard/vps",
+            color: "text-violet-500",
+        },
+        {
+            label: t('billing'),
+            icon: CreditCard,
+            href: "/client-dashboard/billing",
+            color: "text-pink-700",
+        }
+    ]
+
+    const bottomRoutes = [
+        {
+            label: t('support'),
+            icon: LifeBuoy,
+            href: "/support",
+            color: "text-orange-500",
+        },
+    ]
 
     const handleLinkClick = () => {
         setOpenMobile(false)

@@ -26,10 +26,10 @@ import { toast } from 'sonner';
 import { formatPrice } from '@/utils/currency';
 import { Label } from '@radix-ui/react-label';
 import useProduct from '@/hooks/useProduct';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { PlanItemPlaceholder } from '@/components/custom/placeholder/vps_plan';
 import { useCart } from '@/contexts/CartContext';
-import { normalizeHostname } from '@/utils/string';
+import { normalizeHostname, getDiskSize, getNetworkSpeed } from '@/utils/string';
 
 const operatingSystemOptions = [
     { value: 'Ubuntu 22.04.5 LTS', label: 'Ubuntu 22.04.5 LTS', template_os: 'linux', template_version: '6.x-2.6' },
@@ -37,26 +37,18 @@ const operatingSystemOptions = [
 ];
 
 const durationOptions = [
-    { value: 1, label: '1 Month', discount: 0 },
-    { value: 3, label: '3 Months', discount: 5 },
-    { value: 6, label: '6 Months', discount: 10 },
-    { value: 12, label: '12 Months', discount: 15 },
-    { value: 24, label: '24 Months', discount: 20 },
-];
-
-const getPlanFeatures = () => [
-    'Full Root Access',
-    'Free DDoS Protection',
-    '24/7 Support',
-    '99.9% Uptime',
-    'Easy Scalability',
-    'Unlimited Bandwidth',
+    { value: 1, labelKey: '1_month', discount: 0 },
+    { value: 3, labelKey: '3_months', discount: 5 },
+    { value: 6, labelKey: '6_months', discount: 10 },
+    { value: 12, labelKey: '12_months', discount: 15 },
+    { value: 24, labelKey: '24_months', discount: 20 },
 ];
 
 const PlanDetailPage = () => {
     const params = useParams();
     const router = useRouter();
-    const locale = useLocale();
+    const t = useTranslations('plan_detail');
+    const tPlans = useTranslations('plans');
     const { getPlanItem, addToCart } = useProduct();
     const { incrementCart } = useCart();
 
@@ -87,8 +79,8 @@ const PlanDetailPage = () => {
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return;
 
-            toast.error("Failed to load plan", {
-                description: "Please try again later",
+            toast.error(t('toast.failed_load'), {
+                description: t('toast.try_again'),
             });
             setPlan(null);
         } finally {
@@ -109,6 +101,20 @@ const PlanDetailPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const getPlanDescription = (planId: string, fallback?: string): string => {
+        try {
+            const translated = tPlans(`plan_data.plan-id-${planId}.description`);
+
+            if (translated.startsWith('plan_data.')) {
+                return fallback || '';
+            }
+
+            return translated;
+        } catch {
+            return fallback || '';
+        }
+    };
+
     if (loading) {
         return (
             <PlanItemPlaceholder />
@@ -121,11 +127,11 @@ const PlanDetailPage = () => {
                 <Card className="text-center p-8">
                     <CardContent>
                         <Server className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                        <h2 className="text-2xl font-bold mb-2">VPS Plan Not Found</h2>
-                        <p className="text-muted-foreground mb-4">The requested VPS plan does not exist.</p>
-                        <Button onClick={() => router.push(`/${locale}/plans`)}>
+                        <h2 className="text-2xl font-bold mb-2">{t('not_found.title')}</h2>
+                        <p className="text-muted-foreground mb-4">{t('not_found.description')}</p>
+                        <Button onClick={() => router.push(`/plans`)}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Plans
+                            {t('not_found.back')}
                         </Button>
                     </CardContent>
                 </Card>
@@ -150,8 +156,8 @@ const PlanDetailPage = () => {
         const normalizedHostname = normalizeHostname(hostname);
 
         if (!normalizedHostname) {
-            toast.error("Invalid hostname", {
-                description: "Please enter a valid hostname for your VPS",
+            toast.error(t('toast.invalid_hostname'), {
+                description: t('toast.hostname_required'),
             });
             return;
         }
@@ -179,12 +185,12 @@ const PlanDetailPage = () => {
                 });
             } else {
                 incrementCart();
-                toast.success("Added to cart successfully");
-                router.push(`/${locale}/cart`);
+                toast.success(t('toast.added_success'));
+                router.push(`/cart`);
             }
         } catch {
-            toast.error("Failed to add to cart", {
-                description: "Please try again later",
+            toast.error(t('toast.add_failed'), {
+                description: t('toast.try_again'),
             });
         } finally {
             setAddingToCart(false);
@@ -194,22 +200,6 @@ const PlanDetailPage = () => {
     const getBadgeVariant = (category: string) => {
         return category === 'basic' ? 'secondary' : category === 'standard' ? 'default' : 'destructive';
     };
-
-    const getNetworkSpeed = (mbps: number) => {
-        if (mbps >= 1000) {
-            const gbps = (mbps / 1000).toFixed(1);
-            return `${gbps} Gbps`;
-        }
-        return `${mbps} Mbps`;
-    };
-
-    const getDiskSize = (storage_gb: number, storage_type?: string) => {
-        if (storage_gb >= 1000) {
-            const tb = (storage_gb / 1000).toFixed(1);
-            return `${tb} TB ${storage_type || ''}`;
-        }
-        return `${storage_gb} GB ${storage_type || ''}`;
-    }
 
     return (
         <div className="min-h-screen">
@@ -232,7 +222,7 @@ const PlanDetailPage = () => {
                                     </div>
                                 </div>
                                 <CardDescription className="text-base sm:text-lg max-w-2xl mx-auto">
-                                    {plan.description}
+                                    {getPlanDescription(plan.id)}
                                 </CardDescription>
                             </CardHeader>
                         </Card>
@@ -241,7 +231,7 @@ const PlanDetailPage = () => {
                         <Card className="border-2 hover:shadow-lg transition-shadow animate-in fade-in slide-in-from-left duration-700">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    Server Specifications
+                                    {t('specs.title')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -249,12 +239,12 @@ const PlanDetailPage = () => {
                                     <div className="text-center p-4 rounded-lg bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 dark:border dark:border-blue-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
                                         <Cpu className="h-8 w-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                         <div className="text-2xl font-bold">{plan.vcpu}</div>
-                                        <div className="text-sm text-muted-foreground">Cores</div>
+                                        <div className="text-sm text-muted-foreground">{t('specs.cores')}</div>
                                     </div>
                                     <div className="text-center p-4 rounded-lg bg-linear-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 dark:border dark:border-green-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
                                         <Zap className="h-8 w-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                         <div className="text-2xl font-bold">{plan.ram_gb} GB</div>
-                                        <div className="text-sm text-muted-foreground">RAM</div>
+                                        <div className="text-sm text-muted-foreground">{t('specs.ram')}</div>
                                     </div>
                                     <div className="text-center p-4 rounded-lg bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 dark:border dark:border-purple-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
                                         <HardDrive className="h-8 w-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
@@ -264,7 +254,7 @@ const PlanDetailPage = () => {
                                     <div className="text-center p-4 rounded-lg bg-linear-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 dark:border dark:border-orange-100/30 hover:scale-105 hover:shadow-md transition-all duration-300 group cursor-pointer">
                                         <Gauge className="h-8 w-8 text-orange-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                         <div className="text-2xl font-bold">{getNetworkSpeed(plan.bandwidth_mbps)}</div>
-                                        <div className="text-sm text-muted-foreground">Network</div>
+                                        <div className="text-sm text-muted-foreground">{t('specs.network')}</div>
                                     </div>
                                 </div>
                             </CardContent>
@@ -274,12 +264,19 @@ const PlanDetailPage = () => {
                         <Card className="border-2 hover:shadow-lg transition-shadow animate-in fade-in slide-in-from-left duration-700 delay-150">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    What&apos;s Included
+                                    {t('features.title')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid md:grid-cols-2 gap-3">
-                                    {getPlanFeatures().map((feature, index) => (
+                                    {[
+                                        t('features.root_access'),
+                                        t('features.ddos'),
+                                        t('features.support'),
+                                        t('features.uptime'),
+                                        t('features.scalability'),
+                                        t('features.bandwidth')
+                                    ].map((feature, index) => (
                                         <div key={index} className="flex items-center gap-3 group">
                                             <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
                                             <span>{feature}</span>
@@ -296,7 +293,7 @@ const PlanDetailPage = () => {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <DollarSign className="h-5 w-5 text-green-600" />
-                                    Order Configuration
+                                    {t('order.title')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
@@ -304,7 +301,7 @@ const PlanDetailPage = () => {
                                 <div className='space-y-2'>
                                     <Label htmlFor='hostname' className="text-sm font-medium inline-flex items-center gap-2">
                                         <Server className="h-4 w-4 text-purple-500" />
-                                        Hostname
+                                        {t('order.hostname')}
                                     </Label>
                                     <input
                                         id="hostname"
@@ -313,7 +310,7 @@ const PlanDetailPage = () => {
                                         value={hostname}
                                         onChange={(e) => setHostname(e.target.value)}
                                         className="w-full px-3 py-2 border border-muted-foreground/70 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-muted-foreground transition-colors duration-200"
-                                        placeholder="e.g., my-vps-server"
+                                        placeholder={t('order.hostname_placeholder')}
                                     />
                                 </div>
 
@@ -321,7 +318,7 @@ const PlanDetailPage = () => {
                                 <div className='space-y-2'>
                                     <Label className="text-sm font-medium inline-flex items-center gap-2">
                                         <MonitorCog className="h-4 w-4 text-orange-500" />
-                                        Operating System
+                                        {t('order.os')}
                                     </Label>
                                     <Select value={selectedOS} onValueChange={setSelectedOS}>
                                         <SelectTrigger className='border-muted-foreground/70'>
@@ -342,7 +339,7 @@ const PlanDetailPage = () => {
                                 <div className='space-y-2'>
                                     <Label className="text-sm font-medium inline-flex items-center gap-2">
                                         <Calendar className="h-4 w-4 text-cyan-500" />
-                                        Billing Period
+                                        {t('order.billing_period')}
                                     </Label>
                                     <Select value={selectedDuration.toString()} onValueChange={(value) => setSelectedDuration(parseInt(value))}>
                                         <SelectTrigger className='border-muted-foreground/70'>
@@ -352,7 +349,7 @@ const PlanDetailPage = () => {
                                             {durationOptions.map((duration) => (
                                                 <SelectItem key={duration.value} value={duration.value.toString()}>
                                                     <div className="flex justify-between items-center w-full">
-                                                        <span>{duration.label}</span>
+                                                        <span>{t(`duration.${duration.labelKey}`)}</span>
                                                         {duration.discount > 0 && (
                                                             <Badge variant="secondary" className="ml-2">
                                                                 -{duration.discount}%
@@ -370,20 +367,20 @@ const PlanDetailPage = () => {
                                 {/* Pricing Summary */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between">
-                                        <span>Monthly Price:</span>
+                                        <span>{t('order.monthly_price')}:</span>
                                         <span>{formatPrice(plan.monthly_price)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span>Duration:</span>
-                                        <span>{selectedDuration} month{selectedDuration > 1 ? 's' : ''}</span>
+                                        <span>{t('order.duration')}:</span>
+                                        <span>{selectedDuration} {selectedDuration > 1 ? t('order.months') : t('order.month')}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span>Subtotal:</span>
+                                        <span>{t('order.subtotal')}:</span>
                                         <span>{formatPrice(pricing.basePrice)}</span>
                                     </div>
                                     {pricing.discount > 0 && (
                                         <div className="flex justify-between text-green-600">
-                                            <span>Discount:</span>
+                                            <span>{t('order.discount')}:</span>
                                             <span>-{formatPrice(pricing.discount)}</span>
                                         </div>
                                     )}
@@ -391,11 +388,11 @@ const PlanDetailPage = () => {
                                     <Separator />
 
                                     <div className="flex justify-between font-bold text-lg">
-                                        <span>Total:</span>
+                                        <span>{t('order.total')}:</span>
                                         <span className="text-blue-600">{formatPrice(pricing.finalPrice)}</span>
                                     </div>
                                     <div className="text-sm text-muted-foreground text-center">
-                                        Effective: {formatPrice(pricing.monthlyPrice)}/month
+                                        {t('order.effective')}: {formatPrice(pricing.monthlyPrice)}{t('order.per_month')}
                                     </div>
                                 </div>
 
@@ -411,18 +408,18 @@ const PlanDetailPage = () => {
                                     {addingToCart ? (
                                         <>
                                             <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                            Adding to Cart...
+                                            {t('order.adding')}
                                         </>
                                     ) : (
                                         <>
                                             <ShoppingCart className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-                                            Add to Cart
+                                            {t('order.add_to_cart')}
                                         </>
                                     )}
                                 </Button>
 
                                 <div className="text-xs text-muted-foreground text-center">
-                                    * Setup is usually completed in a few minutes after payment
+                                    {t('order.setup_note')}
                                 </div>
                             </CardContent>
                         </Card>

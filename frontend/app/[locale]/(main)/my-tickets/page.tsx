@@ -59,9 +59,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import SupportPlaceholder from '@/components/custom/placeholder/support';
 import Pagination from '@/components/ui/pagination';
+import { useTranslations } from "next-intl";
 import { formatDateTime } from '@/utils/string';
 
+
 const MyTicketsPage = () => {
+    const t = useTranslations('my_tickets');
+    const tCommon = useTranslations('common');
     const {
         createTicket,
         getTickets,
@@ -124,8 +128,8 @@ const MyTicketsPage = () => {
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return;
 
-            toast.error('Failed to load tickets', {
-                description: "Please try again later"
+            toast.error(t('toast.load_failed'), {
+                description: t('toast.try_again')
             });
         } finally {
             setIsLoading(false);
@@ -188,7 +192,7 @@ const MyTicketsPage = () => {
 
     const handleCreateTicket = async () => {
         if (!newTicket.subject || !newTicket.description || !newTicket.phone) {
-            toast.error('Please fill in all required fields');
+            toast.error(t('toast.fill_required'));
             return;
         }
 
@@ -208,7 +212,7 @@ const MyTicketsPage = () => {
                     description: result.error.detail,
                 });
             } else {
-                toast.success('Ticket created successfully');
+                toast.success(t('toast.create_success'));
                 setIsCreateDialogOpen(false);
 
                 setNewTicket({
@@ -222,8 +226,8 @@ const MyTicketsPage = () => {
                 fetchTickets();
             }
         } catch {
-            toast.error('Failed to create ticket', {
-                description: "Please try again later"
+            toast.error(t('toast.create_failed'), {
+                description: t('toast.try_again')
             });
         } finally {
             setIsCreating(false);
@@ -248,13 +252,13 @@ const MyTicketsPage = () => {
                     description: result.error.detail,
                 });
             } else {
-                toast.success('Reply sent successfully');
+                toast.success(t('toast.reply_success'));
                 setReplyMessage('');
                 setSelectedTicketData(result.data);
             }
         } catch {
-            toast.error('Failed to send reply', {
-                description: "Please try again later"
+            toast.error(t('toast.reply_failed'), {
+                description: t('toast.try_again')
             });
         } finally {
             setIsSendingReply(false);
@@ -278,59 +282,59 @@ const MyTicketsPage = () => {
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="animate-in fade-in slide-in-from-left-4" style={{ animationDelay: '100ms' }}>
                     <h1 className="text-3xl font-bold">
-                        My Support Tickets
+                        {t('header.title')}
                     </h1>
-                    <p className="text-muted-foreground mt-2">Track and manage your support tickets</p>
+                    <p className="text-muted-foreground mt-2">{t('header.subtitle')}</p>
                 </div>
                 <div className="flex gap-2 animate-in fade-in slide-in-from-right-4" style={{ animationDelay: '200ms' }}>
                     <Button variant="outline" size="lg" onClick={() => fetchTickets()} disabled={isLoading} className="hover:scale-105 transition-all">
                         <RefreshCw className={cn('h-4 w-4 mr-2', isLoading && 'animate-spin')} />
-                        Refresh
+                        {t('header.refresh')}
                     </Button>
                     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                         <DialogTrigger asChild>
                             <Button size="lg" className="gap-2 hover:scale-105 transition-all">
                                 <Plus className="h-4 w-4" />
-                                Create New Ticket
+                                {t('header.create_new')}
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-h-[90vh] py-8 flex overflow-hidden">
                             <ScrollArea className="flex-1 px-3 lg:px-0 overflow-y-auto">
                                 <DialogHeader className="shrink-0">
-                                    <DialogTitle className="text-xl">Create Support Ticket</DialogTitle>
+                                    <DialogTitle className="text-xl">{t('create.title')}</DialogTitle>
                                     <DialogDescription>
-                                        Describe your issue and we&apos;ll get back to you as soon as possible.
+                                        {t('create.description')}
                                     </DialogDescription>
                                 </DialogHeader>
 
-                                <div className="space-y-4 px-2">
+                                <div className="space-y-4 px-2 py-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="ticket-title">Title *</Label>
+                                        <Label htmlFor="ticket-title">{t('create.title_label')} *</Label>
                                         <Input
                                             id="ticket-title"
-                                            placeholder="Brief description of your issue"
+                                            placeholder={t('create.title_placeholder')}
                                             value={newTicket.subject}
                                             onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
                                             className="transition-all focus:scale-[1.01]"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="ticket-phone">Phone Number *</Label>
+                                        <Label htmlFor="ticket-phone">{t('create.phone_label')} *</Label>
                                         <Input
                                             id="ticket-phone"
                                             type="tel"
-                                            placeholder="0912345678"
+                                            placeholder={t('create.phone_placeholder')}
                                             value={newTicket.phone}
                                             onChange={(e) => setNewTicket({ ...newTicket, phone: e.target.value })}
                                             className="transition-all focus:scale-[1.01]"
                                         />
                                         <p className="text-xs text-muted-foreground">
-                                            We will contact you via this phone number for urgent updates
+                                            {t('create.phone_hint')}
                                         </p>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="ticket-category">Category</Label>
+                                            <Label htmlFor="ticket-category">{t('create.category_label')}</Label>
                                             <Select
                                                 value={newTicket.category}
                                                 onValueChange={(value) => setNewTicket({ ...newTicket, category: value })}
@@ -339,17 +343,17 @@ const MyTicketsPage = () => {
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="technical_support">Technical Support</SelectItem>
-                                                    <SelectItem value="payment">Payment</SelectItem>
-                                                    <SelectItem value="server_issue">Server Issue</SelectItem>
-                                                    <SelectItem value="performance">Performance</SelectItem>
-                                                    <SelectItem value="security">Security</SelectItem>
-                                                    <SelectItem value="other">Other</SelectItem>
+                                                    <SelectItem value="technical_support">{t('create.categories.technical_support')}</SelectItem>
+                                                    <SelectItem value="payment">{t('create.categories.payment')}</SelectItem>
+                                                    <SelectItem value="server_issue">{t('create.categories.server_issue')}</SelectItem>
+                                                    <SelectItem value="performance">{t('create.categories.performance')}</SelectItem>
+                                                    <SelectItem value="security">{t('create.categories.security')}</SelectItem>
+                                                    <SelectItem value="other">{t('create.categories.other')}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="ticket-priority">Priority</Label>
+                                            <Label htmlFor="ticket-priority">{t('create.priority_label')}</Label>
                                             <Select
                                                 value={newTicket.priority}
                                                 onValueChange={(value) =>
@@ -363,19 +367,19 @@ const MyTicketsPage = () => {
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="low">Low</SelectItem>
-                                                    <SelectItem value="medium">Medium</SelectItem>
-                                                    <SelectItem value="high">High</SelectItem>
-                                                    <SelectItem value="urgent">Urgent</SelectItem>
+                                                    <SelectItem value="low">{t('filter.low')}</SelectItem>
+                                                    <SelectItem value="medium">{t('filter.medium')}</SelectItem>
+                                                    <SelectItem value="high">{t('filter.high')}</SelectItem>
+                                                    <SelectItem value="urgent">{t('filter.urgent')}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="ticket-description">Description *</Label>
+                                        <Label htmlFor="ticket-description">{t('create.description_label')} *</Label>
                                         <Textarea
                                             id="ticket-description"
-                                            placeholder="Provide detailed information about your issue..."
+                                            placeholder={t('create.description_placeholder')}
                                             rows={6}
                                             value={newTicket.description}
                                             onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
@@ -386,7 +390,7 @@ const MyTicketsPage = () => {
 
                                 <div className="flex justify-end gap-2 shrink-0 pt-4">
                                     <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="hover:scale-105 transition-all">
-                                        Cancel
+                                        {t('create.cancel')}
                                     </Button>
                                     <Button
                                         onClick={handleCreateTicket}
@@ -396,10 +400,10 @@ const MyTicketsPage = () => {
                                         {isCreating ? (
                                             <>
                                                 <Loader className="h-4 w-4 mr-2 animate-spin" />
-                                                Creating...
+                                                {t('create.creating')}
                                             </>
                                         ) : (
-                                            'Create Ticket'
+                                            t('create.submit')
                                         )}
                                     </Button>
                                 </div>
@@ -414,7 +418,7 @@ const MyTicketsPage = () => {
                 <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search tickets by title..."
+                        placeholder={t('search.placeholder')}
                         className="pl-10 transition-all focus:scale-[1.01]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -423,27 +427,27 @@ const MyTicketsPage = () => {
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger className="w-full md:w-45">
                         <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder={t('filter.all_status')} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
+                        <SelectItem value="all">{t('filter.all_status')}</SelectItem>
+                        <SelectItem value="open">{t('filter.open')}</SelectItem>
+                        <SelectItem value="in_progress">{t('filter.in_progress')}</SelectItem>
+                        <SelectItem value="resolved">{t('filter.resolved')}</SelectItem>
+                        <SelectItem value="closed">{t('filter.closed')}</SelectItem>
                     </SelectContent>
                 </Select>
                 <Select value={filterPriority} onValueChange={setFilterPriority}>
                     <SelectTrigger className="w-full md:w-45">
                         <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Priority" />
+                        <SelectValue placeholder={t('filter.all_priority')} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Priority</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="all">{t('filter.all_priority')}</SelectItem>
+                        <SelectItem value="urgent">{t('filter.urgent')}</SelectItem>
+                        <SelectItem value="high">{t('filter.high')}</SelectItem>
+                        <SelectItem value="medium">{t('filter.medium')}</SelectItem>
+                        <SelectItem value="low">{t('filter.low')}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -454,7 +458,7 @@ const MyTicketsPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Open</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.open')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -469,7 +473,7 @@ const MyTicketsPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">In Progress</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.in_progress')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -484,7 +488,7 @@ const MyTicketsPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Resolved</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.resolved')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -499,7 +503,7 @@ const MyTicketsPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Total</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.total')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -515,20 +519,20 @@ const MyTicketsPage = () => {
             {/* Tickets Table */}
             <Card className="animate-in fade-in slide-in-from-left-4 duration-500">
                 <CardHeader>
-                    <CardTitle>Ticket List</CardTitle>
+                    <CardTitle>{t('table.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
                         <Table>
-                            <TableHeader>
+                            <TableHeader className='bg-secondary'>
                                 <TableRow>
-                                    <TableHead className="w-25">ID</TableHead>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Priority</TableHead>
-                                    <TableHead className="w-30">Created</TableHead>
-                                    <TableHead className="w-25 text-right">Actions</TableHead>
+                                    <TableHead className="w-25">{t('table.id')}</TableHead>
+                                    <TableHead>{t('table.ticket_title')}</TableHead>
+                                    <TableHead>{t('table.category')}</TableHead>
+                                    <TableHead>{t('table.status')}</TableHead>
+                                    <TableHead>{t('table.priority')}</TableHead>
+                                    <TableHead className="w-30">{t('table.created')}</TableHead>
+                                    <TableHead className="w-25 text-right">{t('table.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -537,7 +541,7 @@ const MyTicketsPage = () => {
                                 ) : filteredTickets.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                                            No tickets found. Create your first ticket to get started.
+                                            {t('table.empty')}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -595,7 +599,7 @@ const MyTicketsPage = () => {
                     endIndex={endIndex}
                     onPageChange={setCurrentPage}
                     onItemsPerPageChange={setItemsPerPage}
-                    itemLabel="tickets"
+                    itemLabel={tCommon('tickets')}
                 />
             )}
 
@@ -627,23 +631,23 @@ const MyTicketsPage = () => {
                                 <div className="space-y-4 py-2">
                                     <div className="grid grid-cols-2 gap-4 text-sm pb-3 border-b">
                                         <div>
-                                            <span className="text-muted-foreground">Phone Number:</span>
+                                            <span className="text-muted-foreground">{t('detail.phone')}:</span>
                                             <p className="font-medium">{selectedTicketData.phone}</p>
                                         </div>
                                         <div>
-                                            <span className="text-muted-foreground">Email:</span>
+                                            <span className="text-muted-foreground">{t('detail.email')}:</span>
                                             <p className="font-medium">{selectedTicketData.email}</p>
                                         </div>
                                         <div>
-                                            <span className="text-muted-foreground">Created:</span>
+                                            <span className="text-muted-foreground">{t('detail.created')}:</span>
                                             <p className="font-medium">
-                                                {new Date(selectedTicketData.created_at).toLocaleString()}
+                                                {formatDateTime(new Date(selectedTicketData.created_at))}
                                             </p>
                                         </div>
                                         <div>
-                                            <span className="text-muted-foreground">Last Updated:</span>
+                                            <span className="text-muted-foreground">{t('detail.updated')}:</span>
                                             <p className="font-medium">
-                                                {new Date(selectedTicketData.updated_at).toLocaleString()}
+                                                {formatDateTime(new Date(selectedTicketData.updated_at))}
                                             </p>
                                         </div>
                                     </div>
@@ -652,7 +656,7 @@ const MyTicketsPage = () => {
                                     <div className="space-y-3">
                                         <h4 className="font-semibold flex items-center gap-2">
                                             <MessageSquare className="h-4 w-4" />
-                                            Conversation ({(selectedTicketData.replies?.length || 0) + 1} messages)
+                                            {t('detail.conversation')} ({(selectedTicketData.replies?.length || 0) + 1} {t('detail.messages')})
                                         </h4>
                                         <div className="border rounded-lg p-4 bg-muted/30 max-h-70 overflow-y-auto">
                                             <div className="space-y-4">
@@ -666,7 +670,7 @@ const MyTicketsPage = () => {
                                                     <div className="flex-1 rounded-lg p-3 bg-muted ml-8">
                                                         <div className="flex items-center justify-between mb-1">
                                                             <span className="text-sm font-medium">
-                                                                {selectedTicketData.user?.name || 'You'}
+                                                                {selectedTicketData.user?.name || t('detail.you')}
                                                             </span>
                                                             <span className="text-xs text-muted-foreground">
                                                                 {new Date(selectedTicketData.created_at).toLocaleString()}
@@ -713,7 +717,7 @@ const MyTicketsPage = () => {
                                                                         <div className="flex items-center justify-between mb-1">
                                                                             <span className="text-sm font-medium">
                                                                                 {isAdmin
-                                                                                    ? 'Support Team'
+                                                                                    ? t('detail.support_team')
                                                                                     : reply.message.sender.name}
                                                                             </span>
                                                                             <span className="text-xs text-muted-foreground">
@@ -753,7 +757,7 @@ const MyTicketsPage = () => {
                                     {selectedTicketData.status !== 'closed' && (
                                         <div className="space-y-2 pt-2 px-1">
                                             <Textarea
-                                                placeholder="Type your message..."
+                                                placeholder={t('detail.reply_placeholder')}
                                                 value={replyMessage}
                                                 onChange={(e) => setReplyMessage(e.target.value)}
                                                 className="resize-none"
@@ -767,12 +771,12 @@ const MyTicketsPage = () => {
                                                 {isSendingReply ? (
                                                     <>
                                                         <Loader className="h-4 w-4 animate-spin mr-2" />
-                                                        Sending...
+                                                        {t('detail.sending')}
                                                     </>
                                                 ) : (
                                                     <>
                                                         <Send className="h-4 w-4 mr-2" />
-                                                        Send Reply
+                                                        {t('detail.send_reply')}
                                                     </>
                                                 )}
                                             </Button>

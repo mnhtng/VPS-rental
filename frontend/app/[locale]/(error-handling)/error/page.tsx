@@ -1,15 +1,16 @@
 "use client"
 
+import { Suspense } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Shield, Lock, Home, RefreshCw, AlertTriangle, ArrowLeft, LogIn } from "lucide-react"
+import { Shield, Lock, Home, RefreshCw, AlertTriangle, ArrowLeft, LogIn, Loader2 } from "lucide-react"
 import { useLocale } from "next-intl"
 import { useTranslations } from "use-intl"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 
-export default function Error({
+function ErrorContent({
     statusCode = 500
 }: {
     statusCode?: number
@@ -25,11 +26,11 @@ export default function Error({
 
     if ((statusCode && statusCode === 403) || (errorParam && parseInt(errorParam) === 403)) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-red-950/50 dark:via-gray-900 dark:to-orange-950/50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-linear-to-br from-red-50 via-white to-orange-50 dark:from-red-950/50 dark:via-gray-900 dark:to-orange-950/50 flex items-center justify-center p-4">
                 <Card className="max-w-2xl mx-auto shadow-2xl border-0 dark:bg-gray-800/50 dark:border-gray-700">
                     <CardContent className="p-4 sm:p-8 md:p-12 text-center space-y-6 md:space-y-8">
                         <div className="relative z-1">
-                            <h1 className="text-7xl sm:text-8xl md:text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-400 dark:to-orange-400 leading-none">
+                            <h1 className="text-7xl sm:text-8xl md:text-9xl font-bold text-transparent bg-clip-text bg-linear-to-r from-red-600 to-orange-600 dark:from-red-400 dark:to-orange-400 leading-none">
                                 403
                             </h1>
                             <div className="absolute inset-0 text-7xl sm:text-8xl md:text-9xl font-bold text-red-100 dark:text-red-900/60 -z-1 translate-x-2 translate-y-2">
@@ -49,7 +50,7 @@ export default function Error({
 
                         <div className="flex justify-center">
                             <div className="relative">
-                                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/50 dark:to-orange-900/50 rounded-full flex items-center justify-center">
+                                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-linear-to-br from-red-100 to-orange-100 dark:from-red-900/50 dark:to-orange-900/50 rounded-full flex items-center justify-center">
                                     <Shield className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 dark:text-red-400" />
                                 </div>
 
@@ -63,7 +64,7 @@ export default function Error({
                             <Button
                                 asChild
                                 size="lg"
-                                className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 dark:from-red-500 dark:to-orange-500 dark:hover:from-red-600 dark:hover:to-orange-600 w-full sm:w-auto"
+                                className="bg-linear-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 dark:from-red-500 dark:to-orange-500 dark:hover:from-red-600 dark:hover:to-orange-600 w-full sm:w-auto"
                             >
                                 <Link href={`${session ? ("/" + locale) : "/" + locale + "/login"}`}>
                                     {session ? <Home className="w-4 h-4 mr-2" /> : <LogIn className="w-4 h-4 mr-2" />}
@@ -107,11 +108,11 @@ export default function Error({
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-red-950/50 dark:via-gray-900 dark:to-orange-950/50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-br from-red-50 via-white to-orange-50 dark:from-red-950/50 dark:via-gray-900 dark:to-orange-950/50 flex items-center justify-center p-4">
             <Card className="max-w-2xl mx-auto shadow-2xl border-0 dark:bg-gray-800/50 dark:border-gray-700">
                 <CardContent className="p-4 sm:p-8 md:p-12 text-center space-y-6 md:space-y-8">
                     <div className="relative z-1">
-                        <h1 className="text-7xl sm:text-8xl md:text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-600 dark:from-red-400 dark:to-orange-400 leading-none">
+                        <h1 className="text-7xl sm:text-8xl md:text-9xl font-bold text-transparent bg-clip-text bg-linear-to-r from-red-600 to-orange-600 dark:from-red-400 dark:to-orange-400 leading-none">
                             500
                         </h1>
                         <div className="absolute inset-0 text-7xl sm:text-8xl md:text-9xl font-bold text-red-100 dark:text-red-900/60 -z-1 translate-x-2 translate-y-2">
@@ -131,7 +132,7 @@ export default function Error({
 
                     <div className="flex justify-center">
                         <div className="relative">
-                            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/50 dark:to-orange-900/50 rounded-full flex items-center justify-center">
+                            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-linear-to-br from-red-100 to-orange-100 dark:from-red-900/50 dark:to-orange-900/50 rounded-full flex items-center justify-center">
                                 <AlertTriangle className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 dark:text-red-400" />
                             </div>
 
@@ -145,7 +146,7 @@ export default function Error({
                         <Button
                             asChild
                             size="lg"
-                            className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 dark:from-red-500 dark:to-orange-500 dark:hover:from-red-600 dark:hover:to-orange-600 w-full sm:w-auto"
+                            className="bg-linear-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 dark:from-red-500 dark:to-orange-500 dark:hover:from-red-600 dark:hover:to-orange-600 w-full sm:w-auto"
                         >
                             <Link
                                 href={`/${locale}`}
@@ -195,4 +196,16 @@ export default function Error({
             </Card>
         </div>
     )
+}
+
+export default function Error({ statusCode = 500 }: { statusCode?: number }) {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        }>
+            <ErrorContent statusCode={statusCode} />
+        </Suspense>
+    );
 }

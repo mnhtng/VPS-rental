@@ -1,0 +1,178 @@
+{
+    "auth": {
+        "login_success": "Đăng nhập thành công",
+        "login_failed": "Đăng nhập thất bại",
+        "email_not_verified": "Email chưa được xác minh",
+        "invalid_credentials": "Email hoặc mật khẩu không chính xác",
+        "register_success": "Đăng ký tài khoản thành công",
+        "user_exists": "Email này đã được đăng ký",
+        "user_not_found": "Không tìm thấy người dùng",
+        "email_already_verified": "Email đã được xác minh",
+        "verification_sent": "Đã gửi email xác minh thành công",
+        "email_verified": "Xác minh email thành công",
+        "invalid_token": "Mã xác minh không hợp lệ hoặc đã hết hạn",
+        "password_reset_sent": "Đã gửi link đặt lại mật khẩu đến email của bạn",
+        "password_reset_success": "Đặt lại mật khẩu thành công",
+        "password_changed": "Đổi mật khẩu thành công",
+        "current_password_incorrect": "Mật khẩu hiện tại không chính xác",
+        "token_valid": "Mã xác minh hợp lệ",
+        "token_refreshed": "Làm mới token thành công",
+        "refresh_token_not_found": "Không tìm thấy refresh token",
+        "invalid_refresh_token": "Refresh token không hợp lệ hoặc đã hết hạn",
+        "logout_success": "Đăng xuất thành công",
+        "oauth_login_success": "Đăng nhập OAuth thành công",
+        "error_login": "Lỗi khi đăng nhập",
+        "error_register": "Lỗi khi đăng ký tài khoản",
+        "error_verify_email": "Lỗi khi xác minh email",
+        "error_reset_password": "Lỗi khi đặt lại mật khẩu",
+        "error_change_password": "Lỗi khi đổi mật khẩu"
+    },
+    "validation": {
+        "invalid_data": "Dữ liệu không hợp lệ!",
+        "email": {
+            "empty": "Email không được để trống",
+            "invalid_format": "Email không đúng định dạng",
+            "local_empty": "Phần trước @ không được để trống",
+            "local_too_long": "Phần trước @ không được vượt quá 64 ký tự",
+            "starts_ends_dot": "Email không được bắt đầu hoặc kết thúc bằng dấu chấm",
+            "consecutive_dots": "Email không được chứa các dấu chấm liên tiếp",
+            "domain_too_short": "Tên miền email phải có ít nhất 3 ký tự",
+            "domain_too_long": "Tên miền email không được vượt quá 255 ký tự",
+            "domain_no_dot": "Tên miền email phải chứa dấu chấm",
+            "domain_blocked": "Tên miền email không được phép sử dụng"
+        },
+        "password": {
+            "empty": "Mật khẩu không được để trống",
+            "too_short": "Mật khẩu phải có ít nhất 6 ký tự",
+            "no_uppercase": "Mật khẩu phải chứa ít nhất một chữ hoa",
+            "no_lowercase": "Mật khẩu phải chứa ít nhất một chữ thường",
+            "no_digit": "Mật khẩu phải chứa ít nhất một chữ số"
+        },
+        "name": {
+            "empty": "Tên không được để trống",
+            "too_short": "Tên phải có ít nhất 2 ký tự"
+        },
+        "phone": {
+            "invalid_format": "Số điện thoại không đúng định dạng",
+            "too_short": "Số điện thoại phải có ít nhất 10 chữ số",
+            "too_long": "Số điện thoại không được vượt quá 20 chữ số"
+        },
+        "role": {
+            "empty": "Vai trò không được để trống",
+            "too_long": "Vai trò không được vượt quá 20 ký tự",
+            "invalid": "Vai trò không hợp lệ"
+        },
+        "token": {
+            "empty": "Token không được để trống"
+        },
+        "field_required": "Trường này là bắt buộc",
+        "invalid_type": "Kiểu dữ liệu không hợp lệ"
+    },
+    "vps": {
+        "not_found": "Không tìm thấy VPS",
+        "no_permission": "Bạn không có quyền truy cập VPS này",
+        "already_terminated": "VPS đã bị hủy hoặc đang trong trạng thái lỗi",
+        "terminated_or_error": "VPS đã bị hủy hoặc đang trong trạng thái lỗi",
+        "not_linked": "VPS chưa được liên kết với máy ảo",
+        "not_owner": "Bạn không có quyền truy cập VPS này",
+        "plan_not_found": "Không tìm thấy gói VPS cho máy chủ này",
+        "vm_not_found": "Không tìm thấy máy ảo",
+        "node_not_found": "Không tìm thấy node",
+        "start_success": "Khởi động VPS thành công",
+        "stop_success": "Dừng VPS thành công",
+        "reboot_success": "Đã gửi lệnh khởi động lại VPS",
+        "setup_success": "Thiết lập VPS thành công",
+        "setup_failed": "Thiết lập VPS thất bại",
+        "snapshot_created": "Tạo snapshot thành công",
+        "snapshot_restored": "Khôi phục snapshot thành công",
+        "snapshot_deleted": "Xóa snapshot thành công",
+        "snapshot_not_found": "Không tìm thấy snapshot",
+        "password_reset_success": "Đặt lại mật khẩu VPS thành công"
+    },
+    "cart": {
+        "item_added": "Đã thêm vào giỏ hàng",
+        "item_updated": "Đã cập nhật giỏ hàng",
+        "item_removed": "Đã xóa khỏi giỏ hàng",
+        "cart_cleared": "Đã xóa giỏ hàng",
+        "item_not_found": "Không tìm thấy sản phẩm trong giỏ hàng",
+        "empty_cart": "Giỏ hàng trống"
+    },
+    "order": {
+        "created": "Tạo đơn hàng thành công",
+        "not_found": "Không tìm thấy đơn hàng",
+        "no_permission": "Bạn không có quyền truy cập đơn hàng này",
+        "not_owner": "Bạn không có quyền truy cập đơn hàng này",
+        "not_pending": "Đơn hàng không ở trạng thái chờ thanh toán",
+        "not_renewal": "Đây không phải đơn hàng gia hạn",
+        "not_payable": "Đơn hàng không thể thanh toán",
+        "not_payment_transaction": "Không tìm thấy giao dịch thanh toán",
+        "not_vps_instance_info": "Không tìm thấy thông tin VPS",
+        "cancelled": "Đã hủy đơn hàng thành công",
+        "cannot_cancel": "Không thể hủy đơn hàng này",
+        "already_paid": "Đơn hàng đã được thanh toán",
+        "expired": "Đơn hàng đã hết hạn"
+    },
+    "payment": {
+        "success": "Thanh toán thành công",
+        "failed": "Thanh toán thất bại",
+        "invalid_signature": "Chữ ký thanh toán không hợp lệ",
+        "order_not_found": "Không tìm thấy đơn hàng để thanh toán",
+        "already_paid": "Đơn hàng đã được thanh toán",
+        "amount_mismatch": "Số tiền thanh toán không khớp với đơn hàng",
+        "vnpay_error": "Lỗi thanh toán VNPay",
+        "momo_error": "Lỗi thanh toán MoMo",
+        "renewal_success": "Gia hạn VPS thành công",
+        "vps_already_provided": "Dịch vụ VPS đã được cung cấp",
+        "not_renewal_order": "Đây không phải đơn hàng gia hạn",
+        "transaction_not_found": "Không tìm thấy giao dịch thanh toán"
+    },
+    "support": {
+        "ticket_created": "Tạo yêu cầu hỗ trợ thành công",
+        "ticket_updated": "Đã cập nhật yêu cầu hỗ trợ",
+        "ticket_closed": "Đã đóng yêu cầu hỗ trợ",
+        "ticket_not_found": "Không tìm thấy yêu cầu hỗ trợ",
+        "reply_added": "Đã thêm phản hồi thành công",
+        "no_permission": "Bạn không có quyền truy cập yêu cầu hỗ trợ này"
+    },
+    "user": {
+        "profile_updated": "Cập nhật hồ sơ thành công",
+        "user_created": "Tạo người dùng thành công",
+        "user_updated": "Cập nhật người dùng thành công",
+        "user_deleted": "Xóa người dùng thành công",
+        "not_found": "Không tìm thấy người dùng"
+    },
+    "promotion": {
+        "applied": "Áp dụng mã giảm giá thành công",
+        "not_found": "Không tìm thấy mã giảm giá",
+        "expired": "Mã giảm giá đã hết hạn",
+        "not_active": "Mã giảm giá chưa có hiệu lực",
+        "usage_limit": "Mã giảm giá đã hết lượt sử dụng",
+        "user_limit": "Bạn đã đạt giới hạn sử dụng mã giảm giá này",
+        "min_amount": "Đơn hàng chưa đạt giá trị tối thiểu"
+    },
+    "proxmox": {
+        "connection_failed": "Không thể kết nối đến Proxmox",
+        "vm_create_failed": "Không thể tạo máy ảo",
+        "vm_delete_failed": "Không thể xóa máy ảo",
+        "vm_start_failed": "Không thể khởi động máy ảo",
+        "vm_stop_failed": "Không thể dừng máy ảo",
+        "template_not_found": "Không tìm thấy template",
+        "node_not_found": "Không tìm thấy node Proxmox",
+        "storage_not_found": "Không tìm thấy storage"
+    },
+    "admin": {
+        "plan_created": "Tạo gói VPS thành công",
+        "plan_updated": "Cập nhật gói VPS thành công",
+        "plan_deleted": "Xóa gói VPS thành công",
+        "plan_not_found": "Không tìm thấy gói VPS",
+        "plan_exists": "Đã tồn tại gói VPS với tên này"
+    },
+    "errors": {
+        "internal_server": "Đã xảy ra lỗi không mong muốn",
+        "unauthorized": "Truy cập trái phép",
+        "forbidden": "Không có quyền truy cập",
+        "bad_request": "Yêu cầu không hợp lệ",
+        "not_found": "Không tìm thấy tài nguyên",
+        "validation_error": "Lỗi xác thực dữ liệu"
+    }
+}

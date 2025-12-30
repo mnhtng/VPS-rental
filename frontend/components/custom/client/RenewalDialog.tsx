@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -30,13 +31,6 @@ interface RenewalDialogProps {
     onSuccess?: () => void
 }
 
-const DURATION_OPTIONS = [
-    { months: 1, label: "1 month", discount: 0 },
-    { months: 3, label: "3 months", discount: 5 },
-    { months: 6, label: "6 months", discount: 10 },
-    { months: 12, label: "12 months", discount: 15 },
-]
-
 export default function RenewalDialog({
     open,
     onOpenChange,
@@ -45,7 +39,15 @@ export default function RenewalDialog({
     userAddress = "",
     onSuccess,
 }: RenewalDialogProps) {
+    const t = useTranslations("renewal_dialog")
     const { renewVps } = usePayment()
+
+    const DURATION_OPTIONS = [
+        { months: 1, label: t('one_month'), discount: 0 },
+        { months: 3, label: t('three_months'), discount: 5 },
+        { months: 6, label: t('six_months'), discount: 10 },
+        { months: 12, label: t('twelve_months'), discount: 15 },
+    ]
 
     const [durationMonths, setDurationMonths] = useState(1)
     const [paymentMethod, setPaymentMethod] = useState<"vnpay" | "momo">("vnpay")
@@ -80,12 +82,12 @@ export default function RenewalDialog({
         if (!vpsInstance) return
 
         if (!phone.trim()) {
-            toast.error("Please enter phone number")
+            toast.error(t('enter_phone'))
             return
         }
 
         if (!address.trim()) {
-            toast.error("Please enter address")
+            toast.error(t('enter_address'))
             return
         }
 
@@ -113,8 +115,8 @@ export default function RenewalDialog({
                 onSuccess?.()
             }
         } catch {
-            toast.error("Failed to renew VPS", {
-                description: "Please try again later",
+            toast.error(t('renew_failed'), {
+                description: t('try_again'),
             })
         } finally {
             setIsLoading(false)
@@ -130,10 +132,10 @@ export default function RenewalDialog({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <RefreshCw className="h-5 w-5 text-blue-600" />
-                            Renew VPS
+                            {t('title')}
                         </DialogTitle>
                         <DialogDescription>
-                            Renew VPS service to continue using
+                            {t('description')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -143,15 +145,15 @@ export default function RenewalDialog({
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h4 className="font-semibold">{vpsInstance.vm?.hostname || "VPS"}</h4>
-                                    <p className="text-sm text-muted-foreground">{plan?.name || "Plan"}</p>
+                                    <p className="text-sm text-muted-foreground">{plan?.name || t('plan_label')}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-sm text-muted-foreground">Expires</p>
+                                    <p className="text-sm text-muted-foreground">{t('expires_label')}</p>
                                     <p className={`font-semibold ${expiryStatusColor}`}>
                                         {vpsInstance.expires_at ? formatDateTime(new Date(vpsInstance.expires_at)) : "N/A"}
                                     </p>
                                     <p className={`text-xs ${expiryStatusColor}`}>
-                                        ({daysUntilExpiry > 0 ? `${daysUntilExpiry} days left` : "Expired"})
+                                        ({daysUntilExpiry > 0 ? t('days_left', { count: daysUntilExpiry }) : t('expired')})
                                     </p>
                                 </div>
                             </div>
@@ -159,7 +161,7 @@ export default function RenewalDialog({
 
                         {/* Duration Selection */}
                         <div className="space-y-3">
-                            <Label>Renewal Duration</Label>
+                            <Label>{t('duration_label')}</Label>
                             <RadioGroup
                                 value={durationMonths.toString()}
                                 onValueChange={(v) => setDurationMonths(parseInt(v))}
@@ -178,7 +180,7 @@ export default function RenewalDialog({
                                         >
                                             <span className="font-semibold">{option.label}</span>
                                             {option.discount > 0 && (
-                                                <span className="text-xs text-green-600">-{option.discount}%</span>
+                                                <span className="text-xs text-green-600">-{t('discount', { percent: option.discount })}</span>
                                             )}
                                         </Label>
                                     </div>
@@ -188,7 +190,7 @@ export default function RenewalDialog({
 
                         {/* Payment Method */}
                         <div className="space-y-3">
-                            <Label>Payment Method</Label>
+                            <Label>{t('payment_method')}</Label>
                             <RadioGroup
                                 value={paymentMethod}
                                 onValueChange={(v) => setPaymentMethod(v as "vnpay" | "momo")}
@@ -220,7 +222,7 @@ export default function RenewalDialog({
                         {/* Contact Info */}
                         <div className="space-y-3">
                             <div className="space-y-2">
-                                <Label htmlFor="phone">Phone Number</Label>
+                                <Label htmlFor="phone">{t('phone')}</Label>
                                 <Input
                                     id="phone"
                                     value={phone}
@@ -229,7 +231,7 @@ export default function RenewalDialog({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="address">Address</Label>
+                                <Label htmlFor="address">{t('address')}</Label>
                                 <Input
                                     id="address"
                                     value={address}
@@ -242,17 +244,17 @@ export default function RenewalDialog({
                         {/* Price Summary */}
                         <div className="rounded-lg border p-4 space-y-2">
                             <div className="flex justify-between text-sm">
-                                <span>Original Price ({durationMonths} months)</span>
+                                <span>{t('original_price', { months: durationMonths })}</span>
                                 <span>{formatPrice(subtotal)}</span>
                             </div>
                             {discount > 0 && (
                                 <div className="flex justify-between text-sm text-green-600">
-                                    <span>Discount ({discount}%)</span>
+                                    <span>{t('discount', { percent: discount })}</span>
                                     <span>-{formatPrice(discountAmount)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between font-semibold text-lg border-t pt-2">
-                                <span>Total</span>
+                                <span>{t('total')}</span>
                                 <span className="text-primary">{formatPrice(total)}</span>
                             </div>
                         </div>
@@ -260,18 +262,18 @@ export default function RenewalDialog({
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                            Cancel
+                            {t('cancel')}
                         </Button>
                         <Button onClick={handleRenewal} disabled={isLoading}>
                             {isLoading ? (
                                 <>
                                     <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                    Processing...
+                                    {t('processing')}
                                 </>
                             ) : (
                                 <>
                                     <RefreshCw className="mr-2 h-4 w-4" />
-                                    Renew Now
+                                    {t('renew_now')}
                                 </>
                             )}
                         </Button>

@@ -1,11 +1,9 @@
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import Optional
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from fastapi import HTTPException
 from sqlmodel import Session, select
 
 from backend.db import engine
@@ -172,9 +170,7 @@ class VPSCleanupScheduler:
 
             logger.info(f">>> VPS {vps.id} suspended successfully")
         except Exception as e:
-            logger.error(
-                f">>> Failed to suspend VPS {vps.id}: {str(e)}", exc_info=True
-            )
+            logger.error(f">>> Failed to suspend VPS {vps.id}: {str(e)}", exc_info=True)
             try:
                 vps.status = "error"
                 session.add(vps)
@@ -182,7 +178,9 @@ class VPSCleanupScheduler:
             except Exception:
                 session.rollback()
 
-    async def _terminate_suspended_vps(self, session: Session, grace_period_cutoff: datetime):
+    async def _terminate_suspended_vps(
+        self, session: Session, grace_period_cutoff: datetime
+    ):
         """
         Phase 2: Terminate VPS that have been expired for 24+ hours.
 

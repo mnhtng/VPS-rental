@@ -37,14 +37,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import debounce from "@/utils/performanceUtil/debounce"
-import { normalizeString } from "@/utils/string"
+import { normalizeString, getDiskSize } from "@/utils/string"
 import useAdminPlans from "@/hooks/useAdminPlans"
 import { VPSPlan, VPSPlanStatistics, VPSPlanCreate, VPSPlanUpdate } from "@/types/types"
 import Pagination from "@/components/ui/pagination"
 import { PlanDetailSheet, CreatePlanSheet } from "@/components/custom/admin/plans/PlanDetail"
 import { formatPrice } from "@/utils/currency"
+import { useTranslations } from "next-intl"
 
 const PlansPage = () => {
+    const tCommon = useTranslations('common')
+    const t = useTranslations('admin.plans')
     const {
         getPlans,
         getPlanStatistics,
@@ -88,13 +91,13 @@ const PlansPage = () => {
                 const stats = await getPlanStatistics(plansData)
                 setStatistics(stats)
             }
+            setIsLoading(false)
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return
 
-            toast.error('Failed to fetch plans', {
-                description: "Please try again later",
+            toast.error(t('toast.fetch_failed'), {
+                description: t('toast.fetch_failed'),
             })
-        } finally {
             setIsLoading(false)
         }
     }
@@ -110,22 +113,14 @@ const PlansPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    const getDiskSize = (storage_gb: number, storage_type?: string) => {
-        if (storage_gb >= 1000) {
-            const tb = (storage_gb / 1000).toFixed(1)
-            return `${tb} TB ${storage_type || ''}`
-        }
-        return `${storage_gb} GB ${storage_type || ''}`
-    }
-
     const getCategoryBadge = (category: string) => {
         switch (category.toLowerCase()) {
             case 'basic':
-                return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Basic</Badge>
+                return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">{t('category.basic')}</Badge>
             case 'standard':
-                return <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/30">Standard</Badge>
+                return <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/30">{t('category.pro')}</Badge>
             case 'premium':
-                return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">Premium</Badge>
+                return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">{t('category.premium')}</Badge>
             default:
                 return <Badge variant="outline">{category}</Badge>
         }
@@ -181,13 +176,11 @@ const PlansPage = () => {
                     description: result.error.detail,
                 })
             } else {
-                toast.success('Plan created successfully')
+                toast.success(t('toast.create_success'))
                 fetchPlans()
             }
         } catch {
-            toast.error('Failed to create plan', {
-                description: "Please try again later",
-            })
+            toast.error(t('toast.create_failed'))
         } finally {
             setIsCreating(false)
         }
@@ -204,7 +197,7 @@ const PlansPage = () => {
                     description: result.error.detail,
                 })
             } else {
-                toast.success('Plan updated successfully')
+                toast.success(t('toast.update_success'))
                 setPlans(prev => prev.map(p => p.id === planId ? result.data : p))
                 setFilteredPlans(prev => prev.map(p => p.id === planId ? result.data : p))
 
@@ -212,9 +205,7 @@ const PlansPage = () => {
                 setStatistics(stats)
             }
         } catch {
-            toast.error('Failed to update plan', {
-                description: "Please try again later",
-            })
+            toast.error(t('toast.update_failed'))
         } finally {
             setIsUpdating(false)
         }
@@ -230,7 +221,7 @@ const PlansPage = () => {
                     description: result.error.detail,
                 })
             } else {
-                toast.success('Plan deleted successfully')
+                toast.success(t('toast.delete_success'))
                 const updatedPlans = plans.filter(p => p.id !== planId)
                 setPlans(updatedPlans)
                 setFilteredPlans(prev => prev.filter(p => p.id !== planId))
@@ -239,9 +230,7 @@ const PlansPage = () => {
                 setStatistics(stats)
             }
         } catch {
-            toast.error('Failed to delete plan', {
-                description: "Please try again later",
-            })
+            toast.error(t('toast.delete_failed'))
         } finally {
             setIsDeleting(null)
         }
@@ -262,7 +251,7 @@ const PlansPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Total Plans</p>
+                                <p className="text-sm text-muted-foreground">{t('stats.total')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -279,7 +268,7 @@ const PlansPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Basic</p>
+                                <p className="text-sm text-muted-foreground">{t('category.basic')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -296,7 +285,7 @@ const PlansPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Standard</p>
+                                <p className="text-sm text-muted-foreground">{t('category.pro')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -313,7 +302,7 @@ const PlansPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Premium</p>
+                                <p className="text-sm text-muted-foreground">{t('category.premium')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -334,7 +323,7 @@ const PlansPage = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         ref={searchRef}
-                        placeholder="Search plans..."
+                        placeholder={t('filter.search')}
                         className="pl-10"
                         onChange={debounce(handleSearch, 400)}
                     />
@@ -343,13 +332,13 @@ const PlansPage = () => {
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                         <SelectTrigger className="w-full sm:w-40">
-                            <SelectValue placeholder="Filter by category" />
+                            <SelectValue placeholder={t('filter.placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
-                            <SelectItem value="basic">Basic</SelectItem>
-                            <SelectItem value="standard">Standard</SelectItem>
-                            <SelectItem value="premium">Premium</SelectItem>
+                            <SelectItem value="all">{t('filter.all')}</SelectItem>
+                            <SelectItem value="basic">{t('filter.basic')}</SelectItem>
+                            <SelectItem value="standard">{t('filter.pro')}</SelectItem>
+                            <SelectItem value="premium">{t('filter.premium')}</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -358,7 +347,7 @@ const PlansPage = () => {
                         size="icon"
                         onClick={() => fetchPlans()}
                         disabled={isLoading}
-                        title="Refresh"
+                        title={t('filter.refresh')}
                     >
                         <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
                     </Button>
@@ -372,19 +361,19 @@ const PlansPage = () => {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Layers className="h-5 w-5 text-indigo-500" />
-                        VPS Plans
+                        {t('title')}
                     </CardTitle>
                 </CardHeader>
                 <div className="overflow-x-auto px-3">
                     <Table>
                         <TableHeader className="bg-secondary">
                             <TableRow>
-                                <TableHead>Plan Name</TableHead>
-                                <TableHead>Category</TableHead>
-                                <TableHead className="hidden md:table-cell">Specs</TableHead>
+                                <TableHead>{t('table.name')}</TableHead>
+                                <TableHead>{t('table.category')}</TableHead>
+                                <TableHead className="hidden md:table-cell">{t('table.specs')}</TableHead>
                                 <TableHead className="hidden lg:table-cell">Storage</TableHead>
-                                <TableHead className="text-right">Price</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead className="text-right">{t('table.price')}</TableHead>
+                                <TableHead className="text-right">{t('table.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -426,7 +415,7 @@ const PlansPage = () => {
                             ) : filteredPlans.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                                        No plans found
+                                        {t('table.no_plans')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -517,7 +506,7 @@ const PlansPage = () => {
                     endIndex={Math.min(endIndex, totalItems)}
                     onPageChange={setCurrentPage}
                     onItemsPerPageChange={setItemsPerPage}
-                    itemLabel="plans"
+                    itemLabel={tCommon('plans')}
                 />
             )}
         </div>

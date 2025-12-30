@@ -2,8 +2,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const MyOrderPlaceholder = () => {
+    const t = useTranslations('my_orders');
+
     return (
         <div className="min-h-screen max-w-7xl mx-auto py-8 px-4">
             {/* Header Skeleton */}
@@ -15,7 +18,7 @@ const MyOrderPlaceholder = () => {
 
                 <Button variant="outline" size="lg" disabled>
                     <RefreshCw className='h-4 w-4 mr-2 animate-spin' />
-                    Refresh
+                    {t('header.refresh')}
                 </Button>
             </div>
 

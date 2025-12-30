@@ -17,7 +17,7 @@ from backend.schemas import (
     TicketStatisticsResponse,
     SupportTicketResponse,
 )
-from backend.utils import get_current_user, get_admin_user
+from backend.utils import get_current_user, get_admin_user, Translator, get_translator
 
 
 logger = logging.getLogger(__name__)
@@ -36,6 +36,7 @@ async def get_user_tickets(
     priority_filter: Optional[str] = Query(None, alias="priority"),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get all tickets for the current user.
@@ -45,6 +46,7 @@ async def get_user_tickets(
         priority_filter: Filter by priority
         session: Database session
         current_user: The authenticated user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -74,7 +76,7 @@ async def get_user_tickets(
         logger.error(f">>> Error fetching user tickets: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch user tickets",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -88,6 +90,7 @@ async def get_user_tickets(
 async def get_ticket_statistics(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get ticket statistics for the current user.
@@ -95,6 +98,7 @@ async def get_ticket_statistics(
     Args:
         session: Database session
         current_user: The authenticated user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -124,7 +128,7 @@ async def get_ticket_statistics(
         logger.error(f">>> Error fetching ticket statistics: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve statistics",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -139,6 +143,7 @@ async def create_ticket(
     ticket_data: CreateTicketRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Create a new support ticket.
@@ -147,6 +152,7 @@ async def create_ticket(
         ticket_data: The ticket creation data
         session: Database session
         current_user: The authenticated user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -178,7 +184,7 @@ async def create_ticket(
         logger.error(f">>> Error creating support ticket: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create support ticket",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -194,6 +200,7 @@ async def update_ticket(
     ticket_id: uuid.UUID = Path(..., description="The ticket UUID"),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Update an existing ticket.
@@ -203,6 +210,7 @@ async def update_ticket(
         ticket_data: The update data
         session: Database session
         current_user: The authenticated user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -218,7 +226,7 @@ async def update_ticket(
         if not ticket:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Ticket not found",
+                detail=translator.t("support.ticket_not_found"),
             )
 
         update_data = ticket_data.model_dump(exclude_unset=True, exclude_none=True)
@@ -237,7 +245,7 @@ async def update_ticket(
         logger.error(f">>> Error updating ticket {ticket_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update ticket",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -253,6 +261,7 @@ async def add_reply_to_ticket(
     ticket_id: uuid.UUID = Path(..., description="The ticket UUID"),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Add a reply to an existing ticket.
@@ -262,6 +271,7 @@ async def add_reply_to_ticket(
         reply_data: The reply data
         session: Database session
         current_user: The authenticated user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -277,7 +287,7 @@ async def add_reply_to_ticket(
         if not ticket:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Ticket not found",
+                detail=translator.t("support.ticket_not_found"),
             )
 
         reply = SupportTicketReply(
@@ -310,7 +320,7 @@ async def add_reply_to_ticket(
         logger.error(f">>> Error adding reply to ticket {ticket_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to add reply",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -331,6 +341,7 @@ async def admin_get_all_tickets(
     priority_filter: Optional[str] = Query(None, alias="priority"),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get all tickets for admin management.
@@ -340,6 +351,7 @@ async def admin_get_all_tickets(
         priority_filter: Filter by priority
         session: Database session
         admin_user: The authenticated admin user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -368,7 +380,7 @@ async def admin_get_all_tickets(
         logger.error(f">>> Error fetching all tickets: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch tickets",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -382,6 +394,7 @@ async def admin_get_all_tickets(
 async def admin_get_ticket_statistics(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get ticket statistics for all tickets (admin only).
@@ -389,6 +402,7 @@ async def admin_get_ticket_statistics(
     Args:
         session: Database session
         admin_user: The authenticated admin user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -417,7 +431,7 @@ async def admin_get_ticket_statistics(
         logger.error(f">>> Error fetching ticket statistics: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve statistics",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -433,6 +447,7 @@ async def admin_update_ticket_status(
     ticket_id: uuid.UUID = Path(..., description="The ticket UUID"),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Update ticket status (admin only).
@@ -442,6 +457,7 @@ async def admin_update_ticket_status(
         status_data: The new status
         session: Database session
         admin_user: The authenticated admin user
+        translator: Translator for i18n messages
 
     Returns:
         The updated ticket
@@ -452,7 +468,7 @@ async def admin_update_ticket_status(
         if not ticket:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Ticket not found",
+                detail=translator.t("support.ticket_not_found"),
             )
 
         ticket.status = status_data.status
@@ -468,7 +484,7 @@ async def admin_update_ticket_status(
         logger.error(f">>> Error updating ticket status: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update ticket status",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -484,6 +500,7 @@ async def admin_add_reply_to_ticket(
     ticket_id: uuid.UUID = Path(..., description="The ticket UUID"),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Add an admin reply to any ticket.
@@ -493,6 +510,7 @@ async def admin_add_reply_to_ticket(
         reply_data: The reply data
         session: Database session
         admin_user: The authenticated admin user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 if not authenticated
@@ -509,7 +527,7 @@ async def admin_add_reply_to_ticket(
         if not ticket:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Ticket not found",
+                detail=translator.t("support.ticket_not_found"),
             )
 
         reply = SupportTicketReply(
@@ -542,5 +560,5 @@ async def admin_add_reply_to_ticket(
         logger.error(f">>> Error adding reply to ticket {ticket_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to add reply",
+            detail=translator.t("errors.internal_server"),
         )

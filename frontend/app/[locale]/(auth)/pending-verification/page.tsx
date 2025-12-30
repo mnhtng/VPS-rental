@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,12 @@ import { Mail, Clock, Loader, CheckCircle } from 'lucide-react';
 import { BeamsBackground } from '@/components/ui/beam-background';
 import { toast } from 'sonner';
 import useAuth from '@/hooks/useAuth';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
-const PendingVerificationPage = () => {
+const PendingVerificationContent = () => {
     const router = useRouter();
     const locale = useLocale();
+    const t = useTranslations('auth.pending_verification');
     const searchParams = useSearchParams();
     const email = searchParams.get('email') || '';
     const name = searchParams.get('name') || '';
@@ -35,8 +36,8 @@ const PendingVerificationPage = () => {
                 toast.success(result.message);
             }
         } catch {
-            toast.error('Failed to resend email', {
-                description: 'Please try again later'
+            toast.error(t('toast.resend_failed'), {
+                description: t('toast.resend_failed_desc')
             });
         } finally {
             setIsResending(false);
@@ -54,10 +55,10 @@ const PendingVerificationPage = () => {
                             </div>
                         </div>
                         <CardTitle className="text-2xl text-center">
-                            Verify Your Email
+                            {t('title')}
                         </CardTitle>
                         <CardDescription className="text-center">
-                            We&apos;ve sent a verification link to your email address
+                            {t('description')}
                         </CardDescription>
                     </CardHeader>
 
@@ -73,21 +74,21 @@ const PendingVerificationPage = () => {
                         {/* Instructions */}
                         <div className="space-y-3">
                             <p className="text-sm text-muted-foreground text-center">
-                                To complete your registration, please check your email and click the verification link.
+                                {t('instruction')}
                             </p>
 
                             <div className="space-y-2 text-sm text-muted-foreground">
                                 <div className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                                    <span>Check your inbox and spam folder</span>
+                                    <span>{t('steps.check_inbox')}</span>
                                 </div>
                                 <div className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                                    <span>Click the verification link in the email</span>
+                                    <span>{t('steps.click_link')}</span>
                                 </div>
                                 <div className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-                                    <span>You&apos;ll be redirected to login automatically</span>
+                                    <span>{t('steps.redirect')}</span>
                                 </div>
                             </div>
                         </div>
@@ -100,7 +101,7 @@ const PendingVerificationPage = () => {
                                 </div>
                                 <div className="relative flex justify-center text-xs uppercase">
                                     <span className="bg-card px-2 text-muted-foreground">
-                                        Didn&apos;t receive the email?
+                                        {t('didnt_receive')}
                                     </span>
                                 </div>
                             </div>
@@ -114,12 +115,12 @@ const PendingVerificationPage = () => {
                                 {isResending ? (
                                     <>
                                         <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                        Sending...
+                                        {t('resending')}
                                     </>
                                 ) : (
                                     <>
                                         <Mail className="mr-2 h-4 w-4" />
-                                        Resend Verification Email
+                                        {t('resend')}
                                     </>
                                 )}
                             </Button>
@@ -128,8 +129,7 @@ const PendingVerificationPage = () => {
                         {/* Additional Info */}
                         <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                             <p className="text-sm text-blue-800 dark:text-blue-200">
-                                <strong>Note:</strong> The verification link will expire in 24 hours.
-                                If expired, you&apos;ll need to request a new one.
+                                <strong>{t('note')}</strong> {t('note_text')}
                             </p>
                         </div>
 
@@ -137,9 +137,9 @@ const PendingVerificationPage = () => {
                         <Button
                             className="w-full"
                             variant="ghost"
-                            onClick={() => router.push('/login')}
+                            onClick={() => router.push(`/login`)}
                         >
-                            Back to Login
+                            {t('back_to_login')}
                         </Button>
                     </CardContent>
                 </Card>
@@ -147,14 +147,32 @@ const PendingVerificationPage = () => {
                 {/* Footer */}
                 <div className="text-center">
                     <p className="text-xs text-muted-foreground">
-                        Need help?{' '}
+                        {t('need_help')}{' '}
                         <Link href={`/${locale}/support`} className="text-blue-600 hover:text-blue-500">
-                            Contact Support
+                            {t('contact_support')}
                         </Link>
                     </p>
                 </div>
             </div>
         </BeamsBackground>
+    );
+};
+
+const PendingVerificationPage = () => {
+    return (
+        <Suspense fallback={
+            <BeamsBackground>
+                <div className="max-w-md w-full space-y-8">
+                    <Card>
+                        <CardContent className="flex items-center justify-center py-12">
+                            <Loader className="h-8 w-8 animate-spin text-muted-foreground" />
+                        </CardContent>
+                    </Card>
+                </div>
+            </BeamsBackground>
+        }>
+            <PendingVerificationContent />
+        </Suspense>
     );
 };
 

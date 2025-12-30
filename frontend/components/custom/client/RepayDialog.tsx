@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -37,6 +38,7 @@ export default function RepayDialog({
     userAddress = "",
     onSuccess,
 }: RepayDialogProps) {
+    const t = useTranslations("repay_dialog")
     const { repayRenewalOrder, checkRenewalCanRepay } = usePayment()
 
     const [paymentMethod, setPaymentMethod] = useState<"vnpay" | "momo">("vnpay")
@@ -64,13 +66,13 @@ export default function RepayDialog({
                     setCheckResult(result.data)
 
                     if (!result.data.can_repay) {
-                        toast.error("Cannot pay", {
-                            description: result.data.reason || "Order is not eligible for repayment",
+                        toast.error(t('cannot_pay'), {
+                            description: result.data.reason || t('not_eligible'),
                         })
                     }
                 }
             } catch {
-                toast.error("An error occurred while checking the order")
+                toast.error(t('error_checking'))
             } finally {
                 setIsLoading(false)
             }
@@ -85,12 +87,12 @@ export default function RepayDialog({
         if (!order) return
 
         if (!phone.trim()) {
-            toast.error("Please enter phone number")
+            toast.error(t('enter_phone'))
             return
         }
 
         if (!address.trim()) {
-            toast.error("Please enter address")
+            toast.error(t('enter_address'))
             return
         }
 
@@ -117,8 +119,8 @@ export default function RepayDialog({
                 onSuccess?.()
             }
         } catch {
-            toast.error("Failed to repay order", {
-                description: "Please try again later",
+            toast.error(t('failed'), {
+                description: t('try_again'),
             })
         } finally {
             setIsLoading(false)
@@ -135,10 +137,10 @@ export default function RepayDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Receipt className="h-5 w-5 text-blue-600" />
-                        Pay Renewal Order
+                        {t('title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Complete payment for VPS renewal order
+                        {t('description')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -147,17 +149,17 @@ export default function RepayDialog({
                     <div className="rounded-lg border p-4 bg-muted/50">
                         <div className="flex justify-between items-start mb-2">
                             <div>
-                                <p className="text-sm text-muted-foreground">Order Number</p>
+                                <p className="text-sm text-muted-foreground">{t('order_number')}</p>
                                 <p className="font-mono font-semibold">{order.order_number}</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-sm text-muted-foreground">Total Amount</p>
+                                <p className="text-sm text-muted-foreground">{t('total_amount')}</p>
                                 <p className="font-semibold text-primary">{formatPrice(order.price)}</p>
                             </div>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                            <p>Created: {formatDateTime(new Date(order.created_at))}</p>
-                            <p>Note: {order.note || "None"}</p>
+                            <p>{t('created')}: {formatDateTime(new Date(order.created_at))}</p>
+                            <p>{t('note')}: {order.note || t('none')}</p>
                         </div>
                     </div>
 
@@ -171,7 +173,7 @@ export default function RepayDialog({
                         <>
                             {/* Payment Method */}
                             <div className="space-y-3">
-                                <Label>Payment Method</Label>
+                                <Label>{t('payment_method')}</Label>
                                 <RadioGroup
                                     value={paymentMethod}
                                     onValueChange={(v) => setPaymentMethod(v as "vnpay" | "momo")}
@@ -203,7 +205,7 @@ export default function RepayDialog({
                             {/* Contact Info */}
                             <div className="space-y-3">
                                 <div className="space-y-2">
-                                    <Label htmlFor="repay-phone">Phone Number</Label>
+                                    <Label htmlFor="repay-phone">{t('phone')}</Label>
                                     <Input
                                         id="repay-phone"
                                         value={phone}
@@ -212,7 +214,7 @@ export default function RepayDialog({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="repay-address">Address</Label>
+                                    <Label htmlFor="repay-address">{t('address')}</Label>
                                     <Input
                                         id="repay-address"
                                         value={address}
@@ -227,18 +229,18 @@ export default function RepayDialog({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                        Cancel
+                        {t('cancel')}
                     </Button>
                     <Button onClick={handleRepay} disabled={isLoading || !canRepay}>
                         {isLoading ? (
                             <>
                                 <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                Processing...
+                                {t('processing')}
                             </>
                         ) : (
                             <>
                                 <CreditCard className="mr-2 h-4 w-4" />
-                                Pay
+                                {t('pay')}
                             </>
                         )}
                     </Button>

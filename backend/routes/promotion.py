@@ -13,7 +13,7 @@ from backend.schemas import (
     PromotionValidateResponse,
     UserPromotionResponse,
 )
-from backend.utils import get_current_user, get_admin_user
+from backend.utils import get_current_user, get_admin_user, Translator, get_translator
 from backend.services import PromotionService
 
 
@@ -30,6 +30,7 @@ router = APIRouter(prefix="/promotions", tags=["Promotions"])
 async def get_available_promotions(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get all promotions available to the current user.
@@ -37,6 +38,7 @@ async def get_available_promotions(
     Args:
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated.
@@ -56,7 +58,7 @@ async def get_available_promotions(
         logger.error(f">>> Error fetching available promotions: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch available promotions",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -70,6 +72,7 @@ async def validate_promotion(
     data: PromotionValidateRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Validate if a promotion code can be used by the current user.
@@ -84,6 +87,7 @@ async def validate_promotion(
         data (ValidatePromotionRequest): Request data containing promotion code and cart total.
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated.
@@ -109,7 +113,7 @@ async def validate_promotion(
         logger.error(f">>> Error validating promotion: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to validate promotion",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -122,6 +126,7 @@ async def validate_promotion(
 async def get_promotion_cart(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get the promotion currently applied to the current user's cart.
@@ -129,6 +134,7 @@ async def get_promotion_cart(
     Args:
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated.
@@ -144,7 +150,7 @@ async def get_promotion_cart(
         if not cart_items:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cart is empty",
+                detail=translator.t("cart.empty_cart"),
             )
 
         promotion_code = cart_items[0].discount_code
@@ -168,7 +174,7 @@ async def get_promotion_cart(
         logger.error(f">>> Error fetching promotion in cart: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch promotion in cart",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -181,6 +187,7 @@ async def get_promotion_cart(
 async def get_promotion_history(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get promotion usage history for the current user.
@@ -188,6 +195,7 @@ async def get_promotion_history(
     Args:
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated.
@@ -216,7 +224,7 @@ async def get_promotion_history(
         logger.error(f">>> Error fetching promotion history: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch promotion history",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -250,6 +258,7 @@ async def apply_promotion(
     request: ApplyPromotionRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Apply or remove a promotion from the current user's cart.
@@ -258,6 +267,7 @@ async def apply_promotion(
         request (ApplyPromotionRequest): Request containing promotion code or null to remove.
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (User, optional): Current authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if user is not authenticated.
@@ -277,7 +287,7 @@ async def apply_promotion(
         if not cart_items:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cart is empty",
+                detail=translator.t("cart.empty_cart"),
             )
 
         # Calculate subtotal
@@ -305,7 +315,7 @@ async def apply_promotion(
         if not validation_result["valid"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=validation_result.get("error", "Invalid promotion code"),
+                detail=validation_result.get("error", translator.t("promotion.not_found")),
             )
 
         # Return success with promotion details
@@ -337,5 +347,5 @@ async def apply_promotion(
         logger.error(f">>> Error applying promotion: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to apply promotion",
+            detail=translator.t("errors.internal_server"),
         )

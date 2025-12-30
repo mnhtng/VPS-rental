@@ -17,20 +17,23 @@ import { Button } from "@/components/ui/button"
 import { AdminOrder } from "@/types/types"
 import { formatDate } from "@/utils/string"
 import { formatPrice } from "@/utils/currency"
+import { useTranslations } from "next-intl"
 
 export const OrderDetailSheet = ({
     order
 }: {
     order: AdminOrder
 }) => {
+    const t = useTranslations('admin.components.order_detail')
+    const tCommon = useTranslations('admin.components.common')
     const getStatusBadge = (status: AdminOrder['status']) => {
         switch (status) {
             case 'paid':
-                return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-0">Paid</Badge>
+                return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-0">{t('paid')}</Badge>
             case 'pending':
-                return <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-0">Pending</Badge>
+                return <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-0">{t('pending')}</Badge>
             case 'cancelled':
-                return <Badge className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border-0">Cancelled</Badge>
+                return <Badge className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border-0">{t('cancelled')}</Badge>
         }
     }
 
@@ -91,20 +94,20 @@ export const OrderDetailSheet = ({
                 <div className="p-6 space-y-6">
                     {/* Customer Info */}
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '50ms' }}>
-                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Customer</h4>
+                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t('customer_info')}</h4>
                         <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                            <p className="text-sm"><span className="text-muted-foreground">Name:</span> <span className="font-medium">{order.user?.name || 'N/A'}</span></p>
-                            <p className="text-sm"><span className="text-muted-foreground">Email:</span> <span className="font-medium">{order.user?.email || 'N/A'}</span></p>
+                            <p className="text-sm"><span className="text-muted-foreground">Name:</span> <span className="font-medium">{order.user?.name || tCommon('na')}</span></p>
+                            <p className="text-sm"><span className="text-muted-foreground">Email:</span> <span className="font-medium">{order.user?.email || tCommon('na')}</span></p>
                         </div>
                     </div>
 
                     {/* Order Note */}
                     {order.note && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '100ms' }}>
-                            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Note</h4>
+                            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t('note')}</h4>
                             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                                 <p className="text-sm">
-                                    <span className="font-medium">{order.note || 'N/A'}</span>
+                                    <span className="font-medium">{order.note || tCommon('na')}</span>
                                 </p>
                             </div>
                         </div>
@@ -113,7 +116,7 @@ export const OrderDetailSheet = ({
                     {/* Order Items */}
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '100ms' }}>
                         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                            Products ({order.order_items?.length || 0})
+                            {t('products')} ({order.order_items?.length || 0})
                         </h4>
                         <div className="space-y-3">
                             {order.order_items?.map((item, index) => (
@@ -134,7 +137,7 @@ export const OrderDetailSheet = ({
                                                 <p className="text-sm text-muted-foreground mt-1 ml-10">{item.os}</p>
                                                 <div className="flex flex-wrap gap-2 mt-2 ml-10">
                                                     <Badge variant="outline" className="bg-background">{item.configuration?.plan_name || 'VPS'}</Badge>
-                                                    <Badge variant="secondary">{item.duration_months} months</Badge>
+                                                    <Badge variant="secondary">{item.duration_months} {t('months')}</Badge>
                                                 </div>
                                             </div>
                                             <p className="font-bold text-green-600 shrink-0">
@@ -156,7 +159,7 @@ export const OrderDetailSheet = ({
                                         <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">
                                             <DollarSign className="h-5 w-5 text-green-600" />
                                         </div>
-                                        <span className="text-lg font-semibold">Total</span>
+                                        <span className="text-lg font-semibold">{t('total')}</span>
                                     </div>
                                     <span className="text-2xl font-bold text-green-600">{formatPrice(order.price)}</span>
                                 </div>
@@ -167,7 +170,7 @@ export const OrderDetailSheet = ({
 
                 <SheetFooter className="px-6 pb-6">
                     <SheetClose asChild>
-                        <Button variant="outline" className="w-full">Close</Button>
+                        <Button variant="outline" className="w-full">{tCommon('close')}</Button>
                     </SheetClose>
                 </SheetFooter>
             </SheetContent>

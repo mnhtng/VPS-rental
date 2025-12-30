@@ -1,11 +1,14 @@
 import { sendPasswordResetEmail, sendVerificationMail } from "@/lib/email/resend";
 import { ApiResponse, Login, Register } from "@/types/types";
+import { getClientLocale } from "@/utils/locale";
 
 const baseURL = process.env.NEXT_PUBLIC_VERCEL_URL
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : 'http://localhost:3000';
 
 const useAuth = () => {
+    const locale = getClientLocale();
+
     const login = async ({
         email,
         password,
@@ -15,6 +18,7 @@ const useAuth = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
                 credentials: 'include', // Enable cookies
                 body: JSON.stringify({ email, password }),
@@ -81,6 +85,7 @@ const useAuth = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
                 body: JSON.stringify({
                     name,
@@ -129,6 +134,7 @@ const useAuth = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
                 body: JSON.stringify({ email }),
             });
@@ -172,6 +178,7 @@ const useAuth = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
                 body: JSON.stringify({ token }),
             });
@@ -209,6 +216,7 @@ const useAuth = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
                 body: JSON.stringify({ email }),
             });
@@ -252,6 +260,7 @@ const useAuth = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
                 body: JSON.stringify({ email }),
             });
@@ -295,6 +304,7 @@ const useAuth = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept-Language': locale,
                 },
                 body: JSON.stringify({
                     token,
@@ -332,7 +342,14 @@ const useAuth = () => {
 
     const validateResetToken = async (token: string, email: string): Promise<ApiResponse> => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/validate-reset-token?token=${token}&email=${encodeURIComponent(email)}`);
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/validate-reset-token?token=${token}&email=${encodeURIComponent(email)}`,
+                {
+                    headers: {
+                        'Accept-Language': locale,
+                    },
+                }
+            );
             const result = await response.json();
 
             if (!response.ok) {

@@ -30,6 +30,7 @@ const VPSWelcomePDF = ({
     vps = {
         name: "VPS Pro",
         hostname: "server1.example.com",
+        vmid: 100,
         os: "Ubuntu 22.04 LTS",
         cpu: 4,
         ram: 8,
@@ -45,6 +46,10 @@ const VPSWelcomePDF = ({
         sshPort: 22,
     },
 }: VPSWelcomePDFProps) => {
+    const isWindowsOS = vps.os.toLowerCase().includes("windows") ? true : false;
+    const ipPublic = `117.0.207.175`;
+    const portPublic = isWindowsOS ? `33${vps.vmid}` : `22${vps.vmid}`;
+
     return (
         <Document>
             {/* ═══════════════════════════════════════════════════════════════════
@@ -100,10 +105,10 @@ const VPSWelcomePDF = ({
                                 <Text style={styles.techValue}>{vps.ram} GB RAM</Text>
                             </View>
                             <View style={styles.techItem}>
-                                <Text style={styles.techValue}>{vps.storage} GB {vps.storage_type}</Text>
+                                <Text style={styles.techValue}>{vps.storage < 1000 ? vps.storage : Math.round(vps.storage / 1000).toFixed(1)} {vps.storage < 1000 ? 'GB' : 'TB'} {vps.storage_type}</Text>
                             </View>
                             <View style={styles.techItem}>
-                                <Text style={styles.techValue}>{vps.network_speed} MB/s</Text>
+                                <Text style={styles.techValue}>{vps.network_speed < 1000 ? vps.network_speed : Math.round(vps.network_speed / 1000).toFixed(1)} {vps.network_speed < 1000 ? 'Mbps' : 'Gbps'}</Text>
                             </View>
                         </View>
                     </View>
@@ -121,9 +126,9 @@ const VPSWelcomePDF = ({
                         <View style={styles.credentialsGrid}>
                             <View style={styles.credentialBox}>
                                 <Text style={styles.credLabel}>
-                                    IP Address 1
+                                    IP Private 1
                                     <Text style={styles.separate}> | </Text>
-                                    IP Address 2
+                                    IP Private 2
                                 </Text>
                                 <Text style={styles.credValue}>
                                     {credentials.ipAddress}
@@ -133,7 +138,7 @@ const VPSWelcomePDF = ({
                             </View>
                             <View style={styles.credentialBox}>
                                 <Text style={styles.credLabel}>SSH Port</Text>
-                                <Text style={styles.credValue}>{credentials.sshPort}</Text>
+                                <Text style={styles.credValue}>{portPublic}</Text>
                             </View>
                             <View style={styles.credentialBox}>
                                 <Text style={styles.credLabel}>Username</Text>
@@ -146,9 +151,9 @@ const VPSWelcomePDF = ({
                         </View>
 
                         <View style={styles.commandBox}>
-                            <Text style={styles.commandLabel}>LỆNH KẾT NỐI SSH (ÁP DỤNG VỚI VPS CÓ OS LINUX):</Text>
+                            <Text style={styles.commandLabel}>IP PUBLIC</Text>
                             <Text style={styles.commandCode}>
-                                ssh {credentials.username}@{credentials.ipAddress} -p {credentials.sshPort}
+                                {ipPublic}
                             </Text>
                         </View>
                     </View>
@@ -169,7 +174,7 @@ const VPSWelcomePDF = ({
                         </Text>
                         <View style={styles.codeBlock}>
                             <Text style={styles.codeText}>
-                                ssh {credentials.username}@{credentials.ipAddress} -p {credentials.sshPort}
+                                ssh {credentials.username}@{ipPublic} -p {portPublic}
                             </Text>
                         </View>
                         <Text style={styles.guideText}>
@@ -187,7 +192,7 @@ const VPSWelcomePDF = ({
                             • Nhấn Windows + R, gõ mstsc và nhấn Enter
                         </Text>
                         <Text style={styles.guideText}>
-                            • Nhập Computer: {credentials.ipAddress}
+                            • Nhập Computer: {ipPublic}:{portPublic}
                         </Text>
                         <Text style={styles.guideText}>
                             • Click Connect, nhập username và password

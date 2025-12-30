@@ -26,13 +26,14 @@ import { CartItem, CheckoutFormData } from '@/types/types';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { CheckoutPlaceholder } from '@/components/custom/placeholder/checkout';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import usePromotion from '@/hooks/usePromotion';
 import { ValidatePromotion } from '@/types/types';
 import { generateOrderNumber } from '@/utils/string';
 
 const CheckoutPage = () => {
     const router = useRouter();
+    const t = useTranslations('checkout');
     const locale = useLocale();
     const { getCartItems } = useProduct();
     const { getPromotionCart } = usePromotion();
@@ -59,13 +60,13 @@ const CheckoutPage = () => {
                 toast.error(result.message, {
                     description: result.error.detail,
                 });
-                router.push(`/${locale}/cart`);
+                router.push(`/cart`);
                 return;
             }
 
             if (!result.data || result.data.length === 0) {
-                toast.error('Your cart is empty');
-                router.push(`/${locale}/cart`);
+                toast.error(t('toast.cart_empty'));
+                router.push(`/cart`);
                 return;
             }
 
@@ -77,7 +78,7 @@ const CheckoutPage = () => {
                 toast.error(getPromotion.message, {
                     description: getPromotion.error.detail,
                 });
-                router.push(`/${locale}/cart`);
+                router.push(`/cart`);
                 return;
             }
 
@@ -93,10 +94,10 @@ const CheckoutPage = () => {
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return;
 
-            toast.error("Failed to load cart items", {
-                description: "Please try again later"
+            toast.error(t('toast.failed_load'), {
+                description: t('toast.try_again')
             });
-            router.push(`/${locale}/cart`);
+            router.push(`/cart`);
         } finally {
             if (!signal?.aborted) {
                 setIsPageLoading(false);
@@ -142,19 +143,19 @@ const CheckoutPage = () => {
 
         try {
             if (!formData.phone || !formData.address) {
-                toast.error("Please fill in all required fields");
+                toast.error(t('toast.fill_required'));
                 return;
             }
 
             if (formData.phone.length < 10) {
-                toast.error('Please enter a valid phone number');
+                toast.error(t('toast.invalid_phone'));
                 return;
             }
 
             setStep('payment');
         } catch {
-            toast.error("Please fill in all required fields correctly", {
-                description: "Some fields are invalid"
+            toast.error(t('toast.fields_invalid'), {
+                description: t('toast.fields_invalid_desc')
             });
         }
     };
@@ -187,8 +188,8 @@ const CheckoutPage = () => {
             // For VNPay, it will be a web URL; for MoMo, it could be a deeplink or web URL
         } catch {
             setStep('payment');
-            toast.error('Failed to create payment', {
-                description: 'Please try again later'
+            toast.error(t('toast.payment_failed'), {
+                description: t('toast.try_again')
             });
             setIsLoading(false);
         }
@@ -212,8 +213,8 @@ const CheckoutPage = () => {
                                 <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 animate-pulse"></div>
                             </div>
                         </div>
-                        <h2 className="text-2xl font-bold animate-pulse">Processing Payment</h2>
-                        <p className="text-muted-foreground">Please wait while we process your payment...</p>
+                        <h2 className="text-2xl font-bold animate-pulse">{t('processing.title')}</h2>
+                        <p className="text-muted-foreground">{t('processing.description')}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -235,15 +236,15 @@ const CheckoutPage = () => {
                         variant="ghost"
                         className="mb-6 hover:translate-x-1 transition-transform duration-200"
                     >
-                        <Link href="/cart" className='flex items-center'>
+                        <Link href={`/${locale}/cart`} className='flex items-center'>
                             <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Cart
+                            {t('header.back_to_cart')}
                         </Link>
                     </Button>
                     <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
-                        Secure Checkout
+                        {t('header.title')}
                     </h1>
-                    <p className="text-xl text-muted-foreground">Complete your VPS purchase safely and securely</p>
+                    <p className="text-xl text-muted-foreground">{t('header.subtitle')}</p>
                 </div>
 
                 {/* Progress Steps */}
@@ -258,7 +259,7 @@ const CheckoutPage = () => {
                             >
                                 {step === 'payment' ? '✓' : '1'}
                             </div>
-                            <span className="font-semibold">Info</span>
+                            <span className="font-semibold">{t('steps.info')}</span>
                         </div>
 
                         <div className="flex-1 relative">
@@ -275,7 +276,7 @@ const CheckoutPage = () => {
                             >
                                 2
                             </div>
-                            <span className="font-semibold">Payment</span>
+                            <span className="font-semibold">{t('steps.payment')}</span>
                         </div>
                     </div>
                 </div>
@@ -288,10 +289,10 @@ const CheckoutPage = () => {
                                 <CardHeader>
                                     <CardTitle className="flex items-center text-2xl">
                                         <User className="mr-3 h-6 w-6 text-blue-600 dark:text-blue-400" />
-                                        Customer Information
+                                        {t('customer_info.title')}
                                     </CardTitle>
                                     <CardDescription className="text-lg text-muted-foreground">
-                                        Please fill in your details to complete the purchase
+                                        {t('customer_info.description')}
                                     </CardDescription>
                                 </CardHeader>
 
@@ -301,24 +302,24 @@ const CheckoutPage = () => {
                                         <div>
                                             <h3 className="text-lg font-semibold mb-4 flex items-center">
                                                 <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3"></div>
-                                                Personal Information
+                                                {t('customer_info.personal_info')}
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div className="space-y-2">
-                                                    <Label className="text-sm font-medium">Full Name <span className='text-red-400'>*</span></Label>
+                                                    <Label className="text-sm font-medium">{t('customer_info.full_name')} <span className='text-red-400'>*</span></Label>
                                                     <Input
                                                         value={cartItems[0]?.user.name || ''}
                                                         className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
-                                                        placeholder="Enter your full name"
+                                                        placeholder={t('customer_info.full_name_placeholder')}
                                                         disabled
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label className="text-sm font-medium">Email Address <span className='text-red-400'>*</span></Label>
+                                                    <Label className="text-sm font-medium">{t('customer_info.email')} <span className='text-red-400'>*</span></Label>
                                                     <Input
                                                         value={cartItems[0]?.user.email || ''}
                                                         className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
-                                                        placeholder="your.email@example.com"
+                                                        placeholder={t('customer_info.email_placeholder')}
                                                         disabled
                                                     />
                                                 </div>
@@ -329,11 +330,11 @@ const CheckoutPage = () => {
                                         <div>
                                             <h3 className="text-lg font-semibold mb-4 flex items-center">
                                                 <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3"></div>
-                                                Contact Information
+                                                {t('customer_info.contact_info')}
                                             </h3>
                                             <div className="space-y-6">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="phone" className="text-sm font-medium">Phone Number <span className='text-red-400'>*</span></Label>
+                                                    <Label htmlFor="phone" className="text-sm font-medium">{t('customer_info.phone')} <span className='text-red-400'>*</span></Label>
                                                     <Input
                                                         id="phone"
                                                         name="phone"
@@ -342,7 +343,7 @@ const CheckoutPage = () => {
                                                         onChange={handleInputChange}
                                                         required
                                                         className="h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
-                                                        placeholder="+84 123 456 789"
+                                                        placeholder={t('customer_info.phone_placeholder')}
                                                     />
                                                 </div>
                                             </div>
@@ -352,10 +353,10 @@ const CheckoutPage = () => {
                                         <div>
                                             <h3 className="text-lg font-semibold mb-4 flex items-center">
                                                 <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full mr-3"></div>
-                                                Address Information
+                                                {t('customer_info.address_info')}
                                             </h3>
                                             <div className="space-y-2">
-                                                <Label htmlFor="address" className="text-sm font-medium">Street Address <span className='text-red-400'>*</span></Label>
+                                                <Label htmlFor="address" className="text-sm font-medium">{t('customer_info.address')} <span className='text-red-400'>*</span></Label>
                                                 <Textarea
                                                     id="address"
                                                     name="address"
@@ -364,7 +365,7 @@ const CheckoutPage = () => {
                                                     rows={3}
                                                     required
                                                     className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
-                                                    placeholder="Enter your street address"
+                                                    placeholder={t('customer_info.address_placeholder')}
                                                 />
                                             </div>
                                         </div>
@@ -375,7 +376,7 @@ const CheckoutPage = () => {
                                                 size="lg"
                                                 className="px-12 py-4 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                                             >
-                                                Continue to Payment
+                                                {t('customer_info.continue')}
                                                 <ArrowRight className="ml-2 h-5 w-5" />
                                             </Button>
                                         </div>
@@ -389,10 +390,10 @@ const CheckoutPage = () => {
                                 <CardHeader>
                                     <CardTitle className="flex items-center text-2xl">
                                         <CreditCard className="mr-3 h-6 w-6 text-green-600" />
-                                        Payment Method
+                                        {t('payment.title')}
                                     </CardTitle>
                                     <CardDescription className="text-lg text-muted-foreground">
-                                        Choose your preferred payment method
+                                        {t('payment.description')}
                                     </CardDescription>
                                 </CardHeader>
 
@@ -401,7 +402,7 @@ const CheckoutPage = () => {
                                         <div>
                                             <h3 className="text-lg font-semibold mb-6 flex items-center">
                                                 <div className="w-2 h-2 bg-green-600 dark:bg-green-400 rounded-full mr-3"></div>
-                                                Select Payment Method
+                                                {t('payment.select_method')}
                                             </h3>
                                             <RadioGroup
                                                 value={formData.paymentMethod}
@@ -425,10 +426,10 @@ const CheckoutPage = () => {
                                                             </div>
                                                             <div>
                                                                 <Label htmlFor="momo" className="text-lg font-semibold cursor-pointer">
-                                                                    MoMo Wallet
+                                                                    {t('payment.momo_wallet')}
                                                                 </Label>
                                                                 <p className="text-sm mt-1">
-                                                                    Pay securely via MoMo e-wallet
+                                                                    {t('payment.momo_desc')}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -452,10 +453,10 @@ const CheckoutPage = () => {
                                                             </div>
                                                             <div>
                                                                 <Label htmlFor="vnpay" className="text-lg font-semibold cursor-pointer">
-                                                                    VNPay
+                                                                    {t('payment.vnpay')}
                                                                 </Label>
                                                                 <p className="text-sm mt-1">
-                                                                    Pay securely via VNPay gateway
+                                                                    {t('payment.vnpay_desc')}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -469,14 +470,14 @@ const CheckoutPage = () => {
                                             <div className="space-y-4 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-300 dark:border-green-800">
                                                 <h3 className="text-lg font-semibold flex items-center text-green-700 dark:text-green-400">
                                                     <Building2 className="mr-2 h-5 w-5" />
-                                                    Payment via VNPay
+                                                    {t('payment.vnpay_info_title')}
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    You will be redirected to the VNPay payment gateway to complete your transaction.
+                                                    {t('payment.vnpay_info_desc')}
                                                 </p>
                                                 <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                                                     <Shield className="h-4 w-4" />
-                                                    <span>Transactions are secured by VNPay</span>
+                                                    <span>{t('payment.vnpay_secured')}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -486,14 +487,14 @@ const CheckoutPage = () => {
                                             <div className="space-y-4 p-6 bg-pink-50 dark:bg-pink-900/20 rounded-xl border border-pink-300 dark:border-pink-800">
                                                 <h3 className="text-lg font-semibold flex items-center text-pink-700 dark:text-pink-400">
                                                     <Smartphone className="mr-2 h-5 w-5" />
-                                                    Payment via MoMo
+                                                    {t('payment.momo_info_title')}
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    You will be redirected to the MoMo payment gateway to complete your transaction.
+                                                    {t('payment.momo_info_desc')}
                                                 </p>
                                                 <div className="flex items-center gap-2 text-sm text-pink-600 dark:text-pink-400">
                                                     <Shield className="h-4 w-4" />
-                                                    <span>Transactions are secured by MoMo</span>
+                                                    <span>{t('payment.momo_secured')}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -505,7 +506,7 @@ const CheckoutPage = () => {
                                                 onClick={() => setStep('info')}
                                             >
                                                 <ArrowLeft className="mr-0 sm:mr-2 h-5 w-5" />
-                                                <span className='hidden sm:inline'>Back to Info</span>
+                                                <span className='hidden sm:inline'>{t('payment.back_to_info')}</span>
                                             </Button>
 
                                             <Button
@@ -517,13 +518,13 @@ const CheckoutPage = () => {
                                                 {isLoading ? (
                                                     <>
                                                         <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-3"></div>
-                                                        Processing...
+                                                        {t('payment.processing')}
                                                     </>
                                                 ) : (
                                                     <>
                                                         <Shield className="mr-3 h-5 w-5" />
-                                                        {formData.paymentMethod === 'vnpay' ? 'Pay with VNPay' :
-                                                            'Pay with MoMo'}
+                                                        {formData.paymentMethod === 'vnpay' ? t('payment.pay_vnpay') :
+                                                            t('payment.pay_momo')}
                                                     </>
                                                 )}
                                             </Button>
@@ -542,7 +543,7 @@ const CheckoutPage = () => {
                                     <div className="w-8 h-8 bg-linear-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mr-3">
                                         <CreditCard className="h-4 w-4 text-white" />
                                     </div>
-                                    Order Summary
+                                    {t('summary.title')}
                                 </CardTitle>
                             </CardHeader>
 
@@ -560,13 +561,13 @@ const CheckoutPage = () => {
                                                     <h3 className="font-bold text-lg text-black">{item.vps_plan.name}</h3>
 
                                                     <Badge variant="secondary" className="bg-linear-to-r from-green-100 to-emerald-100 text-green-700 border-green-200">
-                                                        {item.duration_months} month(s)
+                                                        {item.duration_months} {t('summary.months')}
                                                     </Badge>
                                                 </div>
 
                                                 <div className="text-sm text-black/70 space-y-1">
-                                                    <p>• Hostname: {item.hostname}</p>
-                                                    <p>• OS: {item.os}</p>
+                                                    <p>• {t('summary.hostname')}: {item.hostname}</p>
+                                                    <p>• {t('summary.os')}: {item.os}</p>
 
                                                     <div className="mt-4">
                                                         <div className="text-lg sm:text-2xl font-bold text-purple-700">
@@ -584,18 +585,18 @@ const CheckoutPage = () => {
                                 {/* Pricing Breakdown */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-muted-foreground">
-                                        <span>Subtotal</span>
+                                        <span>{t('summary.subtotal')}</span>
                                         <span>{formatPrice(calculateSubtotal())}</span>
                                     </div>
                                     {appliedPromo && (
                                         <div className="flex justify-between text-green-600 font-medium">
-                                            <span>Discount ({appliedPromo.promotion.code})</span>
+                                            <span>{t('summary.discount')} ({appliedPromo.promotion.code})</span>
                                             <span>-{formatPrice(calculateDiscount())}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-muted-foreground">
-                                        <span>Setup Fee</span>
-                                        <span className="text-green-600 font-medium">FREE</span>
+                                        <span>{t('summary.setup_fee')}</span>
+                                        <span className="text-green-600 font-medium">{t('summary.free')}</span>
                                     </div>
                                 </div>
 
@@ -604,7 +605,7 @@ const CheckoutPage = () => {
                                 {/* Total */}
                                 <div className="bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-2xl p-6">
                                     <div className="flex flex-col justify-between items-center gap-3">
-                                        <div className="text-2xl font-semibold">Total</div>
+                                        <div className="text-2xl font-semibold">{t('summary.total')}</div>
                                         <span className="text-3xl font-bold">{formatPrice(calculateTotal())}</span>
                                     </div>
                                 </div>

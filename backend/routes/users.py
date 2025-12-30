@@ -17,6 +17,8 @@ from backend.utils import (
     hash_password,
     get_current_user,
     get_admin_user,
+    Translator,
+    get_translator,
 )
 
 
@@ -36,6 +38,7 @@ async def get_users(
     limit: int = None,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get list of users.
@@ -43,6 +46,9 @@ async def get_users(
     Args:
         skip (int, optional): Number of users to skip. Defaults to 0.
         limit (int, optional): Maximum number of users to return. Defaults to None.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -67,7 +73,7 @@ async def get_users(
         logger.error(f">>> Error retrieving users: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving users",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -82,12 +88,16 @@ async def get_user(
     user_id: uuid.UUID,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get user by ID.
 
     Args:
         user_id (uuid.UUID): User ID.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        current_user (User, optional): The authenticated user. Defaults to Depends(get_current_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -102,14 +112,14 @@ async def get_user(
         if current_user.role != "ADMIN" and current_user.id != user_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to view this user",
+                detail=translator.t("errors.forbidden"),
             )
 
         user = session.get(User, user_id)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
+                detail=translator.t("user.not_found"),
             )
 
         return user
@@ -119,7 +129,7 @@ async def get_user(
         logger.error(f">>> Error retrieving user: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving user",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -134,12 +144,16 @@ async def get_user_by_email(
     email: str,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get user by email.
 
     Args:
         email (str): User email.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -156,7 +170,7 @@ async def get_user_by_email(
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
+                detail=translator.t("user.not_found"),
             )
 
         return user
@@ -166,7 +180,7 @@ async def get_user_by_email(
         logger.error(f">>> Error retrieving user by email: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving user by email",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -180,9 +194,15 @@ async def get_user_by_email(
 async def get_user_count(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get total number of users.
+
+    Args:
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -203,7 +223,7 @@ async def get_user_count(
         logger.error(f">>> Error retrieving user count: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving user count",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -218,12 +238,16 @@ async def create_user(
     user_data: UserCreate,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Create a new user.
 
     Args:
         user_data (UserCreate): Data for the new user.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -242,7 +266,7 @@ async def create_user(
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered",
+                detail=translator.t("auth.user_exists"),
             )
 
         hashed_password = hash_password(user_data.password)
@@ -278,7 +302,7 @@ async def create_user(
         session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating user",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -294,6 +318,7 @@ async def update_user(
     user_data: UserUpdate,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Update user information.
@@ -301,6 +326,9 @@ async def update_user(
     Args:
         user_id (uuid.UUID): User ID.
         user_data (UserUpdate): Updated user information.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -316,7 +344,8 @@ async def update_user(
         user = session.get(User, user_id)
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=translator.t("user.not_found"),
             )
 
         if user_data.email and user_data.email != user.email:
@@ -326,7 +355,7 @@ async def update_user(
             if existing_email:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Email already in use",
+                    detail=translator.t("auth.user_exists"),
                 )
 
         user_dict = user_data.model_dump(exclude_unset=True, exclude={"verify_email"})
@@ -351,7 +380,7 @@ async def update_user(
         logger.error(f">>> Error updating user: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error updating user",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -365,12 +394,16 @@ async def delete_user(
     user_id: uuid.UUID,
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Delete user by ID.
 
     Args:
         user_id (uuid.UUID): User ID.
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -385,13 +418,14 @@ async def delete_user(
         user = session.get(User, user_id)
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=translator.t("user.not_found"),
             )
 
         session.delete(user)
         session.commit()
 
-        return {"message": "User deleted successfully"}
+        return {"message": translator.t("user.user_deleted")}
     except HTTPException:
         raise
     except Exception as e:
@@ -399,7 +433,7 @@ async def delete_user(
         logger.error(f">>> Error deleting user: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error deleting user",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -414,12 +448,16 @@ async def search_users(
     query: str = "",
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Search users by name, email, phone, address, or role.
 
     Args:
         query (str, optional): Search query string. Defaults to "".
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
 
     Raises:
         HTTPException: 401 if not authenticated.
@@ -449,5 +487,5 @@ async def search_users(
         logger.error(f">>> Error searching users: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error searching users",
+            detail=translator.t("errors.internal_server"),
         )

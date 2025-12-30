@@ -2,9 +2,10 @@
 
 import { usePathname } from "next/navigation"
 import { createContext, use, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 
 interface CmsContextProps {
-    page: "dashboard" | "users" | "vps" | "plans" | "support" | "revenue" | "analytics"
+    page: "DASHBOARD" | "USERS" | "VPS" | "PLANS" | "SUPPORT" | "REVENUE" | "ANALYTICS"
     description?: string
 }
 
@@ -18,78 +19,44 @@ export function useCms() {
     return context
 }
 
-const PageInfo = {
-    dashboard: {
-        url: "/admin",
-        title: "Dashboard",
-        description: "Get a quick overview of your website's activity, updates, and key stats in one place."
-    },
-    users: {
-        url: "/admin/users",
-        title: "Users",
-        description: "Manage user accounts, roles, and permissions for your system."
-    },
-    vps: {
-        url: "/admin/vps",
-        title: "VPS",
-        description: "Manage your virtual private servers, including creation, configuration, and monitoring."
-    },
-    plans: {
-        url: "/admin/plans",
-        title: "Plans",
-        description: "Manage subscription plans, pricing, and features available to users."
-    },
-    support: {
-        url: "/admin/support",
-        title: "Support",
-        description: "Manage support tickets, respond to customer inquiries, and track issue resolution."
-    },
-    revenue: {
-        url: "/admin/revenue",
-        title: "Revenue",
-        description: "Manage and track your revenue streams, including payments, invoices, and financial reports."
-    },
-    analytics: {
-        url: "/admin/analytics",
-        title: "Analytics",
-        description: "View reports and metrics to track your website's performance and engagement."
-    }
-}
+type PageType = "DASHBOARD" | "USERS" | "VPS" | "PLANS" | "SUPPORT" | "REVENUE" | "ANALYTICS"
 
-type PageType = "dashboard" | "users" | "vps" | "plans" | "support" | "revenue" | "analytics"
+const PageUrls: Record<PageType, string> = {
+    DASHBOARD: "/admin",
+    USERS: "/admin/users",
+    VPS: "/admin/vps",
+    PLANS: "/admin/plans",
+    SUPPORT: "/admin/support",
+    REVENUE: "/admin/revenue",
+    ANALYTICS: "/admin/analytics"
+}
 
 export function CmsProvider({
     children,
     ...props
 }: React.ComponentProps<"div">) {
     const pathname = usePathname()
+    const t = useTranslations('admin.pages')
 
-    const [redirectPage, setRedirectPage] = useState<{ page: PageType, description: string }>({
-        page: PageInfo.dashboard.title as PageType,
-        description: PageInfo.dashboard.description
-    })
+    const [currentPage, setCurrentPage] = useState<PageType>("DASHBOARD")
 
     useEffect(() => {
-        const currentPage = Object.entries(PageInfo).find(([, page]) => pathname?.endsWith(page.url))
+        const foundPage = Object.entries(PageUrls).find(([, url]) => pathname?.endsWith(url))
 
-        if (currentPage) {
-            setRedirectPage({
-                page: currentPage[1].title as PageType,
-                description: currentPage[1].description
-            })
+        if (foundPage) {
+            setCurrentPage(foundPage[0] as PageType)
         } else {
-            setRedirectPage({
-                page: PageInfo.dashboard.title as PageType,
-                description: PageInfo.dashboard.description
-            })
+            setCurrentPage("DASHBOARD")
         }
     }, [pathname])
+
+    const description = t(`${currentPage.toLowerCase()}.description`)
 
     return (
         <CmsContext.Provider
             value={{
-                page: redirectPage.page,
-                description: redirectPage.description || "",
+                page: currentPage,
+                description: description,
             }}
             {...props}
         >

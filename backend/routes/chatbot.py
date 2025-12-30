@@ -6,7 +6,7 @@ from backend.db import get_session
 from backend.models import User
 from backend.schemas import ChatRequest, ChatResponse
 from backend.services import ChatbotService
-from backend.utils import get_current_user
+from backend.utils import get_current_user, Translator, get_translator
 
 
 logger = logging.getLogger(__name__)
@@ -24,6 +24,7 @@ async def chat(
     request: ChatRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    translator: Translator = Depends(get_translator),
 ) -> ChatResponse:
     """
     Chat with the intelligent VPS assistant
@@ -36,8 +37,9 @@ async def chat(
 
     Args:
         request: Chat request with user message
-        db: Database session
+        session: Database session
         current_user: Authenticated user
+        translator: Translator for i18n messages
 
     Raises:
         HTTPException: 401 Unauthorized if user is not authenticated
@@ -62,5 +64,5 @@ async def chat(
         logger.error(f">>> Chatbot error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process chat message",
+            detail=translator.t("errors.internal_server"),
         )

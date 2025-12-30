@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from '@/i18n/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
@@ -42,63 +42,18 @@ import useSupport from '@/hooks/useSupport';
 import useMember from '@/hooks/useMember';
 import useChatbot from '@/hooks/useChatbot';
 
-const faqs = [
-    {
-        id: 1,
-        question: 'What VPS plan should I choose?',
-        answer: 'Choose based on your needs: Starter for small websites, Business for growing applications, Professional for high-traffic sites, and Enterprise for resource-intensive applications.',
-        category: 'Plans'
-    },
-    {
-        id: 2,
-        question: 'How long does VPS deployment take?',
-        answer: 'Most VPS instances are deployed within 5-10 minutes after successful payment confirmation. You will receive setup details via email.',
-        category: 'Setup'
-    },
-    {
-        id: 3,
-        question: 'Can I upgrade or downgrade my plan?',
-        answer: 'Yes, you can upgrade your plan anytime from your dashboard. Downgrades are processed at the end of your billing cycle.',
-        category: 'Plans'
-    },
-    {
-        id: 4,
-        question: 'What payment methods do you accept?',
-        answer: 'We accept MoMo wallet and VNPay (credit/debit cards). All payments are processed securely.',
-        category: 'Billing'
-    },
-    {
-        id: 5,
-        question: 'Do you provide backup services?',
-        answer: 'Yes, we offer automated daily backups for all VPS plans. You can also create manual backups from your control panel.',
-        category: 'Technical'
-    },
-    {
-        id: 6,
-        question: 'What level of support do you provide?',
-        answer: 'We provide 24/7 technical support via live chat, email, and phone. Our expert team can help with server configuration, troubleshooting, and optimization.',
-        category: 'Support'
-    }
-];
-
 const SupportPage = () => {
     const { data: session, status } = useSession();
     const router = useRouter();
     const locale = useLocale();
+    const t = useTranslations('support');
     const { getProfile } = useMember();
     const { createTicket } = useSupport();
     const { sendMessage } = useChatbot();
 
     const [activeTab, setActiveTab] = useState('chat');
     const [isLoading, setIsLoading] = useState(true);
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-        {
-            id: '1',
-            message: 'Xin chào! Tôi là trợ lý ảo của PCloud. Tôi có thể giúp bạn:\n- Tư vấn chọn gói VPS phù hợp\n- Giải đáp thắc mắc về dịch vụ\n- Hỗ trợ kỹ thuật\n\nBạn cần hỗ trợ gì ạ?',
-            isUser: false,
-            timestamp: new Date()
-        }
-    ]);
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [currentMessage, setCurrentMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const messageContainerRef = useRef<HTMLDivElement>(null);
@@ -136,15 +91,12 @@ const SupportPage = () => {
                     phone: ''
                 }));
 
-                toast.info('Please login to access full support features', {
-                    description: 'You can still use the AI chat and browse FAQs'
-                });
             }
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') return;
 
-            toast.error('Failed to load user profile', {
-                description: 'Please try again later'
+            toast.error(t('toast.profile_error'), {
+                description: t('toast.try_again')
             });
         } finally {
             setIsLoading(false);
@@ -161,6 +113,15 @@ const SupportPage = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        setChatMessages([{
+            id: '1',
+            message: t('chat.welcome'),
+            isUser: false,
+            timestamp: new Date()
+        }]);
+    }, [t]);
 
     // Auto scroll to bottom when messages change
     useEffect(() => {
@@ -193,7 +154,7 @@ const SupportPage = () => {
             if (result.error) {
                 const errorResponse: ChatMessage = {
                     id: (Date.now() + 1).toString(),
-                    message: 'Xin lỗi, hiện tại đang gặp sự cố kỹ thuật. Vui lòng thử lại sau hoặc liên hệ đội ngũ hỗ trợ của chúng tôi.',
+                    message: t('chat.error_technical'),
                     isUser: false,
                     timestamp: new Date()
                 };
@@ -212,7 +173,7 @@ const SupportPage = () => {
         } catch {
             const errorResponse: ChatMessage = {
                 id: (Date.now() + 1).toString(),
-                message: 'Đã xảy ra lỗi với dịch vụ chatbot PCloud của chúng tôi. Vui lòng thử lại sau hoặc liên hệ đội ngũ hỗ trợ của chúng tôi.',
+                message: t('chat.error_service'),
                 isUser: false,
                 timestamp: new Date()
             };
@@ -226,13 +187,13 @@ const SupportPage = () => {
         e.preventDefault();
 
         if (status !== 'authenticated' || !session?.user?.email) {
-            toast.error('Please login to submit a ticket');
-            router.push(`/${locale}/login`);
+            toast.error(t('toast.login_required'));
+            router.push(`/login`);
             return;
         }
 
         if (!ticketForm.subject || !ticketForm.description || !ticketForm.phone || !ticketForm.category || !ticketForm.priority) {
-            toast.error('Please fill in all required fields');
+            toast.error(t('toast.fill_required'));
             return;
         }
 
@@ -263,14 +224,14 @@ const SupportPage = () => {
             } else {
                 setSubmitStatus('success');
                 setTicketForm({ subject: '', phone: '', category: '', priority: 'medium', description: '' });
-                toast.success('Ticket submitted successfully!');
+                toast.success(t('toast.ticket_success'));
             }
 
             setTimeout(() => setSubmitStatus('idle'), 3000);
         } catch {
             setSubmitStatus('error');
-            toast.error('Failed to submit ticket', {
-                description: 'Please try again later'
+            toast.error(t('toast.ticket_error'), {
+                description: t('toast.try_again')
             });
             setTimeout(() => setSubmitStatus('idle'), 3000);
         }
@@ -329,11 +290,11 @@ const SupportPage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Header */}
                 <div className="text-center mb-12 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
-                    <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-4">
-                        Support Center
+                    <h1 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-green-600 bg-clip-text text-transparent py-4">
+                        {t('title')}
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                        Get help with your VPS hosting needs
+                        {t('subtitle')}
                     </p>
                 </div>
 
@@ -357,27 +318,27 @@ const SupportPage = () => {
                             <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '0ms' }}>
                                 <CardContent className="text-center p-6">
                                     <MessageCircle className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                                    <h3 className="font-semibold mb-2">Live Chat</h3>
-                                    <p className="text-sm text-muted-foreground mb-3">Chat with our AI assistant or human support agents</p>
-                                    <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">Available 24/7</Badge>
+                                    <h3 className="font-semibold mb-2">{t('contact.live_chat')}</h3>
+                                    <p className="text-sm text-muted-foreground mb-3">{t('contact.live_chat_desc')}</p>
+                                    <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">{t('contact.available_24_7')}</Badge>
                                 </CardContent>
                             </Card>
 
                             <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '50ms' }}>
                                 <CardContent className="text-center p-6">
                                     <Mail className="h-8 w-8 text-green-600 dark:text-green-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                                    <h3 className="font-semibold mb-2">Email Support</h3>
+                                    <h3 className="font-semibold mb-2">{t('contact.email_support')}</h3>
                                     <p className="text-sm text-muted-foreground mb-3">support@ptitcloud.io.vn</p>
-                                    <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">Response within 2 hours</Badge>
+                                    <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">{t('contact.response_time')}</Badge>
                                 </CardContent>
                             </Card>
 
                             <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '100ms' }}>
                                 <CardContent className="text-center p-6">
                                     <Phone className="h-8 w-8 text-purple-600 dark:text-purple-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                                    <h3 className="font-semibold mb-2">Phone Support</h3>
+                                    <h3 className="font-semibold mb-2">{t('contact.phone_support')}</h3>
                                     <p className="text-sm text-muted-foreground mb-3">+84 789 318 158</p>
-                                    <Badge className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100">24/7 Emergency</Badge>
+                                    <Badge className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100">{t('contact.emergency')}</Badge>
                                 </CardContent>
                             </Card>
                         </>
@@ -386,9 +347,9 @@ const SupportPage = () => {
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 animate-in fade-in slide-in-from-top-4" style={{ animationDelay: '200ms' }}>
                     <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="chat" className="hover:scale-105 transition-all">AI Chat Support</TabsTrigger>
-                        <TabsTrigger value="ticket" className="hover:scale-105 transition-all">Submit Ticket</TabsTrigger>
-                        <TabsTrigger value="faq" className="hover:scale-105 transition-all">FAQ</TabsTrigger>
+                        <TabsTrigger value="chat" className="hover:scale-105 transition-all">{t('tabs.chat')}</TabsTrigger>
+                        <TabsTrigger value="ticket" className="hover:scale-105 transition-all">{t('tabs.ticket')}</TabsTrigger>
+                        <TabsTrigger value="faq" className="hover:scale-105 transition-all">{t('tabs.faq')}</TabsTrigger>
                     </TabsList>
 
                     {/* AI Chat Tab */}
@@ -397,10 +358,10 @@ const SupportPage = () => {
                             <CardHeader>
                                 <CardTitle className="flex items-center">
                                     <Bot className="mr-2 h-5 w-5" />
-                                    AI Support Assistant
+                                    {t('chat.title')}
                                 </CardTitle>
                                 <CardDescription>
-                                    Get instant answers to your VPS questions. Our AI can help with plan recommendations, setup guidance, and technical support.
+                                    {t('chat.description')}
                                 </CardDescription>
                             </CardHeader>
 
@@ -426,7 +387,7 @@ const SupportPage = () => {
                                     <>
                                         {/* Suggested Questions */}
                                         <div className="space-y-2">
-                                            <Label>Quick Questions:</Label>
+                                            <Label>{t('chat.quick_questions')}</Label>
                                             <div className="flex flex-wrap gap-2">
                                                 {suggestedQuestions.map((question, index) => (
                                                     <Button
@@ -548,7 +509,7 @@ const SupportPage = () => {
                                                         handleSendMessage();
                                                     }
                                                 }}
-                                                placeholder="Type your message..."
+                                                placeholder={t('chat.placeholder')}
                                                 className="border border-dashed focus:border-none border-gray-300 resize-none max-h-50 h-5 transition-all"
                                             />
                                             <Button
@@ -572,19 +533,19 @@ const SupportPage = () => {
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <CardTitle>Submit Support Ticket</CardTitle>
+                                        <CardTitle>{t('ticket.title')}</CardTitle>
                                         <CardDescription>
-                                            Need personalized help? Submit a ticket and our expert support team will respond within 2 hours.
+                                            {t('ticket.description')}
                                         </CardDescription>
                                     </div>
                                     {status === 'authenticated' && (
                                         <Button
                                             variant="outline"
-                                            onClick={() => router.push(`/${locale}/my-tickets`)}
+                                            onClick={() => router.push(`/my-tickets`)}
                                             className="gap-2"
                                         >
                                             <TicketIcon className="h-4 w-4" />
-                                            View My Tickets
+                                            {t('ticket.view_tickets')}
                                         </Button>
                                     )}
                                 </div>
@@ -595,14 +556,14 @@ const SupportPage = () => {
                                     <Alert className="mb-6 border-green-500/50 bg-green-500/10">
                                         <CheckCircle className="h-4 w-4 text-green-500" />
                                         <AlertDescription>
-                                            Your support ticket has been submitted successfully! We&apos;ll respond via email within 2 hours.
-                                            You can track your ticket status in{' '}
+                                            {t('ticket.success_message')}{' '}
+                                            {t('ticket.track_in')}{' '}
                                             <Button
                                                 variant="link"
                                                 className="p-0 h-auto"
-                                                onClick={() => router.push(`/${locale}/my-tickets`)}
+                                                onClick={() => router.push(`/my-tickets`)}
                                             >
-                                                My Tickets
+                                                {t('ticket.my_tickets')}
                                             </Button>
                                             .
                                         </AlertDescription>
@@ -611,21 +572,21 @@ const SupportPage = () => {
 
                                 <form onSubmit={handleTicketSubmit} className="space-y-4">
                                     <div className='space-y-2'>
-                                        <Label htmlFor="subject">Subject *</Label>
+                                        <Label htmlFor="subject">{t('ticket.subject')} *</Label>
                                         <Input
                                             id="subject"
                                             name="subject"
                                             value={ticketForm.subject}
                                             onChange={handleInputChange}
                                             required
-                                            placeholder="Brief description of your issue"
+                                            placeholder={t('ticket.subject_placeholder')}
                                             className='border border-dashed border-gray-400/50 rounded-md focus:outline-none transition-all'
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className='space-y-2'>
-                                            <Label htmlFor="email">Email Address *</Label>
+                                            <Label htmlFor="email">{t('ticket.email')} *</Label>
                                             <Input
                                                 id="email"
                                                 type="email"
@@ -637,7 +598,7 @@ const SupportPage = () => {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <Label htmlFor="phone">Phone Number *</Label>
+                                            <Label htmlFor="phone">{t('ticket.phone')} *</Label>
                                             <Input
                                                 id="phone"
                                                 name="phone"
@@ -645,7 +606,7 @@ const SupportPage = () => {
                                                 value={ticketForm.phone}
                                                 onChange={handleInputChange}
                                                 required
-                                                placeholder="+84 912 345 678"
+                                                placeholder={t('ticket.phone_placeholder')}
                                                 className='border border-dashed border-gray-400/50 rounded-md focus:outline-none'
                                             />
                                         </div>
@@ -653,7 +614,7 @@ const SupportPage = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className='space-y-2'>
-                                            <Label htmlFor="category">Category *</Label>
+                                            <Label htmlFor="category">{t('ticket.category')} *</Label>
                                             <Select
                                                 name='category'
                                                 value={ticketForm.category}
@@ -661,48 +622,48 @@ const SupportPage = () => {
                                                 required
                                             >
                                                 <SelectTrigger className="w-full h-10 px-3 py-2 text-foreground bg-background border border-dashed border-gray-400/50 rounded-md focus:outline-none">
-                                                    <SelectValue placeholder="Select category" />
+                                                    <SelectValue placeholder={t('ticket.category_placeholder')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="technical">Technical Support</SelectItem>
-                                                    <SelectItem value="billing">Billing & Payment</SelectItem>
-                                                    <SelectItem value="setup">Server Setup</SelectItem>
-                                                    <SelectItem value="performance">Performance Issues</SelectItem>
-                                                    <SelectItem value="security">Security Concerns</SelectItem>
-                                                    <SelectItem value="other">Other</SelectItem>
+                                                    <SelectItem value="technical">{t('ticket.categories.technical')}</SelectItem>
+                                                    <SelectItem value="billing">{t('ticket.categories.billing')}</SelectItem>
+                                                    <SelectItem value="setup">{t('ticket.categories.setup')}</SelectItem>
+                                                    <SelectItem value="performance">{t('ticket.categories.performance')}</SelectItem>
+                                                    <SelectItem value="security">{t('ticket.categories.security')}</SelectItem>
+                                                    <SelectItem value="other">{t('ticket.categories.other')}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <Label htmlFor="priority">Priority</Label>
+                                            <Label htmlFor="priority">{t('ticket.priority')}</Label>
                                             <Select
                                                 name='priority'
                                                 value={ticketForm.priority}
                                                 onValueChange={(value) => setTicketForm(prev => ({ ...prev, priority: value }))}
                                             >
                                                 <SelectTrigger className="w-full h-10 px-3 py-2 text-foreground bg-background border border-dashed border-gray-400/50 rounded-md focus:outline-none">
-                                                    <SelectValue placeholder="Select priority" />
+                                                    <SelectValue placeholder={t('ticket.priority_placeholder')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="low">Low</SelectItem>
-                                                    <SelectItem value="medium">Medium</SelectItem>
-                                                    <SelectItem value="high">High</SelectItem>
-                                                    <SelectItem value="urgent">Urgent</SelectItem>
+                                                    <SelectItem value="low">{t('ticket.priorities.low')}</SelectItem>
+                                                    <SelectItem value="medium">{t('ticket.priorities.medium')}</SelectItem>
+                                                    <SelectItem value="high">{t('ticket.priorities.high')}</SelectItem>
+                                                    <SelectItem value="urgent">{t('ticket.priorities.urgent')}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     </div>
 
                                     <div className='space-y-2'>
-                                        <Label htmlFor="description">Description *</Label>
+                                        <Label htmlFor="description">{t('ticket.description_input')} *</Label>
                                         <Textarea
                                             id="description"
                                             name="description"
                                             value={ticketForm.description}
                                             onChange={handleInputChange}
                                             required
-                                            placeholder="Please provide detailed information about your issue, including any error messages, steps to reproduce, and what you've already tried..."
+                                            placeholder={t('ticket.description_placeholder')}
                                             className='w-full border border-dashed border-gray-400/50 rounded-md focus:outline-none resize-y min-h-21 max-h-60 transition-all'
                                         />
                                     </div>
@@ -716,10 +677,10 @@ const SupportPage = () => {
                                         {submitStatus === 'loading' ? (
                                             <>
                                                 <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                                Submitting...
+                                                {t('ticket.submitting')}
                                             </>
                                         ) : (
-                                            'Submit Ticket'
+                                            t('ticket.submit')
                                         )}
                                     </Button>
                                 </form>
@@ -731,9 +692,9 @@ const SupportPage = () => {
                     <TabsContent value="faq">
                         <Card className="animate-in fade-in zoom-in-95 duration-300">
                             <CardHeader>
-                                <CardTitle>Frequently Asked Questions</CardTitle>
+                                <CardTitle>{t('faq.title')}</CardTitle>
                                 <CardDescription>
-                                    Find quick answers to common questions about our VPS hosting services.
+                                    {t('faq.description')}
                                 </CardDescription>
                             </CardHeader>
 
@@ -756,36 +717,36 @@ const SupportPage = () => {
                                 ) : (
                                     <>
                                         <Accordion type="single" collapsible className="w-full">
-                                            {faqs.map((faq) => (
-                                                <AccordionItem key={faq.id} value={`item-${faq.id}`}>
+                                            {['q1', 'q2', 'q3', 'q4', 'q5', 'q6'].map((qId, index) => (
+                                                <AccordionItem key={qId} value={`item-${index + 1}`}>
                                                     <AccordionTrigger className="text-left">
                                                         <div className="flex items-center space-x-2">
                                                             <Badge variant="secondary" className="text-xs">
-                                                                {faq.category}
+                                                                {t(`faq.items.${qId}.category`)}
                                                             </Badge>
-                                                            <span>{faq.question}</span>
+                                                            <span>{t(`faq.items.${qId}.question`)}</span>
                                                         </div>
                                                     </AccordionTrigger>
                                                     <AccordionContent className="text-sm text-muted-foreground">
-                                                        {faq.answer}
+                                                        {t(`faq.items.${qId}.answer`)}
                                                     </AccordionContent>
                                                 </AccordionItem>
                                             ))}
                                         </Accordion>
 
                                         <div className="mt-8 p-6 bg-secondary rounded-lg">
-                                            <h3 className="font-semibold mb-2">Still need help?</h3>
+                                            <h3 className="font-semibold mb-2">{t('faq.still_need_help')}</h3>
                                             <p className="text-sm text-muted-foreground mb-4">
-                                                Can&apos;t find what you&apos;re looking for? Our support team is here to help.
+                                                {t('faq.cant_find')}
                                             </p>
                                             <div className="flex space-x-2">
                                                 <Button onClick={() => setActiveTab('chat')}>
                                                     <MessageCircle className="mr-2 h-4 w-4" />
-                                                    Chat with AI
+                                                    {t('faq.chat_with_ai')}
                                                 </Button>
                                                 <Button variant="outline" onClick={() => setActiveTab('ticket')}>
                                                     <HelpCircle className="mr-2 h-4 w-4" />
-                                                    Submit Ticket
+                                                    {t('tabs.ticket')}
                                                 </Button>
                                             </div>
                                         </div>

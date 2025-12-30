@@ -17,6 +17,7 @@ const EmailVPSWelcome = ({
     vps = {
         name: "VPS Pro",
         hostname: "server1.example.com",
+        vmid: 100,
         os: "Ubuntu 22.04 LTS",
         cpu: 4,
         ram: 8,
@@ -32,6 +33,10 @@ const EmailVPSWelcome = ({
         sshPort: 22,
     },
 }: EmailVPSWelcomeProps) => {
+    const isWindowsOS = vps.os.toLowerCase().includes("windows") ? true : false;
+    const ipPublic = `117.0.207.175`;
+    const portPublic = isWindowsOS ? `33${vps.vmid}` : `22${vps.vmid}`;
+
     return (
         <EmailLayout preview={`VPS ${vps.name} đã online! ${vps.cpu} vCPU • ${vps.ram}GB RAM • Thông tin đăng nhập bên trong`}>
             {/* Success Banner */}
@@ -81,10 +86,18 @@ const EmailVPSWelcome = ({
                 <div style={credentialsGrid}>
                     <div style={credentialItem}>
                         <Text style={credentialLabel}>
-                            IP Address 1 / IP Address 2
+                            IP Private 1 / IP Private 2
                         </Text>
                         <Text style={credentialValue}>
                             {credentials.ipAddress} / {credentials.subIpAddress}
+                        </Text>
+                    </div>
+                    <div style={credentialItem}>
+                        <Text style={credentialLabel}>
+                            IP Public
+                        </Text>
+                        <Text style={credentialValue}>
+                            {ipPublic}
                         </Text>
                     </div>
                     <div style={credentialItem}>
@@ -97,17 +110,26 @@ const EmailVPSWelcome = ({
                     </div>
                     <div style={credentialItem}>
                         <Text style={credentialLabel}>SSH Port</Text>
-                        <Text style={credentialValue}>{credentials.sshPort}</Text>
+                        <Text style={credentialValue}>{portPublic}</Text>
                     </div>
                 </div>
 
                 {/* SSH Command */}
-                <div style={commandBox}>
-                    <Text style={commandLabel}>LỆNH KẾT NỐI SSH:</Text>
-                    <code style={commandCode}>
-                        ssh {credentials.username}@{credentials.ipAddress} -p {credentials.sshPort}
-                    </code>
-                </div>
+                {isWindowsOS ? (
+                    <div style={commandBox}>
+                        <Text style={commandLabel}>KẾT NỐI REMOTE DESKTOP:</Text>
+                        <code style={commandCode}>
+                            {ipPublic}:{portPublic}
+                        </code>
+                    </div>
+                ) : (
+                    <div style={commandBox}>
+                        <Text style={commandLabel}>LỆNH KẾT NỐI SSH:</Text>
+                        <code style={commandCode}>
+                            ssh {credentials.username}@{ipPublic} -p {portPublic}
+                        </code>
+                    </div>
+                )}
             </Section>
 
             {/* Quick Actions */}

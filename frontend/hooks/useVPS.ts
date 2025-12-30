@@ -79,6 +79,7 @@ const useVPS = () => {
                         vps: {
                             name: vps.vps_info.name,
                             hostname: vps.hostname,
+                            vmid: vps.vmid,
                             os: vps.vps_info.os,
                             cpu: vps.vps_info.cpu,
                             ram: vps.vps_info.ram,

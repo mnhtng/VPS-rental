@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { Suspense, useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import {
 import { BeamsBackground } from '@/components/ui/beam-background';
 import useAuth from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type VerificationStatus = 'loading' | 'success' | 'error';
 type ErrorCode = 'INVALID_TOKEN' | 'USER_NOT_FOUND' | 'ALREADY_VERIFIED' | 'SERVER_ERROR';
@@ -32,93 +32,79 @@ interface ErrorInfo {
     instructions: string[];
 }
 
-const EmailVerifiedPage = () => {
+const EmailVerifiedContent = () => {
     const locale = useLocale();
+    const t = useTranslations('auth.verify_email');
     const { verifyEmail } = useAuth();
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
 
     const [status, setStatus] = useState<VerificationStatus>('loading');
     const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
-    const hasVerified = useRef(false); // Prevent multiple API calls
+    const hasVerified = useRef(false);
 
     // Memoize error info configuration
     const getErrorInfo = useCallback((code: ErrorCode | null): ErrorInfo => {
         const errorConfigs: Record<ErrorCode, ErrorInfo> = {
             INVALID_TOKEN: {
                 icon: <XCircle className="h-12 w-12 text-red-600" />,
-                title: 'Invalid Verification Link',
-                message: 'The verification link has expired or is invalid. Please try registering again.',
+                title: t('error.invalid_token.title'),
+                message: t('error.invalid_token.message'),
                 bgColor: 'bg-red-100',
                 textColor: 'text-red-600',
                 borderColor: 'border-red-200',
                 showRegisterButton: true,
-                instructions: [
-                    'Link may have expired (24 hours)',
-                    'Register again to receive a new link',
-                    'Check if the link is complete'
-                ]
+                instructions: t.raw('error.invalid_token.instructions') as string[]
             },
             USER_NOT_FOUND: {
                 icon: <AlertTriangle className="h-12 w-12 text-orange-600" />,
-                title: 'Account Not Found',
-                message: 'The account associated with this email does not exist. Please register again.',
+                title: t('error.user_not_found.title'),
+                message: t('error.user_not_found.message'),
                 bgColor: 'bg-orange-100',
                 textColor: 'text-orange-600',
                 borderColor: 'border-orange-200',
                 showRegisterButton: true,
-                instructions: [
-                    'Account may have been deleted',
-                    'Register with the correct email'
-                ]
+                instructions: t.raw('error.user_not_found.instructions') as string[]
             },
             ALREADY_VERIFIED: {
                 icon: <CheckCircle className="h-12 w-12 text-blue-600" />,
-                title: 'Email Already Verified',
-                message: 'This email has already been verified. You can log in now.',
+                title: t('error.already_verified.title'),
+                message: t('error.already_verified.message'),
                 bgColor: 'bg-blue-100',
                 textColor: 'text-blue-600',
                 borderColor: 'border-blue-200',
                 showRegisterButton: false,
-                instructions: [
-                    'Account is ready to use',
-                    'Log in with your email and password'
-                ]
+                instructions: t.raw('error.already_verified.instructions') as string[]
             },
             SERVER_ERROR: {
                 icon: <XCircle className="h-12 w-12 text-red-600" />,
-                title: 'An Error Occurred',
-                message: 'An error occurred during verification. Please try again later.',
+                title: t('error.server_error.title'),
+                message: t('error.server_error.message'),
                 bgColor: 'bg-red-100',
                 textColor: 'text-red-600',
                 borderColor: 'border-red-200',
                 showRegisterButton: true,
-                instructions: [
-                    'Try again in a few minutes',
-                    'Contact support if the error persists'
-                ]
+                instructions: t.raw('error.server_error.instructions') as string[]
             }
         };
 
         return code ? errorConfigs[code] : errorConfigs.SERVER_ERROR;
-    }, []);
+    }, [t]);
 
     const errorInfo = useMemo(() => getErrorInfo(errorCode), [errorCode, getErrorInfo]);
 
     useEffect(() => {
         const verifyEmailRequest = async () => {
-            // Prevent multiple API calls
             if (hasVerified.current)
                 return;
 
             if (!token) {
                 setStatus('error');
                 setErrorCode('INVALID_TOKEN');
-                toast.error('Invalid token');
+                toast.error(t('toast.invalid_token'));
                 return;
             }
 
-            // Mark as verified to prevent subsequent calls
             hasVerified.current = true;
 
             try {
@@ -137,7 +123,7 @@ const EmailVerifiedPage = () => {
             } catch {
                 setStatus('error');
                 setErrorCode('SERVER_ERROR');
-                toast.error('An error occurred while verifying email');
+                toast.error(t('toast.server_error'));
             }
         };
 
@@ -155,8 +141,8 @@ const EmailVerifiedPage = () => {
                             <div className="flex justify-center">
                                 <Loader className="h-12 w-12 text-blue-600 animate-spin" />
                             </div>
-                            <h2 className="text-xl font-semibold">Verifying email...</h2>
-                            <p className="text-muted-foreground">Please wait a moment</p>
+                            <h2 className="text-xl font-semibold">{t('loading.title')}</h2>
+                            <p className="text-muted-foreground">{t('loading.subtitle')}</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -179,17 +165,17 @@ const EmailVerifiedPage = () => {
 
                             <div className="space-y-2">
                                 <h1 className="text-2xl font-bold text-green-600">
-                                    Verification Successful!
+                                    {t('success.title')}
                                 </h1>
                                 <p className="text-muted-foreground">
-                                    Your email has been successfully verified. Your account has been activated.
+                                    {t('success.subtitle')}
                                 </p>
                             </div>
 
                             <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
                                 <div className="flex items-center space-x-2">
-                                    <CheckCircle className="h-4 w-4 flex-shrink-0" />
-                                    <span>You can now log in and use all system features!</span>
+                                    <CheckCircle className="h-4 w-4 shrink-0" />
+                                    <span>{t('success.notice')}</span>
                                 </div>
                             </div>
 
@@ -200,7 +186,7 @@ const EmailVerifiedPage = () => {
                                     size="lg"
                                 >
                                     <Link href={`/${locale}/login`}>
-                                        Log In Now
+                                        {t('success.login_now')}
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Link>
                                 </Button>
@@ -211,7 +197,7 @@ const EmailVerifiedPage = () => {
                                     className="w-full"
                                 >
                                     <Link href={`/${locale}/`}>
-                                        Back to Home
+                                        {t('success.back_home')}
                                     </Link>
                                 </Button>
                             </div>
@@ -245,10 +231,10 @@ const EmailVerifiedPage = () => {
 
                         <div className={`${errorInfo.bgColor} border ${errorInfo.borderColor} rounded-lg p-4`}>
                             <div className="flex items-start space-x-3">
-                                <Mail className={`h-5 w-5 ${errorInfo.textColor} flex-shrink-0 mt-0.5`} />
+                                <Mail className={`h-5 w-5 ${errorInfo.textColor} shrink-0 mt-0.5`} />
                                 <div className="text-sm text-left space-y-2">
                                     <p className={`font-medium ${errorInfo.textColor}`}>
-                                        Resolution guide:
+                                        {t('error.resolution_guide')}
                                     </p>
                                     <ul className={`${errorInfo.textColor} space-y-1`}>
                                         {errorInfo.instructions.map((instruction, index) => (
@@ -267,7 +253,7 @@ const EmailVerifiedPage = () => {
                                     size="lg"
                                 >
                                     <Link href={`/${locale}/login`}>
-                                        Log In Now
+                                        {t('error.login_now')}
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Link>
                                 </Button>
@@ -278,7 +264,7 @@ const EmailVerifiedPage = () => {
                                     size="lg"
                                 >
                                     <Link href={`/${locale}/register`}>
-                                        Register Again
+                                        {t('error.register_again')}
                                         <Loader className="ml-2 h-4 w-4" />
                                     </Link>
                                 </Button>
@@ -289,7 +275,7 @@ const EmailVerifiedPage = () => {
                                     size="lg"
                                 >
                                     <Link href={`/${locale}/login`}>
-                                        Log In
+                                        {t('error.login')}
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Link>
                                 </Button>
@@ -301,7 +287,7 @@ const EmailVerifiedPage = () => {
                                 className="w-full"
                             >
                                 <Link href={`/${locale}/`}>
-                                    Back to Home
+                                    {t('error.back_home')}
                                 </Link>
                             </Button>
                         </div>
@@ -309,6 +295,26 @@ const EmailVerifiedPage = () => {
                 </Card>
             </div>
         </BeamsBackground>
+    );
+};
+
+const EmailVerifiedPage = () => {
+    return (
+        <Suspense fallback={
+            <BeamsBackground>
+                <div className="max-w-md w-full space-y-8">
+                    <Card className="text-center p-8">
+                        <CardContent className="space-y-4">
+                            <div className="flex justify-center">
+                                <Loader className="h-12 w-12 text-blue-600 animate-spin" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </BeamsBackground>
+        }>
+            <EmailVerifiedContent />
+        </Suspense>
     );
 };
 

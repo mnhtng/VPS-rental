@@ -46,6 +46,7 @@ export function AdminNavUser() {
     const { isMobile, open } = useSidebar()
     const { data: session } = useSession()
     const t = useTranslations('header')
+    const tAdmin = useTranslations('admin.nav')
     const { logout } = useAuth()
 
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -60,11 +61,9 @@ export function AdminNavUser() {
         try {
             setIsLoggingOut(true);
             await logout();
-            toast.success('Logged out successfully');
+            toast.success(t('logout'));
         } catch {
-            toast.error('Failed to logout', {
-                description: 'Please try again later',
-            });
+            toast.error(t('logout'));
         } finally {
             setIsLoggingOut(false);
         }
@@ -205,7 +204,7 @@ export function AdminNavUser() {
                                 {isLoggingOut ? (
                                     <>
                                         <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                        Logging out...
+                                        {tAdmin('logging_out')}
                                     </>
                                 ) : (
                                     <>

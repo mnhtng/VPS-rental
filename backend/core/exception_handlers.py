@@ -2,11 +2,14 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
+from backend.utils import get_language_from_request, t
+
 
 async def validation_exception_handler(req: Request, exc: RequestValidationError):
     """
     Custom exception handler for request validation errors.
     Format error messages by removing unnecessary "Value error, " prefix.
+    Supports i18n based on Accept-Language header.
 
     Args:
         req (Request): The request object.
@@ -15,6 +18,8 @@ async def validation_exception_handler(req: Request, exc: RequestValidationError
     Returns:
         JSONResponse: A JSON response with formatted error details.
     """
+    lang = get_language_from_request(req)
+
     errors = []
     for error in exc.errors():
         if error["type"] == "value_error":
@@ -36,7 +41,11 @@ async def validation_exception_handler(req: Request, exc: RequestValidationError
                 }
             )
     return JSONResponse(
-        status_code=422, content={"detail": "Invalid data!", "errors": errors}
+        status_code=422,
+        content={
+            "detail": t("validation.invalid_data", lang),
+            "errors": errors,
+        },
     )
 
 

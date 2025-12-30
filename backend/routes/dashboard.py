@@ -7,7 +7,7 @@ from calendar import month_abbr, monthrange
 
 from backend.db import get_session
 from backend.models import User, VPSInstance, Order, OrderItem, VMTemplate, PaymentTransaction
-from backend.utils import get_admin_user
+from backend.utils import get_admin_user, Translator, get_translator
 
 
 logger = logging.getLogger(__name__)
@@ -23,9 +23,20 @@ admin_router = APIRouter(prefix="/admin/dashboard", tags=["Admin - Dashboard"])
 async def get_dashboard_stats(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get comprehensive dashboard statistics.
+
+    Args:
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
+
+    Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
+        HTTPException: 500 if there is a server error.
 
     Returns:
         Dict containing dashboard stats including:
@@ -230,7 +241,7 @@ async def get_dashboard_stats(
         logger.error(f">>> Failed to get dashboard stats: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get dashboard statistics",
+            detail=translator.t("errors.internal_server"),
         )
 
 
@@ -243,9 +254,20 @@ async def get_dashboard_stats(
 async def get_analytics_stats(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
+    translator: Translator = Depends(get_translator),
 ):
     """
     Get comprehensive analytics statistics.
+
+    Args:
+        session (Session, optional): Database session. Defaults to Depends(get_session).
+        admin_user (User, optional): The authenticated admin user. Defaults to Depends(get_admin_user).
+        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
+
+    Raises:
+        HTTPException: 401 if not authenticated.
+        HTTPException: 403 if not admin.
+        HTTPException: 500 if there is a server error.
 
     Returns:
         Dict containing analytics stats including:
@@ -398,6 +420,5 @@ async def get_analytics_stats(
         logger.error(f">>> Failed to get analytics stats: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get analytics statistics",
+            detail=translator.t("errors.internal_server"),
         )
-

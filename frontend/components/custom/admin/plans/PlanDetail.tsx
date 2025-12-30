@@ -26,6 +26,8 @@ import { Plus, Loader2, Layers, Cpu, MemoryStick, HardDrive, Gauge, DollarSign, 
 import { VPSPlan, VPSPlanCreate, VPSPlanUpdate } from "@/types/types"
 import { formatPrice } from "@/utils/currency"
 import { Badge } from "@/components/ui/badge"
+import { getDiskSize, getNetworkSpeed } from "@/utils/string"
+import { useTranslations } from "next-intl"
 
 interface CreatePlanSheetProps {
     onCreate: (data: VPSPlanCreate) => Promise<void>
@@ -36,6 +38,8 @@ export const CreatePlanSheet = ({
     onCreate,
     isCreating
 }: CreatePlanSheetProps) => {
+    const t = useTranslations('admin.components.plan_detail')
+    const tCommon = useTranslations('admin.components.common')
     const [open, setOpen] = useState(false)
     const [formData, setFormData] = useState<VPSPlanCreate>({
         name: "",
@@ -81,8 +85,8 @@ export const CreatePlanSheet = ({
             <SheetTrigger asChild>
                 <Button className="shrink-0">
                     <Plus className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Add Plan</span>
-                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">{t('add_plan')}</span>
+                    <span className="sm:hidden">{tCommon('create')}</span>
                 </Button>
             </SheetTrigger>
             <SheetContent
@@ -98,9 +102,9 @@ export const CreatePlanSheet = ({
                                 <Layers className="h-6 w-6 text-indigo-500" />
                             </div>
                             <div>
-                                <SheetTitle className="text-xl">Create New Plan</SheetTitle>
+                                <SheetTitle className="text-xl">{t('add_new_plan')}</SheetTitle>
                                 <SheetDescription>
-                                    Add a new VPS plan to the catalog
+                                    {t('create_plan_desc')}
                                 </SheetDescription>
                             </div>
                         </div>
@@ -111,7 +115,7 @@ export const CreatePlanSheet = ({
                     {/* Basic Information */}
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
                         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                            Basic Information
+                            {t('basic_info')}
                         </h4>
                         <div className="bg-muted/50 rounded-lg p-4 space-y-4">
                             <div className="space-y-2">
@@ -119,7 +123,7 @@ export const CreatePlanSheet = ({
                                     <div className="h-6 w-6 rounded-full bg-indigo-500/10 flex items-center justify-center">
                                         <Layers className="h-3 w-3 text-indigo-500" />
                                     </div>
-                                    Plan Name *
+                                    {t('plan_name')} *
                                 </Label>
                                 <Input
                                     id="name"
@@ -135,7 +139,7 @@ export const CreatePlanSheet = ({
                                     <div className="h-6 w-6 rounded-full bg-purple-500/10 flex items-center justify-center">
                                         <Sparkles className="h-3 w-3 text-purple-500" />
                                     </div>
-                                    Description
+                                    {t('description_field')}
                                 </Label>
                                 <Textarea
                                     id="description"
@@ -148,7 +152,7 @@ export const CreatePlanSheet = ({
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label>Category *</Label>
+                                    <Label>{t('category')} *</Label>
                                     <Select
                                         value={formData.category}
                                         onValueChange={(value: 'basic' | 'standard' | 'premium') =>
@@ -185,7 +189,7 @@ export const CreatePlanSheet = ({
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Storage Type *</Label>
+                                    <Label>{t('storage_type')} *</Label>
                                     <Select
                                         value={formData.storage_type}
                                         onValueChange={(value: 'SSD' | 'NVMe') =>
@@ -208,7 +212,7 @@ export const CreatePlanSheet = ({
                     {/* Hardware Specs */}
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '50ms' }}>
                         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                            Hardware Specifications
+                            {t('specs')}
                         </h4>
                         <div className="bg-muted/50 rounded-lg p-4 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
@@ -233,7 +237,7 @@ export const CreatePlanSheet = ({
                                         <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center">
                                             <MemoryStick className="h-3 w-3 text-green-500" />
                                         </div>
-                                        RAM (GB) *
+                                        {t('ram')} *
                                     </Label>
                                     <Input
                                         type="number"
@@ -251,7 +255,7 @@ export const CreatePlanSheet = ({
                                         <div className="h-6 w-6 rounded-full bg-purple-500/10 flex items-center justify-center">
                                             <HardDrive className="h-3 w-3 text-purple-500" />
                                         </div>
-                                        Storage (GB) *
+                                        {t('storage')} *
                                     </Label>
                                     <Input
                                         type="number"
@@ -267,7 +271,7 @@ export const CreatePlanSheet = ({
                                         <div className="h-6 w-6 rounded-full bg-orange-500/10 flex items-center justify-center">
                                             <Gauge className="h-3 w-3 text-orange-500" />
                                         </div>
-                                        Bandwidth (Mbps) *
+                                        {t('bandwidth')} *
                                     </Label>
                                     <Input
                                         type="number"
@@ -294,7 +298,7 @@ export const CreatePlanSheet = ({
                                         <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center">
                                             <DollarSign className="h-3 w-3 text-green-500" />
                                         </div>
-                                        Monthly Price *
+                                        {t('monthly_price')} *
                                     </Label>
                                     <Input
                                         type="number"
@@ -418,18 +422,18 @@ export const CreatePlanSheet = ({
 
                     <SheetFooter className="gap-2 pt-2">
                         <SheetClose asChild>
-                            <Button type="button" variant="outline" className="flex-1">Cancel</Button>
+                            <Button type="button" variant="outline" className="flex-1">{tCommon('cancel')}</Button>
                         </SheetClose>
                         <Button type="submit" disabled={isCreating} className="flex-1">
                             {isCreating ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Creating...
+                                    {tCommon('creating')}
                                 </>
                             ) : (
                                 <>
                                     <Plus className="h-4 w-4 mr-2" />
-                                    Create Plan
+                                    {t('create_plan')}
                                 </>
                             )}
                         </Button>
@@ -451,6 +455,8 @@ export const PlanDetailSheet = ({
     onUpdate,
     isUpdating
 }: PlanDetailSheetProps) => {
+    const t = useTranslations('admin.components.plan_detail')
+    const tCommon = useTranslations('admin.components.common')
     const [open, setOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [formData, setFormData] = useState<VPSPlanUpdate>({
@@ -501,22 +507,6 @@ export const PlanDetailSheet = ({
         }
     }
 
-    const getNetworkSpeed = (mbps: number) => {
-        if (mbps >= 1000) {
-            const gbps = (mbps / 1000).toFixed(1)
-            return `${gbps} Gbps`
-        }
-        return `${mbps} Mbps`
-    }
-
-    const getDiskSize = (storage_gb: number, storage_type?: string) => {
-        if (storage_gb >= 1000) {
-            const tb = (storage_gb / 1000).toFixed(1)
-            return `${tb} TB ${storage_type || ''}`
-        }
-        return `${storage_gb} GB ${storage_type || ''}`
-    }
-
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -532,9 +522,9 @@ export const PlanDetailSheet = ({
                 {/* Header with gradient */}
                 <div className={`bg-linear-to-br ${getCategoryColor(plan.category)} to-background p-6 pb-8`}>
                     <SheetHeader className="text-left">
-                        <SheetTitle className="text-xl">Plan Details</SheetTitle>
+                        <SheetTitle className="text-xl">{t('title')}</SheetTitle>
                         <SheetDescription>
-                            View and manage VPS plan configuration
+                            {t('description')}
                         </SheetDescription>
                     </SheetHeader>
                 </div>
@@ -821,16 +811,16 @@ export const PlanDetailSheet = ({
 
                             <SheetFooter className="gap-2 pt-2">
                                 <Button type="button" variant="outline" onClick={() => setIsEditing(false)} className="flex-1">
-                                    Cancel
+                                    {tCommon('cancel')}
                                 </Button>
                                 <Button type="submit" disabled={isUpdating} className="flex-1">
                                     {isUpdating ? (
                                         <>
                                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                            Saving...
+                                            {tCommon('saving')}
                                         </>
                                     ) : (
-                                        "Save Changes"
+                                        tCommon('save')
                                     )}
                                 </Button>
                             </SheetFooter>
@@ -955,7 +945,7 @@ export const PlanDetailSheet = ({
 
                             <SheetFooter className="pt-2">
                                 <SheetClose asChild>
-                                    <Button variant="outline" className="w-full">Close</Button>
+                                    <Button variant="outline" className="w-full">{tCommon('close')}</Button>
                                 </SheetClose>
                             </SheetFooter>
                         </>

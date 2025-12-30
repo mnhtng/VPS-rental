@@ -7,7 +7,8 @@ import {
     MonitorCog,
     WalletCards,
     Headset,
-    Layers
+    Layers,
+    LucideIcon
 } from 'lucide-react'
 import {
     ChevronSidebarTrigger,
@@ -22,47 +23,54 @@ import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { usePathname } from 'next/navigation'
 import { AdminNavUser } from '@/components/custom/admin/CmsNavUser'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
-const menuItems = [
+interface MenuItem {
+    titleKey: string
+    url: string
+    icon: LucideIcon
+    color: string
+}
+
+const menuItems: MenuItem[] = [
     {
-        title: 'Dashboard',
+        titleKey: 'dashboard',
         url: '/admin',
         icon: LayoutDashboardIcon,
         color: 'blue',
     },
     {
-        title: 'Users',
+        titleKey: 'users',
         url: '/admin/users',
         icon: Users,
         color: 'green',
     },
     {
-        title: 'VPS',
+        titleKey: 'vps',
         url: '/admin/vps',
         icon: MonitorCog,
         color: 'purple',
     },
     {
-        title: 'Plans',
+        titleKey: 'plans',
         url: '/admin/plans',
         icon: Layers,
         color: 'indigo',
     },
     {
-        title: 'Support',
+        titleKey: 'support',
         url: '/admin/support',
         icon: Headset,
         color: 'cyan',
     },
     {
-        title: 'Revenue',
+        titleKey: 'revenue',
         url: '/admin/revenue',
         icon: WalletCards,
         color: 'orange',
     },
     {
-        title: 'Analytics',
+        titleKey: 'analytics',
         url: '/admin/analytics',
         icon: BarChart3,
         color: 'red',
@@ -72,11 +80,16 @@ const menuItems = [
 
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const locale = useLocale()
+    const t = useTranslations('admin.sidebar')
+    const tPages = useTranslations('admin.pages')
     const { isMobile, open } = useSidebar()
     const pathname = usePathname()
 
     const menuItemsWithActive = menuItems.map(item => ({
-        ...item,
+        title: tPages(`${item.titleKey}.title`),
+        url: item.url,
+        icon: item.icon,
+        color: item.color,
         isActive: pathname === item.url
     }))
 
@@ -102,7 +115,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
                         <div className="flex flex-col items-start justify-center w-full h-full">
                             <h1 className="text-xl font-semibold">PCloud</h1>
-                            <p className="text-sm text-muted-foreground">Admin Panel</p>
+                            <p className="text-sm text-muted-foreground">{t('admin_panel')}</p>
                         </div>
                     </div>
                 ) : (
@@ -126,8 +139,8 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                         <div className={`absolute -right-6 -top-4 z-100`}>
                             <ChevronSidebarTrigger
                                 className="w-8 h-8 rounded-full bg-accent-foreground text-background transition-colors duration-200 flex items-center justify-center hover:bg-accent-foreground hover:text-background dark:hover:bg-accent-foreground"
-                                title="Toggle Sidebar"
-                                aria-label="Toggle Sidebar"
+                                title={t('toggle_sidebar')}
+                                aria-label={t('toggle_sidebar')}
                             />
                         </div>
                     )}
