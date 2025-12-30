@@ -1,0 +1,250 @@
+'use client';
+
+import React, { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, XCircle, Loader2, Server, AlertTriangle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import usePayment from '@/hooks/usePayment';
+import useVPS from '@/hooks/useVPS';
+import { PaymentResult } from '@/types/types';
+
+const MoMoReturnContent = () => {
+    const t = useTranslations('payment_return');
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const { verifyPayment } = usePayment();
+    const { setupVps } = useVPS();
+
+    const [result, setResult] = useState<PaymentResult>({
+        status: 'loading',
+        message: t('verifying')
+    });
+    const [setupVpsCompleted, setSetupVpsCompleted] = useState(false);
+    const [isSettingUpVps, setIsSettingUpVps] = useState(false);
+
+    // Prevent page close/refresh during VPS setup
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isSettingUpVps) {
+                e.preventDefault();
+                e.returnValue = t('warning_leave_page');
+                return e.returnValue;
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSettingUpVps]);
+
+    const handleVerifyPayment = async () => {
+        try {
+            const orderId = searchParams.get('orderId');
+            const amount = searchParams.get('amount');
+            const transId = searchParams.get('transId');
+
+            // Build query string for backend verification  
+            const queryString = searchParams.toString();
+
+            const result = await verifyPayment("momo", queryString);
+
+            if (result.data.valid && result.data.success) {
+                setResult({
+                    status: 'success',
+                    message: t('success_setting_up'),
+                    transactionId: orderId || result.data.transaction_id,
+                    momoTransId: transId || result.data.momo_trans_id,
+                    amount: amount ? parseInt(amount).toLocaleString('vi-VN') + ' VNĐ' : undefined,
+                    orderNumber: orderId || undefined
+                });
+
+                // Start VPS setup
+                setIsSettingUpVps(true);
+                const setupResult = await setupVps(orderId || result.data.transaction_id);
+                setIsSettingUpVps(false);
+
+                if (setupResult.error) {
+                    setResult(prev => ({
+                        ...prev,
+                        message: t('success_vps_error')
+                    }));
+                } else {
+                    setResult(prev => ({
+                        ...prev,
+                        message: t('success_vps_activated')
+                    }));
+                    setSetupVpsCompleted(true);
+                }
+            } else {
+                let errorMessage = t('payment_failed');
+
+                // Map MoMo result codes to messages
+                if (result.data.message) {
+                    errorMessage = result.data.message;
+                }
+
+                setResult({
+                    status: 'failed',
+                    message: errorMessage,
+                    orderNumber: orderId || undefined
+                });
+            }
+        } catch {
+            setResult({
+                status: 'failed',
+                message: t('unable_to_verify')
+            });
+        }
+    };
+
+    useEffect(() => {
+        handleVerifyPayment();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <div className="min-h-screen flex items-center justify-center px-4 py-12">
+            <Card className="max-w-md w-full">
+                <CardHeader className="text-center">
+                    <div className="flex justify-center mb-4">
+                        {result.status === 'loading' && (
+                            <div className="bg-pink-500 p-4 rounded-full">
+                                <Loader2 className="h-8 w-8 text-white animate-spin" />
+                            </div>
+                        )}
+                        {result.status === 'success' && !setupVpsCompleted && isSettingUpVps && (
+                            <div className="bg-orange-500 p-4 rounded-full">
+                                <Server className="h-8 w-8 text-white animate-pulse" />
+                            </div>
+                        )}
+                        {result.status === 'success' && (setupVpsCompleted || !isSettingUpVps) && (
+                            <div className="bg-green-500 p-4 rounded-full">
+                                <CheckCircle className="h-8 w-8 text-white" />
+                            </div>
+                        )}
+                        {result.status === 'failed' && (
+                            <div className="bg-red-500 p-4 rounded-full">
+                                <XCircle className="h-8 w-8 text-white" />
+                            </div>
+                        )}
+                    </div>
+                    <CardTitle className={`text-2xl ${result.status === 'success' ? 'text-green-500' :
+                        result.status === 'failed' ? 'text-red-500' :
+                            'text-pink-500'
+                        }`}>
+                        {result.status === 'loading'
+                            ? t('processing')
+                            : result.status === 'success'
+                                ? (isSettingUpVps ? t('setting_up_vps') : t('payment_successful'))
+                                : t('payment_failed')
+                        }
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="text-center space-y-4">
+                    <p className="text-muted-foreground">{result.message}</p>
+
+                    {result.status === 'success' && isSettingUpVps && (
+                        <>
+                            <div className="flex items-center justify-center gap-2 text-orange-500">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span className="text-sm">{t('provisioning')}</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-2 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                                <span className="text-sm text-amber-700 dark:text-amber-300">
+                                    {t('warning_no_close')}
+                                </span>
+                            </div>
+                        </>
+                    )}
+
+                    {result.status === 'success' && (
+                        <div className="space-y-3">
+                            {result.orderNumber && (
+                                <div className="bg-secondary p-4 rounded-lg">
+                                    <p className="text-sm font-medium text-muted-foreground">{t('order_number')}</p>
+                                    <p className="text-lg font-mono font-bold">{result.orderNumber}</p>
+                                </div>
+                            )}
+                            {result.momoTransId && (
+                                <div className="bg-secondary p-4 rounded-lg">
+                                    <p className="text-sm font-medium text-muted-foreground">{t('momo_trans_id')}</p>
+                                    <p className="text-lg font-mono font-bold">{result.momoTransId}</p>
+                                </div>
+                            )}
+                            {result.amount && (
+                                <div className="bg-secondary p-4 rounded-lg">
+                                    <p className="text-sm font-medium text-muted-foreground">{t('amount')}</p>
+                                    <p className="text-lg font-bold text-pink-600">{result.amount}</p>
+                                </div>
+                            )}
+                            <p className="text-sm text-muted-foreground mt-4">
+                                {t('email_confirmation')}
+                            </p>
+                        </div>
+                    )}
+
+                    {result.status === 'failed' && result.orderNumber && (
+                        <div className="bg-secondary p-4 rounded-lg">
+                            <p className="text-sm font-medium text-muted-foreground">{t('order_number')}</p>
+                            <p className="text-lg font-mono">{result.orderNumber}</p>
+                        </div>
+                    )}
+
+                    <div className="space-y-2 pt-4">
+                        {result.status === 'success' ? (
+                            <>
+                                <Button
+                                    className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                                    onClick={() => router.push(`/client-dashboard`)}
+                                    disabled={isSettingUpVps}
+                                >
+                                    {isSettingUpVps ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            {t('setting_up')}
+                                        </>
+                                    ) : (
+                                        t('go_to_dashboard')
+                                    )}
+                                </Button>
+                                <Button variant="outline" className="w-full" onClick={() => router.push(`/plans`)} disabled={isSettingUpVps}>
+                                    {t('continue_shopping')}
+                                </Button>
+                            </>
+                        ) : result.status === 'failed' ? (
+                            <>
+                                <Button className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" onClick={() => router.push(`/checkout`)}>
+                                    {t('retry')}
+                                </Button>
+                                <Button variant="outline" className="w-full" onClick={() => router.push(`/`)}>
+                                    {t('go_to_home')}
+                                </Button>
+                            </>
+                        ) : null}
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+const MoMoReturnPage = () => {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center px-4 py-12">
+                <Card className="max-w-md w-full">
+                    <CardContent className="flex items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+                    </CardContent>
+                </Card>
+            </div>
+        }>
+            <MoMoReturnContent />
+        </Suspense>
+    );
+};
+
+export default MoMoReturnPage;

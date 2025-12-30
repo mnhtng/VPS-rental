@@ -1,0 +1,178 @@
+{
+    "auth": {
+        "login_success": "Login successful",
+        "login_failed": "Login failed",
+        "email_not_verified": "Email not verified",
+        "invalid_credentials": "Incorrect email or password",
+        "register_success": "User registered successfully",
+        "user_exists": "User with this email already exists",
+        "user_not_found": "User not found",
+        "email_already_verified": "Email is already verified",
+        "verification_sent": "Verification email sent successfully",
+        "email_verified": "Email verified successfully",
+        "invalid_token": "Invalid or expired verification token",
+        "password_reset_sent": "Password reset link has been sent to your email",
+        "password_reset_success": "Password has been reset successfully",
+        "password_changed": "Password changed successfully",
+        "current_password_incorrect": "Current password is incorrect",
+        "token_valid": "Token is valid",
+        "token_refreshed": "Access token refreshed successfully",
+        "refresh_token_not_found": "Refresh token not found",
+        "invalid_refresh_token": "Invalid or expired refresh token",
+        "logout_success": "Logged out successfully",
+        "oauth_login_success": "OAuth login successful",
+        "error_login": "Error during login",
+        "error_register": "Error registering user",
+        "error_verify_email": "Error verifying email",
+        "error_reset_password": "Error resetting password",
+        "error_change_password": "Error changing password"
+    },
+    "validation": {
+        "invalid_data": "Invalid data!",
+        "email": {
+            "empty": "Email must not be empty",
+            "invalid_format": "Email is not in valid format",
+            "local_empty": "The part before @ must not be empty",
+            "local_too_long": "The part before @ must not exceed 64 characters",
+            "starts_ends_dot": "Email cannot start or end with a dot",
+            "consecutive_dots": "Email cannot contain consecutive dots",
+            "domain_too_short": "Email domain must be at least 3 characters",
+            "domain_too_long": "Email domain must not exceed 255 characters",
+            "domain_no_dot": "Email domain must contain a dot",
+            "domain_blocked": "Email domain is not allowed"
+        },
+        "password": {
+            "empty": "Password must not be empty",
+            "too_short": "Password must be at least 6 characters",
+            "no_uppercase": "Password must contain at least one uppercase letter",
+            "no_lowercase": "Password must contain at least one lowercase letter",
+            "no_digit": "Password must contain at least one digit"
+        },
+        "name": {
+            "empty": "Name must not be empty",
+            "too_short": "Name must be at least 2 characters"
+        },
+        "phone": {
+            "invalid_format": "Invalid phone number format",
+            "too_short": "Phone number must be at least 10 digits",
+            "too_long": "Phone number must not exceed 20 digits"
+        },
+        "role": {
+            "empty": "Role must not be empty",
+            "too_long": "Role must not exceed 20 characters",
+            "invalid": "Invalid user role"
+        },
+        "token": {
+            "empty": "Token must not be empty"
+        },
+        "field_required": "This field is required",
+        "invalid_type": "Invalid value type"
+    },
+    "vps": {
+        "not_found": "VPS instance not found",
+        "no_permission": "You don't have permission to access this VPS",
+        "already_terminated": "VPS has been terminated or is in error state",
+        "terminated_or_error": "VPS has been terminated or is in error state",
+        "not_linked": "VPS is not linked to a VM yet",
+        "not_owner": "You don't have permission to access this VPS",
+        "plan_not_found": "VPS plan not found for this instance",
+        "vm_not_found": "VM not found",
+        "node_not_found": "Node not found",
+        "start_success": "VPS started successfully",
+        "stop_success": "VPS stopped successfully",
+        "reboot_success": "VPS reboot initiated",
+        "setup_success": "VPS setup successful",
+        "setup_failed": "VPS setup failed",
+        "snapshot_created": "Snapshot created successfully",
+        "snapshot_restored": "Snapshot restored successfully",
+        "snapshot_deleted": "Snapshot deleted successfully",
+        "snapshot_not_found": "Snapshot not found",
+        "password_reset_success": "VPS password reset successfully"
+    },
+    "cart": {
+        "item_added": "Item added to cart",
+        "item_updated": "Cart item updated",
+        "item_removed": "Item removed from cart",
+        "cart_cleared": "Cart cleared",
+        "item_not_found": "Cart item not found",
+        "empty_cart": "Cart is empty"
+    },
+    "order": {
+        "created": "Order created successfully",
+        "not_found": "Order not found",
+        "no_permission": "You do not have permission to access this order",
+        "not_owner": "You do not have permission to access this order",
+        "not_pending": "Order is not in a payable state",
+        "not_renewal": "This is not a renewal order",
+        "not_payable": "This order is not payable",
+        "not_payment_transaction": "Payment transaction not found",
+        "not_vps_instance_info": "VPS instance information not found",
+        "cancelled": "Order cancelled successfully",
+        "cannot_cancel": "Cannot cancel this order",
+        "already_paid": "Order has already been paid",
+        "expired": "Order has expired"
+    },
+    "payment": {
+        "success": "Payment successful",
+        "failed": "Payment failed",
+        "invalid_signature": "Invalid payment signature",
+        "order_not_found": "Order not found for payment",
+        "already_paid": "Order has already been paid",
+        "amount_mismatch": "Payment amount does not match order",
+        "vnpay_error": "VNPay payment error",
+        "momo_error": "MoMo payment error",
+        "renewal_success": "VPS renewed successfully",
+        "vps_already_provided": "VPS service has already been provided",
+        "not_renewal_order": "This is not a renewal order",
+        "transaction_not_found": "Payment transaction not found"
+    },
+    "support": {
+        "ticket_created": "Support ticket created successfully",
+        "ticket_updated": "Support ticket updated",
+        "ticket_closed": "Support ticket closed",
+        "ticket_not_found": "Support ticket not found",
+        "reply_added": "Reply added successfully",
+        "no_permission": "You don't have permission to access this ticket"
+    },
+    "user": {
+        "profile_updated": "Profile updated successfully",
+        "user_created": "User created successfully",
+        "user_updated": "User updated successfully",
+        "user_deleted": "User deleted successfully",
+        "not_found": "User not found"
+    },
+    "promotion": {
+        "applied": "Promotion applied successfully",
+        "not_found": "Promotion code not found",
+        "expired": "This promotion has expired",
+        "not_active": "This promotion is not yet active",
+        "usage_limit": "This promotion has reached its usage limit",
+        "user_limit": "You have reached the usage limit for this promotion",
+        "min_amount": "Order amount does not meet minimum requirement"
+    },
+    "proxmox": {
+        "connection_failed": "Failed to connect to Proxmox",
+        "vm_create_failed": "Failed to create VM",
+        "vm_delete_failed": "Failed to delete VM",
+        "vm_start_failed": "Failed to start VM",
+        "vm_stop_failed": "Failed to stop VM",
+        "template_not_found": "Template not found",
+        "node_not_found": "Proxmox node not found",
+        "storage_not_found": "Storage not found"
+    },
+    "admin": {
+        "plan_created": "VPS plan created successfully",
+        "plan_updated": "VPS plan updated successfully",
+        "plan_deleted": "VPS plan deleted successfully",
+        "plan_not_found": "VPS plan not found",
+        "plan_exists": "A plan with this name already exists"
+    },
+    "errors": {
+        "internal_server": "An unexpected error occurred",
+        "unauthorized": "Unauthorized access",
+        "forbidden": "Access denied",
+        "bad_request": "Bad request",
+        "not_found": "Resource not found",
+        "validation_error": "Validation error"
+    }
+}

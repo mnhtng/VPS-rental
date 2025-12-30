@@ -6,6 +6,10 @@ dist/
 wheels/
 *.egg-info
 
+docs/
 # Virtual environments
 .venv
 .env
+.env.local
+.env.development
+.env.production

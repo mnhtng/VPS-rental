@@ -1,0 +1,2273 @@
+{
+    "metadata": {
+        "home": {
+            "title": "PCloud - Professional VPS Hosting Solutions",
+            "description": "Discover reliable and affordable VPS hosting with PCloud. Enjoy dedicated resources, SSD/NVMe storage, and 24/7 expert support. Perfect for websites, applications, and development.",
+            "keywords": "VPS hosting, cloud servers, SSD VPS, NVMe VPS, affordable VPS, reliable VPS, web hosting, virtual private server"
+        },
+        "login": {
+            "title": "Login - PCloud",
+            "description": "Access your PCloud account to manage your VPS servers, billing, and hosting services.",
+            "keywords": "VPS login, hosting login, account access, server management login"
+        },
+        "register": {
+            "title": "Sign Up - PCloud",
+            "description": "Create your PCloud account and start your VPS hosting journey with reliable cloud servers and expert support.",
+            "keywords": "VPS signup, hosting registration, create account, VPS hosting account"
+        },
+        "plans": {
+            "title": "VPS Plans - PCloud",
+            "description": "Choose from our flexible VPS hosting plans with SSD/NVMe storage, dedicated resources, and 24/7 support. Perfect for websites, applications, and development.",
+            "keywords": "VPS plans, VPS pricing, cloud server plans, SSD VPS, NVMe VPS, hosting plans"
+        },
+        "plan_item": {
+            "title": "{name} - VPS Plan | PCloud",
+            "title_fallback": "VPS Plan - PCloud",
+            "description": "Get {name} VPS with {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type} storage, {bandwidth}TB bandwidth. Starting at ${price}/month. Perfect for websites and applications.",
+            "description_fallback": "View details of our VPS hosting plans with dedicated resources, SSD/NVMe storage, and 24/7 support.",
+            "keywords": "VPS plan details, cloud server specs, VPS features, server configuration, VPS specifications, hosting plan details"
+        },
+        "support": {
+            "title": "Support Center - PCloud",
+            "description": "Get help with your VPS hosting services. Access documentation, submit tickets, and contact our 24/7 technical support team.",
+            "keywords": "VPS support, technical support, hosting help, documentation, customer service"
+        },
+        "profile": {
+            "title": "My Profile - PCloud",
+            "description": "Manage your PCloud account settings, billing information, and VPS services from your profile dashboard.",
+            "keywords": ""
+        },
+        "orders": {
+            "title": "My Orders - PCloud",
+            "description": "View and manage your VPS hosting orders, invoices, and billing history in your PCloud account.",
+            "keywords": ""
+        },
+        "tickets": {
+            "title": "Support Tickets - PCloud",
+            "description": "View and manage your support tickets. Get help from our technical support team for your VPS hosting services.",
+            "keywords": ""
+        },
+        "cart": {
+            "title": "Shopping Cart - PCloud",
+            "description": "Review your selected VPS hosting plans and proceed to checkout to complete your purchase.",
+            "keywords": ""
+        },
+        "checkout": {
+            "title": "Checkout - PCloud",
+            "description": "Complete your purchase of VPS hosting plans with secure payment options and instant setup.",
+            "keywords": ""
+        },
+        "vnpay-return": {
+            "title": "VNPAY Return - PCloud",
+            "description": "Return from VNPAY payment gateway.",
+            "keywords": ""
+        },
+        "momo-return": {
+            "title": "MOMO Return - PCloud",
+            "description": "Return from MOMO payment gateway.",
+            "keywords": ""
+        },
+        "admin": {
+            "title": "Admin Dashboard - PCloud",
+            "description": "Access the admin dashboard to manage users, VPS plans, and site settings for your PCloud hosting services.",
+            "keywords": ""
+        },
+        "client-dashboard": {
+            "title": "Client Dashboard - PCloud",
+            "description": "Manage your VPS hosting services, billing, and account settings from the client dashboard.",
+            "keywords": ""
+        },
+        "vps": {
+            "title": "My VPS Servers - PCloud",
+            "description": "View and manage your VPS servers, monitor performance, and configure settings from your PCloud account.",
+            "keywords": ""
+        },
+        "vps_detail": {
+            "title": "{hostname} - VPS Management | PCloud",
+            "title_fallback": "VPS Management - PCloud",
+            "description": "Manage your VPS {hostname} with {vcpu} vCPU, {ram}GB RAM, {storage}GB {storage_type}. Running {os}.",
+            "description_fallback": "Manage your VPS server with PCloud. Monitor performance, configure settings, and access your server console.",
+            "keywords": ""
+        },
+        "billing": {
+            "title": "Billing & Invoices - PCloud",
+            "description": "Manage your billing information, view invoices, and track payments for your VPS hosting services.",
+            "keywords": ""
+        },
+        "renewal": {
+            "title": "Renewal - PCloud",
+            "description": "Renew your VPS hosting services and extend your subscription.",
+            "keywords": ""
+        },
+        "privacy": {
+            "title": "Privacy Policy - PCloud",
+            "description": "Learn how PCloud collects, uses, and protects your personal data when using our VPS hosting services.",
+            "keywords": "privacy policy, data protection, VPS privacy, user data, GDPR"
+        },
+        "terms": {
+            "title": "Terms of Service - PCloud",
+            "description": "Read the terms and conditions for using PCloud VPS hosting services, including billing, SLA, and acceptable use policies.",
+            "keywords": "terms of service, VPS terms, hosting agreement, SLA, acceptable use"
+        },
+        "cookies": {
+            "title": "Cookie Policy - PCloud",
+            "description": "Understand how PCloud uses cookies and similar technologies on our VPS hosting platform.",
+            "keywords": "cookie policy, cookies, tracking, browser cookies, website cookies"
+        }
+    },
+    "sidebar": {
+        "dashboard": "Dashboard",
+        "vps": "VPS",
+        "billing": "Billing",
+        "support": "Support"
+    },
+    "renewal_dialog": {
+        "title": "Renew VPS",
+        "description": "Renew VPS service to continue using",
+        "plan_label": "Plan",
+        "expires_label": "Expires",
+        "days_left": "{count} days left",
+        "expired": "Expired",
+        "duration_label": "Renewal Duration",
+        "one_month": "1 month",
+        "three_months": "3 months",
+        "six_months": "6 months",
+        "twelve_months": "12 months",
+        "payment_method": "Payment Method",
+        "phone": "Phone Number",
+        "address": "Address",
+        "original_price": "Original Price ({months} months)",
+        "discount": "Discount ({percent}%)",
+        "total": "Total",
+        "cancel": "Cancel",
+        "processing": "Processing...",
+        "renew_now": "Renew Now",
+        "enter_phone": "Please enter phone number",
+        "enter_address": "Please enter address",
+        "renew_failed": "Failed to renew VPS",
+        "try_again": "Please try again later"
+    },
+    "repay_dialog": {
+        "title": "Pay Renewal Order",
+        "description": "Complete payment for VPS renewal order",
+        "order_number": "Order Number",
+        "total_amount": "Total Amount",
+        "created": "Created",
+        "note": "Note",
+        "none": "None",
+        "cannot_pay": "Cannot pay",
+        "not_eligible": "Order is not eligible for repayment",
+        "error_checking": "An error occurred while checking the order",
+        "failed": "Failed to repay order",
+        "pay": "Pay",
+        "payment_method": "Payment Method",
+        "phone": "Phone Number",
+        "address": "Address",
+        "cancel": "Cancel",
+        "processing": "Processing...",
+        "enter_phone": "Please enter phone number",
+        "enter_address": "Please enter address",
+        "try_again": "Please try again later"
+    },
+    "usage_chart": {
+        "loading": "Loading chart data...",
+        "no_data": "No data available",
+        "no_data_desc": "Chart data will appear here when available",
+        "cpu_usage": "CPU Usage",
+        "memory_usage": "Memory Usage"
+    },
+    "pagination": {
+        "showing": "Showing {start} - {end} of {total} {label}",
+        "per_page": "Per page:",
+        "page_of": "Page {current} of {total}",
+        "default_label": "items"
+    },
+    "vnc_console": {
+        "status": {
+            "initializing": "Initializing...",
+            "getting_info": "Getting VNC proxy info...",
+            "loading": "Loading console...",
+            "loading_short": "Loading...",
+            "ready": "Ready",
+            "disconnected": "Disconnected"
+        },
+        "error": {
+            "connection_failed": "Connection Failed",
+            "connection_failed_toast": "Connection failed",
+            "init_failed": "Failed to initialize VNC console",
+            "console_not_ready": "Console not ready",
+            "send_cad_failed": "Failed to send Ctrl+Alt+Del"
+        },
+        "success": {
+            "ready": "VNC Console ready",
+            "cad_sent": "Ctrl+Alt+Del sent",
+            "window_opened": "VNC Console opened in new window",
+            "proxmox_opened": "Proxmox Console opened"
+        },
+        "button": {
+            "cad": "Ctrl+Alt+Del",
+            "load_console": "Load Console",
+            "close": "Close",
+            "retry": "Retry",
+            "open_window": "Open in Window",
+            "open_proxmox": "Proxmox Console"
+        },
+        "tooltip": {
+            "send_cad": "Send Ctrl+Alt+Del",
+            "open_proxmox": "Open Proxmox Console",
+            "fullscreen": "Fullscreen",
+            "exit_fullscreen": "Exit fullscreen",
+            "open_window": "Open in new window",
+            "reload": "Reload"
+        },
+        "info": {
+            "vm_info": "VM: {id} @ {node}",
+            "title": "VNC Console for VM {id}",
+            "description": "Click \"Load Console\" to try embedded VNC, or use \"Proxmox Console\" for direct access (requires Proxmox login).",
+            "tip_connected": "Use the toolbar inside the console for Ctrl+Alt+Del and other controls",
+            "tip_disconnected": "Tip: Open in a new window for better keyboard handling"
+        }
+    },
+    "admin": {
+        "dashboard": {
+            "title": "Dashboard",
+            "stats": {
+                "total_users": "Total Users",
+                "active_vps": "Active VPS",
+                "monthly_revenue": "Monthly Revenue",
+                "monthly_orders": "Monthly Orders",
+                "this_month": "{value}% this month",
+                "vs_last_month": "{value}% vs last month"
+            },
+            "charts": {
+                "revenue_title": "Monthly Revenue",
+                "revenue_description": "Revenue chart for the current year",
+                "vps_status_title": "VPS Status",
+                "vps_status_description": "Distribution by status",
+                "running": "Running",
+                "stopped": "Stopped",
+                "terminated": "Terminated"
+            },
+            "recent_orders": {
+                "title": "Recent Orders",
+                "description": "The 5 most recent orders",
+                "no_orders": "No orders yet",
+                "min_ago": "{value} min ago",
+                "hours_ago": "{value} hours ago"
+            },
+            "status": {
+                "paid": "Paid",
+                "pending": "Pending",
+                "cancelled": "Cancelled"
+            },
+            "errors": {
+                "failed_load": "Failed to load dashboard data",
+                "try_again": "Please try again later"
+            }
+        },
+        "vps": {
+            "title": "VPS List",
+            "stats": {
+                "total": "Total VPS",
+                "active": "Active",
+                "suspended": "Suspended",
+                "terminated": "Terminated"
+            },
+            "status": {
+                "active": "Active",
+                "suspended": "Suspended",
+                "terminated": "Terminated",
+                "creating": "Creating",
+                "error": "Error"
+            },
+            "filter": {
+                "all": "All",
+                "running": "Running",
+                "suspended": "Suspended",
+                "terminated": "Terminated",
+                "creating": "Creating",
+                "error": "Error",
+                "placeholder": "Status",
+                "search": "Search VPS...",
+                "refresh": "Refresh"
+            },
+            "table": {
+                "vmid": "VMID",
+                "hostname": "Hostname",
+                "ip_address": "IP Address",
+                "os": "OS",
+                "plan": "Plan",
+                "user": "User",
+                "status": "Status",
+                "expires": "Expires",
+                "actions": "Actions",
+                "no_vps": "No VPS found",
+                "na": "N/A"
+            },
+            "toast": {
+                "start_success": "VPS started successfully",
+                "stop_success": "VPS stopped successfully",
+                "reboot_success": "VPS reboot initiated",
+                "start_failed": "Failed to start VPS",
+                "stop_failed": "Failed to stop VPS",
+                "reboot_failed": "Failed to reboot VPS",
+                "fetch_failed": "Failed to fetch VPS data"
+            }
+        },
+        "users": {
+            "title": "User List",
+            "stats": {
+                "total": "Total Users",
+                "active": "Active",
+                "unverified": "Unverified"
+            },
+            "table": {
+                "name": "Name",
+                "email": "Email",
+                "phone": "Phone",
+                "role": "Role",
+                "provider": "Provider",
+                "status": "Status",
+                "joined": "Joined",
+                "actions": "Actions",
+                "no_users": "No users found"
+            },
+            "filter": {
+                "search": "Search users...",
+                "all": "All Users",
+                "admin": "Admins",
+                "user": "Users",
+                "verified": "Verified",
+                "unverified": "Unverified",
+                "placeholder": "Filter",
+                "refresh": "Refresh"
+            },
+            "status": {
+                "active": "Active",
+                "unverified": "Unverified"
+            },
+            "role": {
+                "admin": "Admin",
+                "user": "User"
+            },
+            "toast": {
+                "create_success": "User created successfully",
+                "create_failed": "Failed to create user",
+                "update_success": "User updated successfully",
+                "update_failed": "Failed to update user",
+                "delete_success": "User deleted successfully",
+                "delete_failed": "Failed to delete user",
+                "fetch_failed": "Failed to fetch users"
+            },
+            "add_user": "Add User"
+        },
+        "support": {
+            "title": "Support Tickets",
+            "stats": {
+                "total": "Total Tickets",
+                "open": "Open",
+                "in_progress": "In Progress",
+                "resolved": "Resolved"
+            },
+            "table": {
+                "ticket_id": "Ticket ID",
+                "subject": "Subject",
+                "user": "User",
+                "category": "Category",
+                "priority": "Priority",
+                "status": "Status",
+                "created": "Created",
+                "actions": "Actions",
+                "no_tickets": "No tickets found"
+            },
+            "filter": {
+                "search": "Search tickets...",
+                "all": "All",
+                "open": "Open",
+                "in_progress": "In Progress",
+                "resolved": "Resolved",
+                "closed": "Closed",
+                "placeholder": "Status",
+                "refresh": "Refresh"
+            },
+            "status": {
+                "open": "Open",
+                "in_progress": "In Progress",
+                "resolved": "Resolved",
+                "closed": "Closed"
+            },
+            "priority": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High",
+                "urgent": "Urgent"
+            },
+            "category": {
+                "technical": "Technical",
+                "billing": "Billing",
+                "general": "General",
+                "sales": "Sales",
+                "account": "Account"
+            },
+            "toast": {
+                "status_updated": "Ticket status updated",
+                "status_failed": "Failed to update status",
+                "reply_sent": "Reply sent successfully",
+                "reply_failed": "Failed to send reply",
+                "fetch_failed": "Failed to fetch tickets"
+            }
+        },
+        "revenue": {
+            "title": "Revenue",
+            "stats": {
+                "total_revenue": "Total Revenue",
+                "total_orders": "Total Orders",
+                "paid_orders": "Paid Orders",
+                "avg_order": "Avg Order",
+                "from_orders": "From {count} orders",
+                "orders_label": "orders",
+                "average_label": "average"
+            },
+            "table": {
+                "order_number": "Order Number",
+                "customer": "Customer",
+                "plan": "Plan",
+                "amount": "Amount",
+                "payment": "Payment",
+                "status": "Status",
+                "date": "Date",
+                "actions": "Actions",
+                "no_orders": "No orders found"
+            },
+            "filter": {
+                "search": "Search orders...",
+                "all": "All",
+                "paid": "Paid",
+                "pending": "Pending",
+                "failed": "Failed",
+                "cancelled": "Cancelled",
+                "today": "Today",
+                "week": "This Week",
+                "month": "This Month",
+                "year": "This Year",
+                "placeholder": "Status",
+                "time_placeholder": "Time",
+                "refresh": "Refresh"
+            },
+            "status": {
+                "paid": "Paid",
+                "pending": "Pending",
+                "failed": "Failed",
+                "cancelled": "Cancelled"
+            },
+            "chart": {
+                "title": "Revenue Statistics",
+                "description": "View detailed revenue by time period",
+                "monthly": "Monthly",
+                "quarterly": "Quarterly",
+                "details": "Details",
+                "period": "Period",
+                "revenue": "Revenue",
+                "orders": "Orders"
+            },
+            "toast": {
+                "fetch_failed": "Failed to fetch revenue data"
+            }
+        },
+        "plans": {
+            "title": "VPS Plans",
+            "stats": {
+                "total": "Total Plans",
+                "active": "Active",
+                "inactive": "Inactive"
+            },
+            "table": {
+                "name": "Name",
+                "category": "Category",
+                "specs": "Specs",
+                "price": "Price",
+                "status": "Status",
+                "actions": "Actions",
+                "no_plans": "No plans found"
+            },
+            "filter": {
+                "search": "Search plans...",
+                "all": "All",
+                "basic": "Basic",
+                "pro": "Pro",
+                "premium": "Premium",
+                "placeholder": "Category",
+                "refresh": "Refresh"
+            },
+            "category": {
+                "basic": "Basic",
+                "pro": "Pro",
+                "premium": "Premium"
+            },
+            "status": {
+                "active": "Active",
+                "inactive": "Inactive"
+            },
+            "toast": {
+                "create_success": "Plan created successfully",
+                "create_failed": "Failed to create plan",
+                "update_success": "Plan updated successfully",
+                "update_failed": "Failed to update plan",
+                "delete_success": "Plan deleted successfully",
+                "delete_failed": "Failed to delete plan",
+                "fetch_failed": "Failed to fetch plans"
+            },
+            "add_plan": "Add Plan"
+        },
+        "analytics": {
+            "stats": {
+                "total_vps": "Total VPS",
+                "users": "Users",
+                "yearly_revenue": "Yearly Revenue",
+                "orders": "Orders"
+            },
+            "charts": {
+                "monthly_revenue": "Monthly Revenue",
+                "monthly_revenue_desc": "Revenue over the past 12 months",
+                "user_growth": "User Growth",
+                "user_growth_desc": "Cumulative user count by month",
+                "vps_by_plan": "VPS by Plan",
+                "vps_by_plan_desc": "Distribution by plan",
+                "vps_by_os": "VPS by OS",
+                "vps_by_os_desc": "Operating system distribution",
+                "payment_methods": "Payment Methods",
+                "payment_methods_desc": "Payment distribution",
+                "revenue": "Revenue",
+                "count": "Count"
+            },
+            "table": {
+                "title": "Detailed Statistics by Plan",
+                "description": "VPS count and revenue by service plan",
+                "service_plan": "Service Plan",
+                "vps_count": "VPS Count",
+                "percentage": "Percentage",
+                "revenue": "Revenue",
+                "revenue_percent": "Revenue %",
+                "total": "Total"
+            },
+            "no_data": "No data available",
+            "toast": {
+                "fetch_failed": "Failed to load analytics data"
+            }
+        },
+        "pages": {
+            "dashboard": {
+                "title": "Dashboard",
+                "description": "Get a quick overview of your website's activity, updates, and key stats in one place."
+            },
+            "users": {
+                "title": "Users",
+                "description": "Manage user accounts, roles, and permissions for your system."
+            },
+            "vps": {
+                "title": "VPS",
+                "description": "Manage your virtual private servers, including creation, configuration, and monitoring."
+            },
+            "plans": {
+                "title": "Plans",
+                "description": "Manage subscription plans, pricing, and features available to users."
+            },
+            "support": {
+                "title": "Support",
+                "description": "Manage support tickets, respond to customer inquiries, and track issue resolution."
+            },
+            "revenue": {
+                "title": "Revenue",
+                "description": "Manage and track your revenue streams, including payments, invoices, and financial reports."
+            },
+            "analytics": {
+                "title": "Analytics",
+                "description": "View reports and metrics to track your website's performance and engagement."
+            }
+        },
+        "sidebar": {
+            "admin_panel": "Admin Panel",
+            "toggle_sidebar": "Toggle Sidebar"
+        },
+        "nav": {
+            "main_menu": "Main Menu",
+            "logging_out": "Logging out..."
+        },
+        "components": {
+            "common": {
+                "cancel": "Cancel",
+                "close": "Close",
+                "save": "Save Changes",
+                "saving": "Saving...",
+                "create": "Create",
+                "creating": "Creating...",
+                "edit": "Edit",
+                "delete": "Delete",
+                "loading": "Loading...",
+                "na": "N/A",
+                "verified": "Verified"
+            },
+            "user_detail": {
+                "title": "User Details",
+                "description": "View and manage user account information",
+                "edit_info": "Edit Information",
+                "contact_info": "Contact Information",
+                "name": "Name",
+                "email": "Email",
+                "phone": "Phone",
+                "address": "Address",
+                "role": "Role",
+                "verify_email": "Verify Email",
+                "email_verified": "Email Verified",
+                "add_user": "Add User",
+                "add_new_user": "Add New User",
+                "fill_details": "Fill in the details to create a new account",
+                "basic_info": "Basic Information",
+                "account_info": "Account Information",
+                "full_name": "Full Name",
+                "password": "Password",
+                "phone_number": "Phone Number",
+                "create_account": "Create Account",
+                "admin": "Admin",
+                "user": "User",
+                "validation": {
+                    "name_min": "Name must be at least 2 characters long",
+                    "email_invalid": "Please enter a valid email address",
+                    "phone_invalid": "Please enter a valid phone number",
+                    "password_min": "Password must be at least 6 characters long",
+                    "password_uppercase": "Password must contain at least one uppercase letter",
+                    "password_lowercase": "Password must contain at least one lowercase letter",
+                    "password_number": "Password must contain at least one number",
+                    "required_fields": "Please fill in all required fields"
+                }
+            },
+            "plan_detail": {
+                "title": "Plan Details",
+                "description": "View and manage VPS plan configuration",
+                "add_plan": "Add Plan",
+                "add_new_plan": "Add New Plan",
+                "create_plan_desc": "Create a new VPS plan with custom specifications",
+                "basic_info": "Basic Information",
+                "plan_name": "Plan Name",
+                "category": "Category",
+                "description_field": "Description",
+                "specs": "Specifications",
+                "vcpu": "vCPU",
+                "ram": "RAM (GB)",
+                "storage": "Storage (GB)",
+                "storage_type": "Storage Type",
+                "bandwidth": "Bandwidth (GB)",
+                "network_speed": "Network Speed (Mbps)",
+                "pricing": "Pricing",
+                "monthly_price": "Monthly Price",
+                "yearly_price": "Yearly Price",
+                "create_plan": "Create Plan",
+                "update_plan": "Update Plan"
+            },
+            "vps_detail": {
+                "title": "VPS Details",
+                "description": "View and manage VPS instance",
+                "status": "Status",
+                "hostname": "Hostname",
+                "ip_address": "IP Address",
+                "os": "Operating System",
+                "specs": "Specifications",
+                "expires": "Expires",
+                "days_left": "days left",
+                "expired": "Expired",
+                "owner": "Owner",
+                "start": "Start",
+                "stop": "Stop",
+                "reboot": "Reboot",
+                "actions": "Actions",
+                "running": "Running",
+                "suspended": "Suspended",
+                "stopped": "Stopped",
+                "expiring_soon": "Expiring Soon",
+                "days_until_renewal": "days until renewal",
+                "service_info": "Service Information"
+            },
+            "ticket_detail": {
+                "title": "Ticket Details",
+                "description": "View and respond to support ticket",
+                "ticket_info": "Ticket Information",
+                "customer_info": "Customer Information",
+                "conversation": "Conversation",
+                "reply": "Reply",
+                "send_reply": "Send Reply",
+                "sending": "Sending...",
+                "update_status": "Update Status",
+                "subject": "Subject",
+                "category": "Category",
+                "priority": "Priority",
+                "status": "Status",
+                "created": "Created",
+                "type_reply": "Type your reply here..."
+            },
+            "order_detail": {
+                "title": "Order Details",
+                "description": "View order information",
+                "order_info": "Order Information",
+                "customer_info": "Customer Information",
+                "items": "Items",
+                "order_number": "Order Number",
+                "total": "Total",
+                "payment_method": "Payment Method",
+                "status": "Status",
+                "created": "Created",
+                "paid": "Paid",
+                "pending": "Pending",
+                "cancelled": "Cancelled",
+                "note": "Note",
+                "products": "Products",
+                "months": "months"
+            }
+        }
+    },
+    "header": {
+        "home": "Home",
+        "plans": "VPS Plans",
+        "support": "Support",
+        "profile": "Profile",
+        "my_orders": "My Orders",
+        "my_tickets": "My Tickets",
+        "manage_vps": "Manage VPS",
+        "admin": "Admin",
+        "login": "Login",
+        "register": "Sign Up",
+        "logout": "Logout",
+        "logging_out": "Logging out...",
+        "logout_success": "Logged out successfully",
+        "logout_failed": "Failed to logout",
+        "try_again": "Please try again later",
+        "menu": "Menu",
+        "nav": "Navigation",
+        "auth": "Authentication",
+        "acc": "Account",
+        "default_user": "User"
+    },
+    "language": {
+        "select_language": "Select Language",
+        "en": "English",
+        "vi": "Vietnamese"
+    },
+    "payment_return": {
+        "processing": "Processing Payment...",
+        "setting_up_vps": "Setting Up VPS...",
+        "payment_successful": "Payment Successful",
+        "payment_failed": "Payment Failed",
+        "verifying": "Verifying transaction...",
+        "success_setting_up": "Payment successful! Setting up your VPS...",
+        "success_vps_activated": "Payment successful! Your VPS is being activated.",
+        "success_vps_error": "Payment successful but VPS setup encountered an error. Please contact support.",
+        "unable_to_verify": "Unable to verify the transaction",
+        "provisioning": "Provisioning your VPS on our servers...",
+        "warning_no_close": "Please do not close or refresh this page during setup.",
+        "warning_leave_page": "VPS setup is in progress. Leaving this page may interrupt the process.",
+        "order_number": "Order Number",
+        "momo_trans_id": "MoMo Transaction ID",
+        "vnpay_trans_id": "VNPay Transaction ID",
+        "amount": "Amount",
+        "email_confirmation": "You will receive a confirmation email with detailed information about your VPS.",
+        "setting_up": "Setting up VPS...",
+        "go_to_dashboard": "Go to Dashboard",
+        "continue_shopping": "Continue Shopping",
+        "retry": "Retry",
+        "go_to_home": "Go to Home"
+    },
+    "client_dashboard": {
+        "title": "Dashboard",
+        "stats": {
+            "total_vps": "Total VPS",
+            "active": "Active",
+            "no_vps_yet": "No VPS yet",
+            "total_spent": "Total Spent",
+            "all_orders": "All orders",
+            "support": "Support",
+            "total_tickets": "Total tickets",
+            "expiring_soon": "Expiring Soon",
+            "within_7_days": "Within 7 days"
+        },
+        "vps_list": {
+            "title": "Your VPS List",
+            "configuring": "Configuring...",
+            "waiting_for_ip": "Waiting for IP",
+            "running": "Running",
+            "stopped": "Stopped",
+            "no_vps_message": "You don't have any VPS yet",
+            "get_vps_now": "Get VPS Now",
+            "manage": "Manage"
+        },
+        "recent_activity": {
+            "title": "Recent Activity",
+            "no_activities": "No activities yet",
+            "vps_initialized": "VPS Initialized"
+        },
+        "toast": {
+            "load_failed": "Failed to load dashboard data",
+            "try_again": "Please try again later"
+        }
+    },
+    "client_vps": {
+        "title": "VPS List",
+        "all_servers": "All Servers",
+        "search_placeholder": "Search by name or IP...",
+        "table": {
+            "hostname": "Hostname",
+            "ip_address": "IP Address",
+            "configuration": "Configuration",
+            "vps_plan": "VPS Plan",
+            "actions": "Actions"
+        },
+        "status": {
+            "suspended": "Suspended",
+            "configuring": "Configuring...",
+            "waiting_for_ip": "Waiting for IP"
+        },
+        "empty": {
+            "no_vps_found": "No VPS found",
+            "no_vps_yet": "No VPS yet",
+            "try_different_keywords": "Try searching with different keywords",
+            "start_by_registering": "Start by registering a new VPS",
+            "get_vps_now": "Get VPS Now"
+        },
+        "buttons": {
+            "renew": "Renew",
+            "manage": "Manage"
+        },
+        "toast": {
+            "fetch_failed": "Failed to fetch VPS list",
+            "try_again": "Please try again later"
+        }
+    },
+    "client_billing": {
+        "title": "Billing",
+        "cards": {
+            "total_spending": "Total Spending",
+            "this_month_cost": "This Month's Cost"
+        },
+        "usage": {
+            "title": "VPS Usage Progress",
+            "description": "Current usage progress of your VPS services",
+            "days": "days",
+            "expired": "Expired",
+            "renew": "Renew",
+            "no_vps_title": "No VPS Yet",
+            "no_vps_description": "When you rent a VPS, usage progress will be displayed here"
+        },
+        "invoice": {
+            "title": "Invoice History",
+            "description": "All your transactions and invoices",
+            "table": {
+                "invoice_id": "Invoice ID",
+                "time": "Time",
+                "note": "Note",
+                "status": "Status",
+                "amount": "Amount"
+            },
+            "status": {
+                "paid": "Paid",
+                "pending": "Pending",
+                "cancelled": "Cancelled"
+            },
+            "none": "None",
+            "pay": "Pay",
+            "no_invoices_title": "No Invoices Yet",
+            "no_invoices_description": "Your transactions will be displayed here"
+        },
+        "toast": {
+            "fetch_failed": "Failed to fetch billing data",
+            "try_again": "Please try again later"
+        }
+    },
+    "vps_detail": {
+        "configuring": "Configuring...",
+        "status": {
+            "running": "Running",
+            "stopped": "Stopped"
+        },
+        "actions": {
+            "stop": "Stop",
+            "reboot": "Reboot",
+            "start": "Start"
+        },
+        "specs": {
+            "vcpu": "vCPU",
+            "ram": "GB RAM",
+            "network": "Network"
+        },
+        "suspension": {
+            "title": "VPS Suspended",
+            "description": "Your VPS has been suspended due to expiration. Please renew to restore access and resume operations.",
+            "renew_now": "Renew Now"
+        },
+        "tabs": {
+            "overview": "Overview",
+            "console": "Console (VNC)",
+            "snapshots": "Snapshots"
+        },
+        "overview": {
+            "cpu_usage": "CPU Usage",
+            "of_cores": "of {count} Cores",
+            "memory": "Memory",
+            "of_gb": "of {count} GB",
+            "disk_usage": "Disk Usage",
+            "of_disk": "of {size}",
+            "network": "Network",
+            "current_rate": "Current rate",
+            "performance_title": "Performance (Last 24h)",
+            "performance_description": "Real-time data from Proxmox RRD",
+            "details": "Details",
+            "vm_id": "VM ID",
+            "node": "Node",
+            "ip_address": "IP Address",
+            "pending": "Pending",
+            "mac_address": "MAC Address",
+            "uptime": "Uptime"
+        },
+        "snapshots": {
+            "title": "Snapshots",
+            "description": "Create restore points for your VPS. Used {used}/{max} snapshots.",
+            "create_button": "Create Snapshot",
+            "create_title": "Create New Snapshot",
+            "create_description": "Snapshot will save the current state of your VPS, allowing you to restore to this point later.",
+            "name_label": "Snapshot name *",
+            "name_placeholder": "e.g. before-update-v2",
+            "name_hint": "Only letters, numbers, hyphens and underscores allowed",
+            "description_label": "Description (optional)",
+            "description_placeholder": "Describe this snapshot...",
+            "cancel": "Cancel",
+            "creating": "Creating...",
+            "with_ram": "With RAM state",
+            "without_ram": "Without RAM state",
+            "rollback": "Rollback",
+            "confirm_rollback": "Confirm Rollback",
+            "rollback_warning": "Warning: All changes made after the snapshot ({date}) will be permanently lost!",
+            "rollback_description": "You are about to restore VPS to snapshot",
+            "delete": "Delete",
+            "confirm_delete": "Confirm Delete Snapshot",
+            "delete_question": "Are you sure you want to delete snapshot",
+            "delete_warning": "This action cannot be undone!",
+            "delete_snapshot": "Delete Snapshot",
+            "no_snapshots": "No snapshots yet",
+            "no_snapshots_description": "Create a snapshot to save your VPS state and restore anytime",
+            "create_first": "Create first snapshot",
+            "limit_reached": "You have reached the limit of {max} snapshots. Please delete old snapshots to create new ones."
+        },
+        "not_found": {
+            "title": "VPS not found",
+            "description": "Could not find information for this VPS"
+        },
+        "toast": {
+            "fetch_failed": "Failed to fetch VPS info",
+            "rrd_failed": "Failed to fetch VPS RRD data",
+            "snapshots_failed": "Failed to fetch snapshots",
+            "action_performing": "Performing action...",
+            "action_wait": "Please wait a moment",
+            "action_success": "Success",
+            "action_success_description": "Please wait a moment for the system to update the new status",
+            "action_failed": "Failed to perform action",
+            "try_again": "Please try again later",
+            "snapshot_name_required": "Snapshot name is required",
+            "snapshot_name_invalid": "Invalid snapshot name",
+            "snapshot_name_invalid_description": "Only alphanumeric characters, hyphens, and underscores are allowed",
+            "snapshot_create_initiated": "Snapshot creation initiated",
+            "snapshot_create_wait": "Please wait a few minutes for the snapshot to be created",
+            "snapshot_create_failed": "Failed to create snapshot",
+            "snapshot_restore_initiated": "Snapshot restore initiated",
+            "snapshot_restore_wait": "Please wait a few minutes for the VPS to be restored",
+            "snapshot_restore_failed": "Failed to restore snapshot",
+            "snapshot_delete_initiated": "Snapshot deletion initiated",
+            "snapshot_delete_wait": "Please wait a few minutes for the snapshot to be deleted",
+            "snapshot_delete_failed": "Failed to delete snapshot"
+        }
+    },
+    "renewal": {
+        "verifying": "Verifying payment...",
+        "success_message": "VPS renewal successful!",
+        "failed_message": "Payment failed",
+        "verify_failed": "Unable to verify transaction",
+        "processing": "Processing...",
+        "renewal_successful": "Renewal Successful",
+        "renewal_failed": "Renewal Failed",
+        "vps_label": "VPS",
+        "new_expiry_date": "New Expiry Date",
+        "order_number": "Order Number",
+        "vnpay_transaction_id": "VNPay Transaction ID",
+        "momo_transaction_id": "MoMo Transaction ID",
+        "amount": "Amount",
+        "success_description": "Your VPS has been successfully renewed. You can continue using the service.",
+        "back_to_billing": "Back to Billing",
+        "go_to_dashboard": "Go to Dashboard",
+        "try_again": "Try Again"
+    },
+    "home": {
+        "hero": {
+            "badge": "Premium VPS Hosting",
+            "title": "Professional VPS Hosting Solutions",
+            "subtitle": "Get reliable cloud servers with dedicated resources, SSD/NVMe storage, and 24/7 expert support. Perfect for websites, applications, and development.",
+            "cta": "View Plans",
+            "learn_more": "Contact Sales",
+            "visual_alt": "VPS Control Panel",
+            "visual_desc": "Manage your servers with ease",
+            "features": [
+                "99.9% Uptime Guarantee",
+                "24/7 Expert Support",
+                "SSD & NVMe Storage",
+                "Instant Setup"
+            ],
+            "services": {
+                "web_server": "Web Server",
+                "database": "Database",
+                "backup": "Backup",
+                "scalability": "Scalability",
+                "monitoring": "Monitoring"
+            },
+            "performance": {
+                "label": {
+                    "uptime": "Uptime",
+                    "deploy": "Deploy",
+                    "support": "Support"
+                },
+                "value": {
+                    "uptime": "99.9%",
+                    "deploy": "1-Click",
+                    "support": "24/7"
+                }
+            }
+        },
+        "features": {
+            "title": "Key Features",
+            "description": "Discover the essential features that make our VPS hosting stand out",
+            "uptime": "99.9% Uptime SLA",
+            "uptime_desc": "Industry-leading uptime guarantee with 24/7 monitoring",
+            "support": "24/7 Support",
+            "support_desc": "Expert technical support available around the clock",
+            "security": "Enhanced Security",
+            "security_desc": "Advanced security measures to protect your data",
+            "scalability": "Easy Scalability",
+            "scalability_desc": "Scale resources up or down instantly as your needs grow"
+        },
+        "popular_plans": {
+            "title": "Popular VPS Plans",
+            "subtitle": "Choose the perfect plan for your needs",
+            "storage": "Storage",
+            "memory": "RAM",
+            "cpu_cores": "CPU Core",
+            "network_speed": "Network Speed",
+            "per_month": "/month",
+            "select_plan": "Choose Plan",
+            "most_popular": "Most Popular"
+        },
+        "advantages": {
+            "title": "Why Choose Our VPS Hosting?",
+            "description": "We provide enterprise-grade infrastructure with unmatched performance, reliability, and support to power your applications",
+            "get_started": "Get Started Today",
+            "items": [
+                {
+                    "title": "Lightning Fast Setup",
+                    "description": "Get your VPS up and running in under 60 seconds with our automated deployment system."
+                },
+                {
+                    "title": "Premium Hardware",
+                    "description": "High-performance SSD and NVMe storage with latest generation processors for maximum speed."
+                },
+                {
+                    "title": "Best Value Pricing",
+                    "description": "Competitive pricing with no hidden fees. Scale up or down anytime without long-term contracts."
+                },
+                {
+                    "title": "Full Root Access",
+                    "description": "Complete control over your server environment with root access and custom configurations."
+                }
+            ]
+        },
+        "toast": {
+            "failed_load": "Failed to load popular plans",
+            "try_again_later": "Please try again later"
+        }
+    },
+    "plans": {
+        "title": "Choose Your VPS Plan",
+        "subtitle": "Scalable, reliable, and high-performance VPS hosting solutions for every need",
+        "filter": {
+            "title": "Filter Plans",
+            "show": "{count} of {total} plans shown",
+            "reset": "Reset All",
+            "category": "Plan Category",
+            "category_all": "All Plans",
+            "category_basic": "Basic",
+            "category_standard": "Standard",
+            "category_premium": "Premium",
+            "memory": "Memory",
+            "memory_all": "All Memory",
+            "memory_low": "Low (≤2GB RAM)",
+            "memory_medium": "Medium (3-8GB RAM)",
+            "memory_high": "High (9GB+ RAM)",
+            "price_range": "Price Range",
+            "active_filters": "Active filters:",
+            "placeholder_category": "Select category",
+            "placeholder_memory": "Select memory"
+        },
+        "card": {
+            "per_month": "/month",
+            "billed_monthly": "Billed monthly",
+            "view_details": "View Details",
+            "loading_details": "Loading Details..."
+        },
+        "empty": {
+            "title": "No plans found",
+            "description": "We couldn't find any VPS plans matching your current filter criteria. Try adjusting your filters or browse all available plans.",
+            "reset_filters": "Reset All Filters"
+        },
+        "included": {
+            "title": "What's Included in All Plans",
+            "security": "Security",
+            "security_desc": "DDoS protection, firewall, and security monitoring",
+            "support": "24/7 Support",
+            "support_desc": "Expert technical support available anytime",
+            "root_access": "Full Root Access",
+            "root_access_desc": "Complete control over your server environment",
+            "uptime": "99.9% Uptime",
+            "uptime_desc": "Guaranteed uptime with SLA backing"
+        },
+        "toast": {
+            "failed_load": "Failed to load plans",
+            "try_again_later": "Please try again later"
+        },
+        "plan_data": {
+            "_comment": "Replace these placeholder Index with actual plan data from your database",
+            "plan-id-76c93f75-50c8-4e69-bb4d-f22207ba4a66": {
+                "description": "Lightweight VPS for simple tasks, static sites, proxies, and small utilities",
+                "use_cases": [
+                    "Static sites, landing pages",
+                    "Lightweight tools or proxies",
+                    "Simple background tasks"
+                ]
+            },
+            "plan-id-bbd611a8-0e3d-40d0-8007-6339d005ca98": {
+                "description": "Affordable performance for small websites, basic apps, and starter projects",
+                "use_cases": [
+                    "Small websites & blogs",
+                    "Basic APIs",
+                    "Bots or mini applications"
+                ]
+            },
+            "plan-id-debc0636-58d0-4ace-9223-18cd1d85f200": {
+                "description": "Reliable VPS for medium sites, APIs, and small databases",
+                "use_cases": [
+                    "Medium web apps",
+                    "1–2 WordPress sites",
+                    "Small databases"
+                ]
+            },
+            "plan-id-3b2937bd-553f-49d1-be9d-3a6b454808e0": {
+                "description": "Optimized CPU power for heavier workloads and higher concurrency",
+                "use_cases": [
+                    "CPU-intensive apps",
+                    "High request APIs",
+                    "Small Docker workloads"
+                ]
+            },
+            "plan-id-7a9af9cd-1bbe-4b4c-9281-f3a3230d200c": {
+                "description": "High-performance NVMe VPS for traffic-heavy apps and mid-sized databases",
+                "use_cases": [
+                    "Multi-service applications",
+                    "Medium-sized databases",
+                    "High-traffic websites"
+                ]
+            },
+            "plan-id-8d0f3b19-5a29-41ba-82c4-55ca2b754ff7": {
+                "description": "Enterprise-grade power for large applications, backend systems, and high load",
+                "use_cases": [
+                    "Large-scale backend systems",
+                    "Microservices or Docker stacks",
+                    "Heavy traffic and enterprise workloads"
+                ]
+            }
+        }
+    },
+    "cart": {
+        "title": "Shopping Cart",
+        "subtitle": "Review your VPS selections and proceed to checkout",
+        "empty": {
+            "title": "Your cart is empty",
+            "description": "Discover our powerful VPS hosting solutions and start your cloud journey today. From starter plans to enterprise solutions, we have the perfect server for your needs.",
+            "browse_plans": "Browse VPS Plans",
+            "back_home": "Back to Home"
+        },
+        "header": {
+            "title": "Your VPS Configuration",
+            "title_short": "VPS Config",
+            "clear_cart": "Clear Cart"
+        },
+        "dialog": {
+            "clear_title": "Clear Shopping Cart",
+            "clear_description": "Are you sure you want to clear your entire shopping cart? This action cannot be undone.",
+            "remove_title": "Remove VPS from Cart",
+            "remove_description": "Are you sure you want to remove {planName} - ({hostname}) plan from your cart?",
+            "cancel": "Cancel",
+            "remove": "Remove"
+        },
+        "specs": {
+            "title": "Server Specifications",
+            "vcpu": "vCPU",
+            "ram": "RAM",
+            "network": "Network"
+        },
+        "config": {
+            "title": "Configuration",
+            "hostname": "Hostname",
+            "os": "Operating System",
+            "duration": "Duration",
+            "month": "month",
+            "months": "months"
+        },
+        "summary": {
+            "title": "Order Summary",
+            "promo_code": "Promo Code",
+            "loading_promos": "Loading available promotions...",
+            "select_discount": "Select discount ticket:",
+            "no_promos": "No promotions available at the moment",
+            "subtotal": "Subtotal",
+            "discount": "Discount",
+            "setup_fee": "Setup Fee",
+            "free": "FREE",
+            "total": "Total"
+        },
+        "included": {
+            "title": "What's included:",
+            "root_access": "Full root access",
+            "no_setup_fee": "No setup fees",
+            "instant_deploy": "Instant deployment",
+            "support": "24/7 expert support",
+            "uptime": "99.9% uptime SLA"
+        },
+        "buttons": {
+            "checkout": "Proceed to Checkout",
+            "continue": "Continue Shopping"
+        },
+        "toast": {
+            "fetch_cart_error": "Failed to fetch cart items",
+            "fetch_promos_error": "Failed to fetch promotions",
+            "clear_cart_error": "Failed to clear cart",
+            "remove_item_error": "Failed to remove item from cart",
+            "apply_promo_error": "Failed to apply promotion",
+            "checkout_error": "Failed to proceed to checkout",
+            "try_again": "Please try again later"
+        }
+    },
+    "support": {
+        "title": "Support Center",
+        "subtitle": "Get help with your VPS hosting needs",
+        "contact": {
+            "live_chat": "Live Chat",
+            "live_chat_desc": "Chat with our AI assistant or human support agents",
+            "available_24_7": "Available 24/7",
+            "email_support": "Email Support",
+            "response_time": "Response within 2 hours",
+            "phone_support": "Phone Support",
+            "emergency": "24/7 Emergency"
+        },
+        "tabs": {
+            "chat": "AI Chat Support",
+            "ticket": "Submit Ticket",
+            "faq": "FAQ"
+        },
+        "chat": {
+            "title": "AI Support Assistant",
+            "description": "Get instant answers to your VPS questions. Our AI can help with plan recommendations, setup guidance, and technical support.",
+            "quick_questions": "Quick Questions:",
+            "placeholder": "Type your message...",
+            "welcome": "Hello! I'm PCloud's virtual assistant. I can help you with:\n- VPS plan recommendations\n- Service inquiries\n- Technical support\n\nHow can I assist you?",
+            "error_technical": "Sorry, we are experiencing technical issues. Please try again later or contact our support team.",
+            "error_service": "An error occurred with our PCloud chatbot service. Please try again or contact our support team."
+        },
+        "ticket": {
+            "title": "Submit Support Ticket",
+            "description": "Need personalized help? Submit a ticket and our expert support team will respond within 2 hours.",
+            "view_tickets": "View My Tickets",
+            "success_message": "Your support ticket has been submitted successfully! We'll respond via email within 2 hours.",
+            "track_in": "You can track your ticket status in",
+            "my_tickets": "My Tickets",
+            "subject": "Subject",
+            "subject_placeholder": "Brief description of your issue",
+            "email": "Email Address",
+            "phone": "Phone Number",
+            "phone_placeholder": "+84 912 345 678",
+            "category": "Category",
+            "category_placeholder": "Select category",
+            "categories": {
+                "technical": "Technical Support",
+                "billing": "Billing & Payment",
+                "setup": "Server Setup",
+                "performance": "Performance Issues",
+                "security": "Security Concerns",
+                "other": "Other"
+            },
+            "priority": "Priority",
+            "priority_placeholder": "Select priority",
+            "priorities": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High",
+                "urgent": "Urgent"
+            },
+            "description_input": "Description",
+            "description_placeholder": "Please provide detailed information about your issue, including any error messages, steps to reproduce, and what you've already tried...",
+            "submitting": "Submitting...",
+            "submit": "Submit Ticket"
+        },
+        "faq": {
+            "title": "Frequently Asked Questions",
+            "description": "Find quick answers to common questions about our VPS hosting services.",
+            "still_need_help": "Still need help?",
+            "cant_find": "Can't find what you're looking for? Our support team is here to help.",
+            "chat_with_ai": "Chat with AI",
+            "items": {
+                "q1": {
+                    "question": "What VPS plan should I choose?",
+                    "answer": "Choose based on your needs: Starter for small websites, Business for growing applications, Professional for high-traffic sites, and Enterprise for resource-intensive applications.",
+                    "category": "Plans"
+                },
+                "q2": {
+                    "question": "How long does VPS deployment take?",
+                    "answer": "Most VPS instances are deployed within 5-10 minutes after successful payment confirmation. You will receive setup details via email.",
+                    "category": "Setup"
+                },
+                "q3": {
+                    "question": "Can I upgrade or downgrade my plan?",
+                    "answer": "Yes, you can upgrade your plan anytime from your dashboard. Downgrades are processed at the end of your billing cycle.",
+                    "category": "Plans"
+                },
+                "q4": {
+                    "question": "What payment methods do you accept?",
+                    "answer": "We accept MoMo wallet and VNPay (credit/debit cards). All payments are processed securely.",
+                    "category": "Billing"
+                },
+                "q5": {
+                    "question": "Do you provide backup services?",
+                    "answer": "Yes, we offer automated daily backups for all VPS plans. You can also create manual backups from your control panel.",
+                    "category": "Technical"
+                },
+                "q6": {
+                    "question": "What level of support do you provide?",
+                    "answer": "We provide 24/7 technical support via live chat, email, and phone. Our expert team can help with server configuration, troubleshooting, and optimization.",
+                    "category": "Support"
+                }
+            }
+        },
+        "toast": {
+            "login_required": "Please login to submit a ticket",
+            "login_info": "Please login to access full support features",
+            "login_info_desc": "You can still use the AI chat and browse FAQs",
+            "fill_required": "Please fill in all required fields",
+            "profile_error": "Failed to load user profile",
+            "ticket_success": "Ticket submitted successfully!",
+            "ticket_error": "Failed to submit ticket",
+            "try_again": "Please try again later"
+        }
+    },
+    "checkout": {
+        "processing": {
+            "title": "Processing Payment",
+            "description": "Please wait while we process your payment..."
+        },
+        "header": {
+            "back_to_cart": "Back to Cart",
+            "title": "Secure Checkout",
+            "subtitle": "Complete your VPS purchase safely and securely"
+        },
+        "steps": {
+            "info": "Info",
+            "payment": "Payment"
+        },
+        "customer_info": {
+            "title": "Customer Information",
+            "description": "Please fill in your details to complete the purchase",
+            "personal_info": "Personal Information",
+            "full_name": "Full Name",
+            "full_name_placeholder": "Enter your full name",
+            "email": "Email Address",
+            "email_placeholder": "your.email@example.com",
+            "contact_info": "Contact Information",
+            "phone": "Phone Number",
+            "phone_placeholder": "+84 123 456 789",
+            "address_info": "Address Information",
+            "address": "Street Address",
+            "address_placeholder": "Enter your street address",
+            "continue": "Continue to Payment"
+        },
+        "payment": {
+            "title": "Payment Method",
+            "description": "Choose your preferred payment method",
+            "select_method": "Select Payment Method",
+            "momo_wallet": "MoMo Wallet",
+            "momo_desc": "Pay securely via MoMo e-wallet",
+            "vnpay": "VNPay",
+            "vnpay_desc": "Pay securely via VNPay gateway",
+            "vnpay_info_title": "Payment via VNPay",
+            "vnpay_info_desc": "You will be redirected to the VNPay payment gateway to complete your transaction.",
+            "vnpay_secured": "Transactions are secured by VNPay",
+            "momo_info_title": "Payment via MoMo",
+            "momo_info_desc": "You will be redirected to the MoMo payment gateway to complete your transaction.",
+            "momo_secured": "Transactions are secured by MoMo",
+            "back_to_info": "Back to Info",
+            "processing": "Processing...",
+            "pay_vnpay": "Pay with VNPay",
+            "pay_momo": "Pay with MoMo"
+        },
+        "summary": {
+            "title": "Order Summary",
+            "months": "month(s)",
+            "hostname": "Hostname",
+            "os": "OS",
+            "subtotal": "Subtotal",
+            "discount": "Discount",
+            "setup_fee": "Setup Fee",
+            "free": "FREE",
+            "total": "Total"
+        },
+        "toast": {
+            "cart_empty": "Your cart is empty",
+            "failed_load": "Failed to load cart items",
+            "try_again": "Please try again later",
+            "fill_required": "Please fill in all required fields",
+            "invalid_phone": "Please enter a valid phone number",
+            "fields_invalid": "Please fill in all required fields correctly",
+            "fields_invalid_desc": "Some fields are invalid",
+            "payment_failed": "Failed to create payment"
+        }
+    },
+    "plan_detail": {
+        "not_found": {
+            "title": "VPS Plan Not Found",
+            "description": "The requested VPS plan does not exist.",
+            "back": "Back to Plans"
+        },
+        "specs": {
+            "title": "Server Specifications",
+            "cores": "Cores",
+            "ram": "RAM",
+            "network": "Network"
+        },
+        "features": {
+            "title": "What's Included",
+            "root_access": "Full Root Access",
+            "ddos": "Free DDoS Protection",
+            "support": "24/7 Support",
+            "uptime": "99.9% Uptime",
+            "scalability": "Easy Scalability",
+            "bandwidth": "Unlimited Bandwidth"
+        },
+        "order": {
+            "title": "Order Configuration",
+            "hostname": "Hostname",
+            "hostname_placeholder": "e.g., my-vps-server",
+            "os": "Operating System",
+            "billing_period": "Billing Period",
+            "monthly_price": "Monthly Price",
+            "duration": "Duration",
+            "month": "month",
+            "months": "months",
+            "subtotal": "Subtotal",
+            "discount": "Discount",
+            "total": "Total",
+            "effective": "Effective",
+            "per_month": "/month",
+            "add_to_cart": "Add to Cart",
+            "adding": "Adding to Cart...",
+            "setup_note": "* Setup is usually completed in a few minutes after payment"
+        },
+        "duration": {
+            "1_month": "1 Month",
+            "3_months": "3 Months",
+            "6_months": "6 Months",
+            "12_months": "12 Months",
+            "24_months": "24 Months"
+        },
+        "toast": {
+            "failed_load": "Failed to load plan",
+            "try_again": "Please try again later",
+            "invalid_hostname": "Invalid hostname",
+            "hostname_required": "Please enter a valid hostname for your VPS",
+            "added_success": "Added to cart successfully",
+            "add_failed": "Failed to add to cart"
+        }
+    },
+    "my_orders": {
+        "header": {
+            "title": "My Orders",
+            "subtitle": "Manage and track all your VPS orders",
+            "refresh": "Refresh"
+        },
+        "search": {
+            "placeholder": "Search by order number, plan name, or hostname ..."
+        },
+        "filter": {
+            "all": "All",
+            "pending": "Pending",
+            "paid": "Paid",
+            "cancelled": "Cancelled"
+        },
+        "status": {
+            "paid": "Paid",
+            "pending": "Pending",
+            "cancelled": "Cancelled",
+            "pending_payment": "Pending Payment",
+            "payment_failed": "Payment Failed"
+        },
+        "card": {
+            "view_details": "View Details",
+            "order_date": "Order Date",
+            "payment_method": "Payment Method",
+            "payment_status": "Payment Status",
+            "total_amount": "Total Amount"
+        },
+        "empty": {
+            "title": "No orders found",
+            "no_orders": "You haven't placed any orders yet",
+            "no_results": "Try changing filters or search terms"
+        },
+        "detail": {
+            "title": "Order Details",
+            "description": "Detailed information about the order and payment status",
+            "order_status": "Order Status",
+            "payment_status": "Payment Status",
+            "order_date": "Order Date",
+            "total_amount": "Total Amount",
+            "ordered_products": "Ordered Products",
+            "hostname": "Hostname",
+            "os": "OS",
+            "duration": "Duration",
+            "months": "months",
+            "price": "Price",
+            "pay_now": "Pay Now",
+            "note": "Note"
+        },
+        "payment": {
+            "title": "Complete Payment",
+            "description": "Choose your payment method to complete order",
+            "amount_to_pay": "Amount to pay",
+            "momo_wallet": "MoMo Wallet",
+            "momo_desc": "Pay via MoMo e-wallet",
+            "vnpay": "VNPay",
+            "vnpay_desc": "Pay via VNPay gateway",
+            "secure": "Secure payment processing",
+            "cancel": "Cancel",
+            "processing": "Processing...",
+            "pay_now": "Pay Now",
+            "cannot_process": "Cannot process payment",
+            "close": "Close"
+        },
+        "toast": {
+            "error_fetching": "Error fetching orders",
+            "try_again": "Please try again later",
+            "payment_failed": "Payment failed",
+            "check_failed": "Failed to check order status"
+        }
+    },
+    "my_tickets": {
+        "header": {
+            "title": "My Support Tickets",
+            "subtitle": "Track and manage your support tickets",
+            "refresh": "Refresh",
+            "create_new": "Create New Ticket"
+        },
+        "search": {
+            "placeholder": "Search tickets by title..."
+        },
+        "filter": {
+            "all_status": "All Status",
+            "open": "Open",
+            "in_progress": "In Progress",
+            "resolved": "Resolved",
+            "closed": "Closed",
+            "all_priority": "All Priority",
+            "urgent": "Urgent",
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low"
+        },
+        "stats": {
+            "open": "Open",
+            "in_progress": "In Progress",
+            "resolved": "Resolved",
+            "total": "Total"
+        },
+        "table": {
+            "title": "Ticket List",
+            "id": "ID",
+            "ticket_title": "Title",
+            "category": "Category",
+            "status": "Status",
+            "priority": "Priority",
+            "created": "Created",
+            "actions": "Actions",
+            "empty": "No tickets found. Create your first ticket to get started."
+        },
+        "create": {
+            "title": "Create Support Ticket",
+            "description": "Describe your issue and we'll get back to you as soon as possible.",
+            "title_label": "Title",
+            "title_placeholder": "Brief description of your issue",
+            "phone_label": "Phone Number",
+            "phone_placeholder": "0912345678",
+            "phone_hint": "We will contact you via this phone number for urgent updates",
+            "category_label": "Category",
+            "priority_label": "Priority",
+            "description_label": "Description",
+            "description_placeholder": "Provide detailed information about your issue...",
+            "cancel": "Cancel",
+            "creating": "Creating...",
+            "submit": "Create Ticket",
+            "categories": {
+                "technical_support": "Technical Support",
+                "payment": "Payment",
+                "server_issue": "Server Issue",
+                "performance": "Performance",
+                "security": "Security",
+                "other": "Other"
+            }
+        },
+        "detail": {
+            "phone": "Phone Number",
+            "email": "Email",
+            "created": "Created",
+            "updated": "Last Updated",
+            "conversation": "Conversation",
+            "messages": "messages",
+            "you": "You",
+            "support_team": "Support Team",
+            "reply_placeholder": "Type your message...",
+            "sending": "Sending...",
+            "send_reply": "Send Reply"
+        },
+        "toast": {
+            "load_failed": "Failed to load tickets",
+            "try_again": "Please try again later",
+            "fill_required": "Please fill in all required fields",
+            "create_success": "Ticket created successfully",
+            "create_failed": "Failed to create ticket",
+            "reply_success": "Reply sent successfully",
+            "reply_failed": "Failed to send reply"
+        }
+    },
+    "profile": {
+        "header": {
+            "title": "User Profile",
+            "subtitle": "Manage your account information and settings"
+        },
+        "tabs": {
+            "profile": "Profile",
+            "security": "Security"
+        },
+        "personal_info": {
+            "title": "Personal Information",
+            "subtitle": "Update your personal information",
+            "member_since": "Member since"
+        },
+        "form": {
+            "full_name": "Full Name",
+            "email": "Email",
+            "phone": "Phone Number",
+            "join_date": "Join Date",
+            "address": "Address"
+        },
+        "buttons": {
+            "edit": "Edit",
+            "cancel": "Cancel",
+            "save": "Save Changes",
+            "saving": "Saving..."
+        },
+        "security": {
+            "title": "Change Password",
+            "subtitle": "Update your password to secure your account",
+            "current_password": "Current Password",
+            "new_password": "New Password",
+            "confirm_password": "Confirm Password",
+            "update_button": "Update Password",
+            "updating": "Updating..."
+        },
+        "validation": {
+            "valid_email": "Please enter a valid email address",
+            "fill_all_password": "Please fill in all password fields",
+            "password_min_length": "Password must be at least 6 characters long",
+            "password_uppercase": "Password must contain at least one uppercase letter",
+            "password_lowercase": "Password must contain at least one lowercase letter",
+            "password_number": "Password must contain at least one number",
+            "password_mismatch": "Passwords do not match"
+        },
+        "toast": {
+            "get_profile_failed": "Get user profile fail",
+            "update_failed": "Failed to update profile",
+            "change_password_failed": "Failed to change password",
+            "try_again": "Please try again later"
+        }
+    },
+    "footer": {
+        "description": "PCloud provides reliable and affordable VPS hosting solutions with 99.9% uptime guarantee, high-performance SSD/NVMe storage, and dedicated 24/7 expert support. Perfect for websites, applications, and growing businesses that need scalable cloud infrastructure with full control.",
+        "quick_links": "Quick Links",
+        "plans": "VPS Plans",
+        "support": "Support Center",
+        "faq": "FAQ",
+        "contact": "Contact Us",
+        "24_7": "24/7 Support",
+        "24_7_desc": "Our technical support team is available around the clock to help you.",
+        "all_rights_reserved": "All rights reserved.",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "cookies": "Cookie Policy"
+    },
+    "privacy_policy": {
+        "title": "Privacy Policy",
+        "subtitle": "Your privacy is important to us. Learn how we collect, use, and protect your personal information.",
+        "last_updated": "Last Updated",
+        "introduction": "PCloud (\"we\", \"our\", or \"us\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our VPS hosting services. By using our services, you agree to the collection and use of information in accordance with this policy.",
+        "data_collection": {
+            "title": "Information We Collect",
+            "items": {
+                "account": "Account information: name, email address, phone number, and billing address when you register for our services",
+                "payment": "Payment information: credit card details, transaction history, and billing records processed through secure payment gateways (VNPay, MoMo)",
+                "usage": "Usage data: VPS resource consumption, login times, service configurations, and support ticket history",
+                "technical": "Technical data: IP addresses, server logs, browser type, and device information for security and service optimization"
+            }
+        },
+        "data_usage": {
+            "title": "How We Use Your Information",
+            "items": {
+                "service": "Providing and maintaining VPS hosting services, including server deployment, monitoring, and technical support",
+                "communication": "Sending service notifications, billing reminders, maintenance alerts, and responding to your inquiries",
+                "improvement": "Analyzing usage patterns to improve our infrastructure, optimize performance, and develop new features",
+                "security": "Detecting and preventing fraud, abuse, security threats, and ensuring compliance with our terms of service"
+            }
+        },
+        "data_protection": {
+            "title": "How We Protect Your Data",
+            "items": {
+                "encryption": "All data transmissions are encrypted using industry-standard TLS/SSL protocols",
+                "access": "Strict access controls limit employee access to personal data on a need-to-know basis",
+                "monitoring": "24/7 security monitoring and intrusion detection systems protect our infrastructure",
+                "backup": "Regular encrypted backups ensure data recovery in case of system failures"
+            }
+        },
+        "user_rights": {
+            "title": "Your Rights",
+            "items": {
+                "access": "Access and review your personal information stored in our systems at any time through your account dashboard",
+                "correction": "Request correction of inaccurate or incomplete personal data by contacting our support team",
+                "deletion": "Request deletion of your personal data, subject to legal retention requirements and active service obligations",
+                "export": "Export your data in a portable format for transfer to another service provider"
+            }
+        },
+        "data_retention": {
+            "title": "Data Retention",
+            "description": "We retain your personal information for as long as your account is active or as needed to provide services. After account termination, we may retain certain data for up to 90 days for backup purposes. Financial records are retained for 7 years as required by law."
+        },
+        "contact": {
+            "title": "Contact Us",
+            "description": "If you have questions about this Privacy Policy or wish to exercise your privacy rights, please contact our privacy team:"
+        }
+    },
+    "terms_of_service": {
+        "title": "Terms of Service",
+        "subtitle": "Please read these terms carefully before using our VPS hosting services.",
+        "last_updated": "Last Updated",
+        "notice": "By using PCloud services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.",
+        "introduction": "These Terms of Service (\"Terms\") govern your use of PCloud's virtual private server (VPS) hosting services. These Terms constitute a legally binding agreement between you and PCloud. We reserve the right to modify these terms at any time, with notice provided through email or our website.",
+        "service_description": {
+            "title": "Service Description",
+            "items": {
+                "vps": "Virtual Private Server hosting with dedicated CPU, RAM, and storage resources as specified in your selected plan",
+                "support": "24/7 technical support via live chat, email, and phone for service-related issues",
+                "uptime": "99.9% uptime guarantee backed by our Service Level Agreement (SLA)",
+                "backup": "Snapshot functionality for creating and restoring VPS backups through the control panel"
+            }
+        },
+        "payment_terms": {
+            "title": "Payment Terms",
+            "items": {
+                "billing": "Services are billed monthly in advance. Your billing cycle begins on the date of service activation",
+                "methods": "We accept payments via VNPay (credit/debit cards) and MoMo wallet. All payments are processed securely",
+                "refund": "Refunds are available within 7 days of initial purchase if the service does not meet advertised specifications",
+                "late": "Late payments may result in service suspension after 24 hours past due date"
+            }
+        },
+        "sla": {
+            "title": "Service Level Agreement",
+            "items": {
+                "uptime": "We guarantee 99.9% network and infrastructure uptime, measured monthly",
+                "credit": "For each hour of downtime below 99.9%, you receive 5% service credit (maximum 100% monthly fee)",
+                "maintenance": "Scheduled maintenance windows are announced 48 hours in advance and do not count toward downtime",
+                "exclusions": "SLA excludes downtime caused by DDoS attacks, user actions, or force majeure events"
+            }
+        },
+        "prohibited": {
+            "title": "Prohibited Activities",
+            "items": {
+                "illegal": "Any illegal activities including but not limited to fraud, hacking, or distribution of illegal content",
+                "spam": "Sending unsolicited bulk emails (spam), phishing attempts, or email harvesting",
+                "malware": "Hosting or distributing malware, viruses, botnets, or participating in DDoS attacks",
+                "abuse": "Resource abuse that affects other users, including cryptocurrency mining without prior approval"
+            }
+        },
+        "termination": {
+            "title": "Termination & Suspension",
+            "items": {
+                "user": "You may cancel your service at any time through your account dashboard. No refunds for partial months",
+                "provider": "We may terminate service immediately for Terms violations, with or without notice",
+                "suspension": "Services may be suspended for payment issues, abuse reports, or during security investigations",
+                "data": "Upon termination, your data will be retained for 24 hours, after which it will be permanently deleted"
+            }
+        },
+        "liability": {
+            "title": "Limitation of Liability",
+            "items": {
+                "limitation": "Our maximum liability is limited to the fees paid by you in the 3 months preceding the incident",
+                "indirect": "We are not liable for indirect, incidental, or consequential damages including lost profits or data",
+                "force": "We are not responsible for service interruptions due to events beyond our reasonable control",
+                "third": "We are not liable for actions of third parties or content hosted on your VPS"
+            }
+        },
+        "changes": {
+            "title": "Changes to Terms",
+            "description": "We reserve the right to modify these Terms at any time. Material changes will be notified via email at least 30 days before taking effect. Continued use of services after changes constitutes acceptance of the new Terms."
+        },
+        "contact": {
+            "title": "Contact Us",
+            "description": "If you have questions about these Terms of Service, please contact our legal team:"
+        }
+    },
+    "cookies_policy": {
+        "title": "Cookie Policy",
+        "subtitle": "This policy explains how we use cookies and similar technologies on our website.",
+        "last_updated": "Last Updated",
+        "examples": "Examples",
+        "what_are_cookies": {
+            "title": "What Are Cookies?",
+            "description": "Cookies are small text files placed on your device when you visit a website. They help websites remember your preferences, keep you logged in, and understand how you use the site. We use cookies to provide a better, faster, and safer experience on PCloud."
+        },
+        "essential": {
+            "title": "Essential Cookies",
+            "badge": "Required",
+            "description": "These cookies are necessary for the website to function properly. They enable core features like secure login, session management, and security protection. Without these cookies, certain services cannot be provided.",
+            "examples": {
+                "session": "Session cookies to maintain your login state",
+                "auth": "Authentication tokens for secure API access",
+                "security": "CSRF tokens to prevent cross-site request forgery"
+            }
+        },
+        "analytics": {
+            "title": "Analytics Cookies",
+            "badge": "Optional",
+            "description": "These cookies help us understand how visitors interact with our website. We use this data to improve our services, identify issues, and optimize user experience. All analytics data is anonymized.",
+            "examples": {
+                "usage": "Page view tracking to understand popular features",
+                "performance": "Performance metrics to optimize load times",
+                "errors": "Error tracking to identify and fix issues"
+            }
+        },
+        "preferences": {
+            "title": "Preference Cookies",
+            "badge": "Optional",
+            "description": "These cookies remember your settings and preferences to provide a personalized experience. They help us remember your language, theme, and display preferences across sessions.",
+            "examples": {
+                "language": "Language preference (English/Vietnamese)",
+                "theme": "Dark/light mode settings",
+                "settings": "Dashboard layout and display preferences"
+            }
+        },
+        "managing": {
+            "title": "Managing Cookies",
+            "description": "You can control and manage cookies in various ways. Please note that removing or blocking cookies may impact your user experience.",
+            "items": {
+                "browser": "Browser settings: Most browsers allow you to view, manage, and delete cookies in settings",
+                "disable": "Disable optional cookies: You can continue using our services with only essential cookies enabled",
+                "delete": "Clear cookies: You can delete all cookies at any time, but you will need to log in again"
+            }
+        },
+        "contact": {
+            "title": "Contact Us",
+            "description": "If you have questions about our use of cookies, please contact us:"
+        }
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "add": "Add",
+        "search": "Search",
+        "close": "Close",
+        "submit": "Submit",
+        "back": "Back",
+        "next": "Next",
+        "confirm": "Confirm",
+        "try_again": "Try again",
+        "or": "or",
+        "and": "and",
+        "yes": "Yes",
+        "no": "No",
+        "vps": "VPS",
+        "users": "users",
+        "tickets": "tickets",
+        "orders": "orders",
+        "plans": "plans"
+    },
+    "auth": {
+        "login": {
+            "title": "Sign in to your account",
+            "subtitle": "Don't have an account?",
+            "create_account": "Create one here",
+            "welcome_back": "Welcome back",
+            "description": "Enter your credentials to access your VPS dashboard",
+            "email_label": "Email address",
+            "email_placeholder": "Enter your email",
+            "password_label": "Password",
+            "password_placeholder": "Enter your password",
+            "remember_me": "Remember me",
+            "forgot_password": "Forgot your password?",
+            "submit": "Sign in",
+            "submitting": "Signing in...",
+            "or_continue": "Or continue with",
+            "connecting": "Connecting...",
+            "terms_notice": "By signing in, you agree to our",
+            "terms_of_service": "Terms of Service",
+            "privacy_policy": "Privacy Policy",
+            "toast": {
+                "fill_all_fields": "Please fill in all fields",
+                "invalid_email": "Please enter a valid email address",
+                "invalid_credentials": "Invalid email or password",
+                "verify_email": "Please verify your email to continue",
+                "verify_email_desc": "We've sent a verification email to your inbox",
+                "success": "Login successful",
+                "failed": "Login failed",
+                "failed_desc": "Please try again later"
+            }
+        },
+        "register": {
+            "title": "Create your account",
+            "subtitle": "Already have an account?",
+            "sign_in": "Sign in here",
+            "welcome": "Get Started",
+            "description": "Create an account to access VPS hosting services",
+            "name_label": "Full name",
+            "name_placeholder": "Enter your full name",
+            "email_label": "Email address",
+            "email_placeholder": "Enter your email",
+            "password_label": "Password",
+            "password_placeholder": "Create a password",
+            "confirm_password_label": "Confirm password",
+            "confirm_password_placeholder": "Confirm your password",
+            "phone_label": "Phone number",
+            "phone_optional": "(Optional)",
+            "phone_placeholder": "Enter your phone number",
+            "password_hint": "Password must be at least 6 characters with uppercase, lowercase, and numbers",
+            "newsletter_label": "Subscribe to our newsletter for product updates and special offers",
+            "submit": "Create account",
+            "submitting": "Creating account...",
+            "terms_notice": "By creating an account, you agree to our",
+            "terms_of_service": "Terms of Service",
+            "privacy_policy": "Privacy Policy",
+            "toast": {
+                "fill_all_fields": "Please fill in all required fields",
+                "password_mismatch": "Passwords do not match",
+                "password_requirements": "Password must be at least 6 characters with uppercase, lowercase, and number",
+                "invalid_email": "Please enter a valid email address",
+                "success": "Account created successfully",
+                "success_desc": "Please check your email to verify your account",
+                "failed": "Registration failed",
+                "failed_desc": "Please try again later",
+                "user_exists": "An account with this email already exists",
+                "newsletter_error": "You must agree to receive the newsletter",
+                "invalid_phone": "Please enter a valid phone number",
+                "password_length": "Password must be at least 6 characters long",
+                "password_uppercase": "Password must contain at least one uppercase letter",
+                "password_lowercase": "Password must contain at least one lowercase letter",
+                "password_number": "Password must contain at least one number"
+            }
+        },
+        "forgot_password": {
+            "title": "Forgot password?",
+            "subtitle": "Remember your password?",
+            "sign_in": "Sign in here",
+            "description": "Enter your email and we'll send you a reset link",
+            "card_title": "Reset Password",
+            "card_description": "Enter the email address associated with your account",
+            "email_label": "Email address",
+            "email_placeholder": "Enter your email",
+            "submit": "Send reset link",
+            "submitting": "Sending...",
+            "back_to_login": "Back to login",
+            "success": {
+                "title": "Email sent!",
+                "subtitle": "We've sent password reset instructions to your email",
+                "sent_to": "Email has been sent to:",
+                "instructions": [
+                    "Check your inbox and click the password reset link",
+                    "The link will expire in 1 hour",
+                    "Check your spam folder if you don't see the email"
+                ],
+                "resend": "Resend email",
+                "resending": "Resending..."
+            },
+            "toast": {
+                "invalid_email": "Please enter a valid email address",
+                "success": "Reset link sent",
+                "success_desc": "Check your email for password reset instructions",
+                "failed": "Failed to send reset link",
+                "failed_desc": "Please try again later"
+            }
+        },
+        "reset_password": {
+            "title": "Set New Password",
+            "description": "Enter a new password for account",
+            "card_title": "Create New Password",
+            "card_description": "Password must be at least 6 characters",
+            "password_label": "New Password",
+            "password_placeholder": "Enter new password",
+            "confirm_password_label": "Confirm Password",
+            "confirm_password_placeholder": "Re-enter new password",
+            "submit": "Update Password",
+            "submitting": "Updating...",
+            "back_to_login": "Back to login",
+            "validating": "Validating password reset link...",
+            "invalid": {
+                "title": "Invalid Link",
+                "subtitle": "Password reset link is invalid or has expired",
+                "reason": "Link may have expired (1 hour) or has already been used",
+                "instructions": [
+                    "Password reset link is only valid for 1 hour",
+                    "Each link can only be used once",
+                    "Please request a new link if needed"
+                ],
+                "request_new": "Request new link"
+            },
+            "success": {
+                "title": "Password reset successful!",
+                "subtitle": "Your password has been updated successfully",
+                "message": "You can now log in with your new password",
+                "login_now": "Log in now"
+            },
+            "requirements": {
+                "title": "Password requirements:",
+                "min_length": "At least 6 characters",
+                "combine": "Should combine letters and numbers",
+                "no_personal": "Don't use easily guessable personal information"
+            },
+            "toast": {
+                "invalid_link": "Invalid password reset link",
+                "password_mismatch": "Passwords do not match",
+                "password_length": "Password must be at least 6 characters long",
+                "password_uppercase": "Password must contain at least one uppercase letter",
+                "password_lowercase": "Password must contain at least one lowercase letter",
+                "password_number": "Password must contain at least one number",
+                "token_invalid": "Token validation failed",
+                "success": "Password reset successful",
+                "success_desc": "You can now sign in with your new password",
+                "failed": "Reset password failed",
+                "failed_desc": "Please try again later"
+            }
+        },
+        "verify_email": {
+            "loading": {
+                "title": "Verifying email...",
+                "subtitle": "Please wait a moment"
+            },
+            "success": {
+                "title": "Verification Successful!",
+                "subtitle": "Your email has been successfully verified. Your account has been activated.",
+                "notice": "You can now log in and use all system features!",
+                "login_now": "Log In Now",
+                "back_home": "Back to Home"
+            },
+            "error": {
+                "resolution_guide": "Resolution guide:",
+                "login_now": "Log In Now",
+                "register_again": "Register Again",
+                "login": "Log In",
+                "back_home": "Back to Home",
+                "invalid_token": {
+                    "title": "Invalid Verification Link",
+                    "message": "The verification link has expired or is invalid. Please try registering again.",
+                    "instructions": [
+                        "Link may have expired (24 hours)",
+                        "Register again to receive a new link",
+                        "Check if the link is complete"
+                    ]
+                },
+                "user_not_found": {
+                    "title": "Account Not Found",
+                    "message": "The account associated with this email does not exist. Please register again.",
+                    "instructions": [
+                        "Account may have been deleted",
+                        "Register with the correct email"
+                    ]
+                },
+                "already_verified": {
+                    "title": "Email Already Verified",
+                    "message": "This email has already been verified. You can log in now.",
+                    "instructions": [
+                        "Account is ready to use",
+                        "Log in with your email and password"
+                    ]
+                },
+                "server_error": {
+                    "title": "An Error Occurred",
+                    "message": "An error occurred during verification. Please try again later.",
+                    "instructions": [
+                        "Try again in a few minutes",
+                        "Contact support if the error persists"
+                    ]
+                }
+            },
+            "toast": {
+                "invalid_token": "Invalid token",
+                "server_error": "An error occurred while verifying email"
+            }
+        },
+        "pending_verification": {
+            "title": "Verify Your Email",
+            "description": "We've sent a verification link to your email address",
+            "instruction": "To complete your registration, please check your email and click the verification link.",
+            "steps": {
+                "check_inbox": "Check your inbox and spam folder",
+                "click_link": "Click the verification link in the email",
+                "redirect": "You'll be redirected to login automatically"
+            },
+            "didnt_receive": "Didn't receive the email?",
+            "resend": "Resend Verification Email",
+            "resending": "Sending...",
+            "note": "Note:",
+            "note_text": "The verification link will expire in 24 hours. If expired, you'll need to request a new one.",
+            "back_to_login": "Back to Login",
+            "need_help": "Need help?",
+            "contact_support": "Contact Support",
+            "toast": {
+                "resend_success": "Verification email resent",
+                "resend_success_desc": "Check your inbox for the new verification link",
+                "resend_failed": "Failed to resend email",
+                "resend_failed_desc": "Please try again later"
+            }
+        }
+    },
+    "toast": {
+        "success": "Success",
+        "error": "Error",
+        "info": "Info",
+        "warning": "Warning",
+        "loading": "Loading...",
+        "cart": {
+            "added": "Added to cart successfully",
+            "removed": "Removed from cart",
+            "cleared": "Cart cleared",
+            "failed_add": "Failed to add to cart",
+            "failed_remove": "Failed to remove from cart",
+            "failed_clear": "Failed to clear cart",
+            "failed_fetch": "Failed to fetch cart items"
+        },
+        "profile": {
+            "updated": "Profile updated successfully",
+            "failed_update": "Failed to update profile",
+            "failed_fetch": "Failed to fetch profile"
+        },
+        "vps": {
+            "start_success": "VPS started successfully",
+            "stop_success": "VPS stopped successfully",
+            "reboot_success": "VPS reboot initiated",
+            "action_failed": "VPS action failed",
+            "failed_fetch": "Failed to fetch VPS data"
+        },
+        "order": {
+            "created": "Order created successfully",
+            "failed_create": "Failed to create order",
+            "failed_fetch": "Failed to fetch orders"
+        },
+        "payment": {
+            "success": "Payment successful",
+            "failed": "Payment failed",
+            "repay_failed": "Failed to repay order"
+        },
+        "support": {
+            "ticket_created": "Support ticket created",
+            "reply_sent": "Reply sent successfully",
+            "failed_create": "Failed to create ticket",
+            "failed_reply": "Failed to send reply"
+        },
+        "validation": {
+            "fill_all_fields": "Please fill in all required fields",
+            "invalid_email": "Please enter a valid email",
+            "invalid_phone": "Please enter a valid phone number",
+            "invalid_hostname": "Invalid hostname format"
+        },
+        "dashboard": {
+            "failed_load": "Failed to load dashboard data"
+        },
+        "plans": {
+            "failed_load": "Failed to load plans"
+        },
+        "promotion": {
+            "applied": "Promotion applied successfully",
+            "failed_apply": "Failed to apply promotion",
+            "failed_fetch": "Failed to fetch promotions"
+        },
+        "checkout": {
+            "failed_proceed": "Failed to proceed to checkout"
+        }
+    },
+    "errors": {
+        "common": {
+            "failed": "Failed to {action}!",
+            "unknown": "An unexpected error occurred during {action}"
+        },
+        "notFound": {
+            "title": "Page Not Found",
+            "subtitle": "The page you're looking for doesn't exist or has been moved. Please check the URL or navigate back to the homepage.",
+            "backHome": "Back to Home",
+            "goBack": "Go Back",
+            "whyTitle": "Why am I seeing this page?",
+            "reasons": [
+                "The page you're looking for doesn't exist",
+                "The URL might be misspelled",
+                "The page has been moved or deleted",
+                "You might not have permission to access this page"
+            ],
+            "needHelp": "Need help?",
+            "contactUs": "Contact us"
+        },
+        "forbidden": {
+            "title": "Access Denied",
+            "subtitle": "You do not have permission to access this page or resource. Please log in with the appropriate account or contact support if you believe this is an error.",
+            "login": "Log in",
+            "backHome": "Back to Home",
+            "goBack": "Go Back",
+            "whyTitle": "Why am I seeing this page?",
+            "reasons": [
+                "You are not logged in",
+                "Your account does not have the necessary permissions",
+                "The resource is restricted to certain users",
+                "You might be trying to access an admin-only area"
+            ],
+            "needHelp": "Need help?",
+            "contactUs": "Contact us"
+        },
+        "serverError": {
+            "title": "Server Error",
+            "subtitle": "We apologize, but an unexpected error has occurred. Please try again later or contact support if the problem persists.",
+            "backHome": "Back to Home",
+            "tryAgain": "Try Again",
+            "whyTitle": "What can you do?",
+            "reasons": [
+                "Refresh the page and try again",
+                "Clear your browser cache and cookies",
+                "Check your internet connection",
+                "Contact support if the problem persists"
+            ],
+            "needHelp": "Need help?",
+            "contactUs": "Contact us"
+        }
+    }
+}

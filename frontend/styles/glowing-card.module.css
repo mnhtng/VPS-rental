@@ -1,0 +1,12 @@
+.overlay {
+        background: radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y),
+                        var(--glow-color, rgba(255, 255, 255, 0.1)) 0%,
+                        transparent 70%);
+        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+        mask: radial-gradient(circle 300px at var(--mouse-x) var(--mouse-y),
+                        black 0%,
+                        transparent 70%);
+        -webkit-mask: radial-gradient(circle 300px at var(--mouse-x) var(--mouse-y),
+                        black 0%,
+                        transparent 70%);
+}

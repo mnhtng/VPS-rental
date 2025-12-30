@@ -1,0 +1,252 @@
+@import url("https://fonts.googleapis.com/css2?family=Nova+Mono&display=swap");
+/* Basic editor styles */
+.tiptap {
+  /* Link styles */
+  /* List styles */
+  /* Task list specific styles */
+  /* Heading styles */
+  /* Code and preformatted text styles */
+  /* Placeholder (at the top) */
+  /* Table-specific styling */
+}
+.tiptap :first-child {
+  margin-top: 0;
+}
+.tiptap a {
+  color: var(--color-purple-600);
+  text-decoration: underline;
+  text-decoration-color: var(--color-purple-600);
+  text-decoration-thickness: 0.15rem;
+  text-underline-offset: 0.2rem;
+  cursor: pointer;
+}
+.tiptap a:hover {
+  color: var(--color-purple-400);
+  text-decoration-color: var(--color-purple-400);
+}
+.tiptap ul,
+.tiptap ol {
+  padding: 0 1rem;
+  margin: 1.25rem 1rem 1.25rem 0.4rem;
+}
+.tiptap ul li p,
+.tiptap ol li p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+.tiptap ul {
+  list-style-type: disc;
+  counter-reset: list-counter;
+}
+.tiptap ul li {
+  margin-bottom: 0.2rem;
+  padding-left: 0.2rem;
+  position: relative;
+  counter-increment: list-counter;
+}
+.tiptap ol {
+  list-style-type: decimal;
+  counter-reset: list-counter;
+}
+.tiptap ol li {
+  margin-bottom: 0.2rem;
+  padding-left: 0.2rem;
+  position: relative;
+  counter-increment: list-counter;
+}
+.tiptap ul[data-type=taskList] {
+  list-style: none;
+  margin-left: 0;
+  padding: 0;
+}
+.tiptap ul[data-type=taskList] li {
+  align-items: flex-start;
+  display: flex;
+}
+.tiptap ul[data-type=taskList] li > label {
+  flex: 0 0 auto;
+  margin-right: 0.5rem;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.tiptap ul[data-type=taskList] li > div {
+  flex: 1 1 auto;
+}
+.tiptap ul[data-type=taskList] input[type=checkbox] {
+  cursor: pointer;
+}
+.tiptap ul[data-type=taskList] ul[data-type=taskList] {
+  margin: 0;
+}
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
+  line-height: 1.1;
+  margin-top: 2.5rem;
+  text-wrap: pretty;
+}
+.tiptap h1,
+.tiptap h2 {
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+}
+.tiptap h1 {
+  font-size: 1.4rem;
+}
+.tiptap h2 {
+  font-size: 1.2rem;
+}
+.tiptap h3 {
+  font-size: 1.1rem;
+}
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
+  font-size: 1rem;
+}
+.tiptap code {
+  background-color: var(--accent-foreground);
+  color: var(--accent);
+  border-radius: 0.4rem;
+  font-family: "Nova Mono", monospace;
+  font-size: 0.85rem;
+  padding: 0.05em 0.2em;
+}
+.tiptap pre {
+  background: var(--border);
+  border-radius: 0.5rem;
+  font-family: "Nova Mono", monospace;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  /* Code styling */
+}
+.tiptap pre code {
+  background: none;
+  color: inherit;
+  font-family: "Nova Mono", monospace;
+  font-size: 0.8rem;
+  padding: 0;
+}
+.tiptap pre .hljs-comment,
+.tiptap pre .hljs-quote {
+  color: var(--muted-foreground);
+}
+.tiptap pre .hljs-variable,
+.tiptap pre .hljs-template-variable,
+.tiptap pre .hljs-attribute,
+.tiptap pre .hljs-tag,
+.tiptap pre .hljs-regexp,
+.tiptap pre .hljs-link,
+.tiptap pre .hljs-name,
+.tiptap pre .hljs-selector-id,
+.tiptap pre .hljs-selector-class {
+  color: var(--red);
+}
+.tiptap pre .hljs-number,
+.tiptap pre .hljs-meta,
+.tiptap pre .hljs-built_in,
+.tiptap pre .hljs-builtin-name,
+.tiptap pre .hljs-literal,
+.tiptap pre .hljs-type,
+.tiptap pre .hljs-params {
+  color: var(--orange);
+}
+.tiptap pre .hljs-string,
+.tiptap pre .hljs-symbol,
+.tiptap pre .hljs-bullet {
+  color: var(--green);
+}
+.tiptap pre .hljs-title,
+.tiptap pre .hljs-section {
+  color: var(--yellow);
+}
+.tiptap pre .hljs-keyword,
+.tiptap pre .hljs-selector-tag {
+  color: var(--blue);
+}
+.tiptap pre .hljs-emphasis {
+  font-style: italic;
+}
+.tiptap pre .hljs-strong {
+  font-weight: 700;
+}
+.tiptap mark {
+  background-color: #FAF594;
+  border-radius: 0.4rem;
+  -webkit-box-decoration-break: clone;
+          box-decoration-break: clone;
+  padding: 0.1rem 0.3rem;
+}
+.tiptap blockquote {
+  border-left: 3px solid var(--muted-foreground);
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--muted-foreground);
+  cursor: pointer;
+  margin: 2rem 0;
+}
+.tiptap hr.ProseMirror-selectednode {
+  border-top: 1px solid var(--muted-foreground);
+}
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--color-gray-400);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.tiptap table {
+  border-collapse: collapse;
+  margin: 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
+.tiptap table td,
+.tiptap table th {
+  border: 1px solid var(--foreground);
+  box-sizing: border-box;
+  min-width: 1em;
+  padding: 6px 8px;
+  position: relative;
+  vertical-align: top;
+}
+.tiptap table td > *,
+.tiptap table th > * {
+  margin-bottom: 0;
+}
+.tiptap table th {
+  background-color: var(--muted-foreground);
+  color: var(--muted);
+  font-weight: bold;
+  text-align: left;
+}
+.tiptap table .selectedCell {
+  background: var(--color-gray-400);
+}
+.tiptap table .column-resize-handle {
+  background-color: var(--color-violet-500);
+  bottom: -2px;
+  pointer-events: none;
+  position: absolute;
+  right: -2px;
+  top: 0;
+  width: 4px;
+}
+.tiptap .tableWrapper {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+.tiptap.resize-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}/*# sourceMappingURL=tiptap-bar.css.map */

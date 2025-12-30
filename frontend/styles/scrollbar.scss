@@ -1,0 +1,60 @@
+.scrollbar-hidden {
+    &::-webkit-scrollbar {
+        display: none;
+        /* Hide scrollbar for WebKit browsers */
+    }
+
+    -ms-overflow-style: none;
+    /* Hide scrollbar for Internet Explorer and Edge */
+    scrollbar-width: none;
+    /* Hide scrollbar for Firefox */
+
+    &::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        /* Make the scrollbar thumb transparent */
+    }
+
+    &::-webkit-scrollbar-track {
+        background-color: transparent;
+        /* Make the scrollbar track transparent */
+    }
+
+    &::-webkit-scrollbar-corner {
+        background-color: transparent;
+        /* Make the scrollbar corner transparent */
+    }
+
+    &::-webkit-scrollbar-button {
+        display: none;
+        /* Hide scrollbar buttons */
+    }
+
+    &::-webkit-scrollbar-track-piece {
+        background-color: transparent;
+        /* Make the scrollbar track piece transparent */
+    }
+}
+
+.scrollbar-thin {
+    &::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+        /* Set the width and height of the scrollbar */
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--ring);
+        border-radius: 4px;
+        /* Style the scrollbar thumb */
+    }
+
+    &::-webkit-scrollbar-track {
+        background-color: transparent;
+        /* Style the scrollbar track */
+    }
+
+    &::-webkit-scrollbar-corner {
+        background-color: transparent;
+        /* Style the scrollbar corner */
+    }
+}
