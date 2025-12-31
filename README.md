@@ -96,8 +96,8 @@ A modern VPS rental platform with automated provisioning, payment gateway integr
 | **React** | 19.2.3 | UI library |
 | **TypeScript** | 5 | Type-safe JavaScript |
 | **Tailwind CSS** | 4 | Utility-first CSS framework |
-| **NextAuth** | 5.0.0-beta | Authentication solution |
-| **Prisma** | 6.16.2 | Database ORM and schema management |
+| **NextAuth** | 5.0.0-beta.29 | Authentication solution |
+| **Prisma** | 7.2.0 | Database ORM and schema management |
 | **Radix UI** | Latest | Accessible component primitives |
 | **Recharts** | 2.15.4 | Chart library for analytics |
 | **React-PDF** | 4.3.1 | PDF generation and rendering |
@@ -113,6 +113,6 @@ A modern VPS rental platform with automated provisioning, payment gateway integr
 ---
 
 <div align="center">
-  <p>Made with ❤️ and ☕ by the VPS Rental Team</p>
+  <p>Made with ❤️ and ☕ by the PCloud Team</p>
   <p><strong>A journey of learning, building, and growing</strong></p>
 </div>
