@@ -35,7 +35,7 @@ import { useTranslations } from "next-intl"
 const VPSPage = () => {
     const tCommon = useTranslations('common')
     const t = useTranslations('admin.vps')
-    const { getAllVps, getVpsStatistics, adminStartVps, adminStopVps, adminRebootVps } = useAdminVPS()
+    const { getAllVps, getVpsStatistics, adminStartVps, adminStopVps, adminRebootVps, adminDeleteVps } = useAdminVPS()
 
     const [vpsList, setVpsList] = useState<VPSInstance[]>([])
     const [filteredVpsList, setFilteredVpsList] = useState<VPSInstance[]>([])
@@ -241,6 +241,26 @@ const VPSPage = () => {
             }
         } catch {
             toast.error(t('toast.reboot_failed'))
+        } finally {
+            setIsActionLoading(null)
+        }
+    }
+
+    const handleDelete = async (vpsId: string) => {
+        try {
+            setIsActionLoading(vpsId)
+            const result = await adminDeleteVps(vpsId)
+
+            if (result.error) {
+                toast.error(result.message, {
+                    description: result.error.detail
+                })
+            } else {
+                toast.success(result.message || t('toast.delete_success'))
+                fetchVpsData()
+            }
+        } catch {
+            toast.error(t('toast.delete_failed'))
         } finally {
             setIsActionLoading(null)
         }
@@ -494,6 +514,7 @@ const VPSPage = () => {
                                                         onStart={handleStart}
                                                         onStop={handleStop}
                                                         onReboot={handleReboot}
+                                                        onDelete={handleDelete}
                                                         isActionLoading={isActionLoading}
                                                     />
                                                 </div>

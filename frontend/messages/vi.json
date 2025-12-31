@@ -311,7 +311,9 @@
                 "start_failed": "Khởi động VPS thất bại",
                 "stop_failed": "Dừng VPS thất bại",
                 "reboot_failed": "Khởi động lại VPS thất bại",
-                "fetch_failed": "Không thể tải dữ liệu VPS"
+                "fetch_failed": "Không thể tải dữ liệu VPS",
+                "delete_success": "Xóa VPS thành công",
+                "delete_failed": "Xóa VPS thất bại"
             }
         },
         "users": {
@@ -685,7 +687,13 @@
                 "stopped": "Đã dừng",
                 "expiring_soon": "Sắp hết hạn",
                 "days_until_renewal": "ngày còn lại trước khi gia hạn",
-                "service_info": "Thông tin dịch vụ"
+                "service_info": "Thông tin dịch vụ",
+                "danger_zone": "Vùng nguy hiểm",
+                "delete_vps": "Xóa VPS này",
+                "delete_warning": "Hành động này không thể hoàn tác. VM sẽ bị xóa vĩnh viễn.",
+                "delete_confirm_title": "Xóa VPS?",
+                "delete_confirm_description": "Bạn có chắc chắn muốn xóa VPS \"{hostname}\" không? Hành động này sẽ xóa vĩnh viễn VM khỏi máy chủ và không thể hoàn tác.",
+                "delete_confirm": "Có, xóa VPS"
             },
             "ticket_detail": {
                 "title": "Chi tiết yêu cầu",

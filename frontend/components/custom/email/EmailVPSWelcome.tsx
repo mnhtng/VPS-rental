@@ -34,7 +34,7 @@ const EmailVPSWelcome = ({
     },
 }: EmailVPSWelcomeProps) => {
     const isWindowsOS = vps.os.toLowerCase().includes("windows") ? true : false;
-    const ipPublic = `117.0.207.175`;
+    const ipPublic = process.env.IP_PUBLIC || "ptitcloud.duckdns.org";
     const portPublic = isWindowsOS ? `33${vps.vmid}` : `22${vps.vmid}`;
 
     return (
@@ -293,10 +293,10 @@ const credentialsWarning = {
 };
 
 const credentialsGrid = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-    marginBottom: '20px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '8px',
+    marginBottom: '12px',
 };
 
 const credentialItem = {

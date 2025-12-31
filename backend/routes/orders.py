@@ -3,10 +3,11 @@ from datetime import datetime
 from calendar import month_abbr
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from backend.db import get_session
-from backend.models import Order, User
+from backend.models import Order, OrderItem, PaymentTransaction, User
 from backend.schemas import OrderResponse
 from backend.utils import get_current_user, get_admin_user, Translator, get_translator
 
@@ -48,6 +49,10 @@ async def get_user_orders(
             select(Order)
             .where(Order.user_id == current_user.id)
             .order_by(Order.created_at.desc())
+            .options(
+                selectinload(Order.order_items),
+                selectinload(Order.payment_transaction),
+            )
         )
         orders = session.exec(statement).all()
 
@@ -306,7 +311,15 @@ async def admin_get_all_orders(
         List[OrderResponse]: List of all orders.
     """
     try:
-        statement = select(Order).order_by(Order.created_at.desc())
+        statement = (
+            select(Order)
+            .order_by(Order.created_at.desc())
+            .options(
+                selectinload(Order.order_items),
+                selectinload(Order.payment_transaction),
+                selectinload(Order.user),
+            )
+        )
 
         if status_filter:
             statement = statement.where(Order.status == status_filter)

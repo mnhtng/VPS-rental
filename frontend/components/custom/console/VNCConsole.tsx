@@ -12,7 +12,6 @@ import {
     Loader2,
     ExternalLink,
     AlertCircle,
-    MonitorUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import useProxmox from '@/hooks/useProxmox';
@@ -102,21 +101,6 @@ const VNCConsole: React.FC<VNCConsoleProps> = ({ vmId, node = 'pve', onClose, cl
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [vmId, node]);
 
-    // Open Proxmox console directly
-    const openProxmoxDirect = useCallback(async () => {
-        try {
-            const result = await getVNCInfo(vmId);
-            const proxmoxHost = result.data?.host || '10.10.1.12';
-            const proxmoxUrl = `https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmId}&vmname=VM-${vmId}&node=${node}&resize=off`;
-            window.open(proxmoxUrl, `proxmox_${vmId}`, 'width=1024,height=768,toolbar=no,menubar=no,resizable=yes');
-            toast.info(t('success.proxmox_opened'));
-        } catch {
-            const proxmoxUrl = `https://10.10.1.12:8006/?console=kvm&novnc=1&vmid=${vmId}&vmname=VM-${vmId}&node=${node}&resize=off`;
-            window.open(proxmoxUrl, `proxmox_${vmId}`, 'width=1024,height=768,toolbar=no,menubar=no,resizable=yes');
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [vmId, node, getVNCInfo]);
-
     // Send Ctrl+Alt+Del to VNC console
     const sendCtrlAltDel = useCallback(() => {
         if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -200,15 +184,6 @@ const VNCConsole: React.FC<VNCConsoleProps> = ({ vmId, node = 'pve', onClose, cl
                                 title={t('tooltip.send_cad')}
                             >
                                 Ctrl+Alt+Del
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
-                                onClick={openProxmoxDirect}
-                                title={t('tooltip.open_proxmox')}
-                            >
-                                <MonitorUp className="h-4 w-4" />
                             </Button>
                             <Button
                                 variant="ghost"
@@ -350,10 +325,6 @@ const VNCConsole: React.FC<VNCConsoleProps> = ({ vmId, node = 'pve', onClose, cl
                                     <Button onClick={connectVNC} className="bg-green-600 hover:bg-green-700">
                                         <Power className="mr-2 h-4 w-4" />
                                         {t('button.load_console')}
-                                    </Button>
-                                    <Button onClick={openProxmoxDirect} variant="ghost" className="border-blue-600 text-blue-400">
-                                        <ExternalLink className="mr-2 h-4 w-4" />
-                                        {t('button.open_proxmox')}
                                     </Button>
                                     <Button onClick={openInNewWindow} variant="outline" className="border-slate-700">
                                         <ExternalLink className="mr-2 h-4 w-4" />

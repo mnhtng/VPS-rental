@@ -32,58 +32,57 @@ interface MenuItem {
     color: string
 }
 
-const menuItems: MenuItem[] = [
-    {
-        titleKey: 'dashboard',
-        url: '/admin',
-        icon: LayoutDashboardIcon,
-        color: 'blue',
-    },
-    {
-        titleKey: 'users',
-        url: '/admin/users',
-        icon: Users,
-        color: 'green',
-    },
-    {
-        titleKey: 'vps',
-        url: '/admin/vps',
-        icon: MonitorCog,
-        color: 'purple',
-    },
-    {
-        titleKey: 'plans',
-        url: '/admin/plans',
-        icon: Layers,
-        color: 'indigo',
-    },
-    {
-        titleKey: 'support',
-        url: '/admin/support',
-        icon: Headset,
-        color: 'cyan',
-    },
-    {
-        titleKey: 'revenue',
-        url: '/admin/revenue',
-        icon: WalletCards,
-        color: 'orange',
-    },
-    {
-        titleKey: 'analytics',
-        url: '/admin/analytics',
-        icon: BarChart3,
-        color: 'red',
-    }
-]
-
-
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const locale = useLocale()
     const t = useTranslations('admin.sidebar')
     const tPages = useTranslations('admin.pages')
     const { isMobile, open } = useSidebar()
     const pathname = usePathname()
+
+    const menuItems: MenuItem[] = [
+        {
+            titleKey: 'dashboard',
+            url: `${locale === 'vi' ? '/vi' : ''}/admin`,
+            icon: LayoutDashboardIcon,
+            color: 'blue',
+        },
+        {
+            titleKey: 'users',
+            url: `${locale === 'vi' ? '/vi' : ''}/admin/users`,
+            icon: Users,
+            color: 'green',
+        },
+        {
+            titleKey: 'vps',
+            url: `${locale === 'vi' ? '/vi' : ''}/admin/vps`,
+            icon: MonitorCog,
+            color: 'purple',
+        },
+        {
+            titleKey: 'plans',
+            url: `${locale === 'vi' ? '/vi' : ''}/admin/plans`,
+            icon: Layers,
+            color: 'indigo',
+        },
+        {
+            titleKey: 'support',
+            url: `${locale === 'vi' ? '/vi' : ''}/admin/support`,
+            icon: Headset,
+            color: 'cyan',
+        },
+        {
+            titleKey: 'revenue',
+            url: `${locale === 'vi' ? '/vi' : ''}/admin/revenue`,
+            icon: WalletCards,
+            color: 'orange',
+        },
+        {
+            titleKey: 'analytics',
+            url: `${locale === 'vi' ? '/vi' : ''}/admin/analytics`,
+            icon: BarChart3,
+            color: 'red',
+        }
+    ]
 
     const menuItemsWithActive = menuItems.map(item => ({
         title: tPages(`${item.titleKey}.title`),
