@@ -87,7 +87,8 @@
         "snapshot_restored": "Khôi phục snapshot thành công",
         "snapshot_deleted": "Xóa snapshot thành công",
         "snapshot_not_found": "Không tìm thấy snapshot",
-        "password_reset_success": "Đặt lại mật khẩu VPS thành công"
+        "password_reset_success": "Đặt lại mật khẩu VPS thành công",
+        "deleted_success": "Xóa VPS thành công"
     },
     "cart": {
         "item_added": "Đã thêm vào giỏ hàng",

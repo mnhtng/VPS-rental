@@ -87,7 +87,8 @@
         "snapshot_restored": "Snapshot restored successfully",
         "snapshot_deleted": "Snapshot deleted successfully",
         "snapshot_not_found": "Snapshot not found",
-        "password_reset_success": "VPS password reset successfully"
+        "password_reset_success": "VPS password reset successfully",
+        "deleted_success": "VPS deleted successfully"
     },
     "cart": {
         "item_added": "Item added to cart",

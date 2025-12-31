@@ -331,14 +331,11 @@
 <body>
     <div class="console-header">
         <div class="console-title">
-            <span id="vmTitle">Disconnected | VM: 118 @ pve</span>
+            <span id="vmTitle">Disconnected | VM: 100 @ pve</span>
         </div>
         <div class="console-controls">
             <button class="control-button" onclick="toggleFullscreen()" title="Toggle Fullscreen">
                 ⛶
-            </button>
-            <button class="control-button" onclick="openProxmoxDirect()" title="Open Proxmox">
-                🔗
             </button>
             <button class="control-button" onclick="reconnect()" title="Load Console">
                 💱
@@ -514,9 +511,6 @@
                     <button class="control-button" onclick="toggleFullscreen()" title="Fullscreen">
                         ⛶
                     </button>
-                    <button class="control-button" onclick="openProxmoxDirect()" title="Open Proxmox">
-                        🔗
-                    </button>
                     <button class="control-button danger" onclick="disconnect()" title="Close">
                         ✖️
                     </button>
@@ -540,11 +534,8 @@
                     <button class="control-button" onclick="toggleFullscreen()" title="Toggle Fullscreen">
                         ⛶
                     </button>
-                    <button class="control-button" onclick="openProxmoxDirect()" title="Open Proxmox">
-                        🔗
-                    </button>
                     <button class="control-button" onclick="reconnect()" title="Load Console">
-                        🔄 Load Console
+                        🔄
                     </button>
                     <button class="control-button danger" onclick="disconnect()" title="Close">
                         ✖️
@@ -580,7 +571,7 @@
                     <h3>${title}</h3>
                     <p>${message}</p>
                     <div class="button-group">
-                        <button onclick="location.reload()">🔄 Retry</button>
+                        <button onclick="location.reload()">Retry</button>
                         <button class="primary" onclick="window.open('https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmid}&vmname=${vmname}&node=${node}', '_blank')">
                             Open in Window
                         </button>
@@ -625,11 +616,6 @@
             }
             connected = false;
             window.close();
-        };
-
-        window.openProxmoxDirect = function () {
-            const proxmoxUrl = `https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmid}&vmname=${vmname}&node=${node}&resize=off`;
-            window.open(proxmoxUrl, '_blank', 'width=1024,height=768,toolbar=no,menubar=no,resizable=yes');
         };
 
         // Auto connect on load

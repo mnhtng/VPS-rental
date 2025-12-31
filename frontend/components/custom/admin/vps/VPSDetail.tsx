@@ -1,7 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Server, Play, Square, RotateCcw, Eye, Monitor, HardDrive, Cpu, MemoryStick, Clock, Loader } from "lucide-react"
+import { Server, Play, Square, RotateCcw, Eye, Monitor, HardDrive, Cpu, MemoryStick, Clock, Loader, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import {
     Sheet,
@@ -13,6 +14,17 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatDate } from "@/utils/string"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -24,16 +36,28 @@ export const VPSDetailSheet = ({
     onStart,
     onStop,
     onReboot,
+    onDelete,
     isActionLoading,
 }: {
     vps: VPSInstance
     onStart: (id: string) => void
     onStop: (id: string) => void
     onReboot: (id: string) => void
+    onDelete: (id: string) => Promise<void>
     isActionLoading: string | null
 }) => {
     const t = useTranslations('admin.components.vps_detail')
     const tCommon = useTranslations('admin.components.common')
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [sheetOpen, setSheetOpen] = useState(false)
+
+    const handleDelete = async () => {
+        setIsDeleting(true)
+        await onDelete(vps.id)
+        setIsDeleting(false)
+        setSheetOpen(false)
+    }
+
     const getDaysUntilExpiry = (expiresAt: string) => {
         const now = new Date()
         const expiry = new Date(expiresAt)
@@ -78,7 +102,7 @@ export const VPSDetailSheet = ({
     const isLoading = isActionLoading === vps.id
 
     return (
-        <Sheet>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10">
                     <Eye className="h-4 w-4" />
@@ -265,7 +289,60 @@ export const VPSDetailSheet = ({
                     </div>
                 </div>
 
-                <SheetFooter className="px-6 pb-6">
+                {/* Danger Zone */}
+                {vps.status !== 'terminated' && (
+                    <div className="px-6 animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: '200ms' }}>
+                        <h4 className="text-sm font-semibold text-red-600 uppercase tracking-wider mb-3">{t('danger_zone')}</h4>
+                        <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4">
+                            <div className="flex items-center justify-between gap-2">
+                                <div>
+                                    <p className="text-sm font-medium">{t('delete_vps')}</p>
+                                    <p className="text-xs text-muted-foreground">{t('delete_warning')}</p>
+                                </div>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            disabled={isDeleting || isLoading}
+                                        >
+                                            {isDeleting ? (
+                                                <Loader className="h-4 w-4 animate-spin mr-2" />
+                                            ) : (
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                            )}
+                                            {tCommon('delete')}
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>{t('delete_confirm_title')}</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                {t('delete_confirm_description', { hostname: vps.order_item?.hostname || vps.vm?.hostname || 'N/A' })}
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                onClick={handleDelete}
+                                                className="bg-destructive text-white hover:bg-destructive/90"
+                                            >
+                                                {isDeleting ? (
+                                                    <Loader className="h-4 w-4 animate-spin mr-2" />
+                                                ) : (
+                                                    <Trash2 className="h-4 w-4 mr-2" />
+                                                )}
+                                                {t('delete_confirm')}
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <SheetFooter className="px-6 py-6">
                     <SheetClose asChild>
                         <Button variant="outline" className="w-full">{tCommon('close')}</Button>
                     </SheetClose>

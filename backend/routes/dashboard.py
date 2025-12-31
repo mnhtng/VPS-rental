@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select, func
 from calendar import month_abbr, monthrange
 
@@ -163,7 +164,15 @@ async def get_dashboard_stats(
             )
 
         # ----- RECENT ORDERS -----
-        recent_orders_stmt = select(Order).order_by(Order.created_at.desc()).limit(5)
+        recent_orders_stmt = (
+            select(Order)
+            .order_by(Order.created_at.desc())
+            .limit(5)
+            .options(
+                selectinload(Order.user),
+                selectinload(Order.order_items).selectinload(OrderItem.vps_plan),
+            )
+        )
         recent_orders_db = session.exec(recent_orders_stmt).all()
 
         recent_orders = []
@@ -283,7 +292,13 @@ async def get_analytics_stats(
         current_year = now.year
 
         # ----- VPS BY PLAN -----
-        all_vps = session.exec(select(VPSInstance)).all()
+        all_vps = session.exec(
+            select(VPSInstance)
+            .options(
+                selectinload(VPSInstance.vps_plan),
+                selectinload(VPSInstance.order_item).selectinload(OrderItem.template),
+            )
+        ).all()
         all_order_items = session.exec(select(OrderItem)).all()
         all_orders = session.exec(select(Order)).all()
 

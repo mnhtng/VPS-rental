@@ -311,7 +311,9 @@
                 "start_failed": "Failed to start VPS",
                 "stop_failed": "Failed to stop VPS",
                 "reboot_failed": "Failed to reboot VPS",
-                "fetch_failed": "Failed to fetch VPS data"
+                "fetch_failed": "Failed to fetch VPS data",
+                "delete_success": "VPS deleted successfully",
+                "delete_failed": "Failed to delete VPS"
             }
         },
         "users": {
@@ -685,7 +687,13 @@
                 "stopped": "Stopped",
                 "expiring_soon": "Expiring Soon",
                 "days_until_renewal": "days until renewal",
-                "service_info": "Service Information"
+                "service_info": "Service Information",
+                "danger_zone": "Danger Zone",
+                "delete_vps": "Delete this VPS",
+                "delete_warning": "This action cannot be undone. The VM will be permanently deleted.",
+                "delete_confirm_title": "Delete VPS?",
+                "delete_confirm_description": "Are you sure you want to delete VPS \"{hostname}\"? This will permanently delete the VM from the server and cannot be undone.",
+                "delete_confirm": "Yes, Delete VPS"
             },
             "ticket_detail": {
                 "title": "Ticket Details",

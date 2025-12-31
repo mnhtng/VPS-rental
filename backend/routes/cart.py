@@ -1,6 +1,7 @@
 import uuid
 from typing import Dict, List
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 import logging
 
@@ -45,7 +46,14 @@ async def get_cart(
         CartResponse: The shopping cart of the current user.
     """
     try:
-        statement = select(Cart).where(Cart.user_id == current_user.id)
+        statement = (
+            select(Cart)
+            .where(Cart.user_id == current_user.id)
+            .options(
+                selectinload(Cart.vps_plan),
+                selectinload(Cart.template),
+            )
+        )
         cart = session.exec(statement).all()
 
         if not cart:

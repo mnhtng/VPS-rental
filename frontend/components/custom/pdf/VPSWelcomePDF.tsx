@@ -47,7 +47,7 @@ const VPSWelcomePDF = ({
     },
 }: VPSWelcomePDFProps) => {
     const isWindowsOS = vps.os.toLowerCase().includes("windows") ? true : false;
-    const ipPublic = `117.0.207.175`;
+    const ipPublic = process.env.IP_PUBLIC || "ptitcloud.duckdns.org";
     const portPublic = isWindowsOS ? `33${vps.vmid}` : `22${vps.vmid}`;
 
     return (
@@ -125,15 +125,9 @@ const VPSWelcomePDF = ({
 
                         <View style={styles.credentialsGrid}>
                             <View style={styles.credentialBox}>
-                                <Text style={styles.credLabel}>
-                                    IP Private 1
-                                    <Text style={styles.separate}> | </Text>
-                                    IP Private 2
-                                </Text>
+                                <Text style={styles.credLabel}>IP PUBLIC</Text>
                                 <Text style={styles.credValue}>
-                                    {credentials.ipAddress}
-                                    <Text style={styles.separate}> | </Text>
-                                    {credentials.subIpAddress}
+                                    {ipPublic}
                                 </Text>
                             </View>
                             <View style={styles.credentialBox}>
@@ -151,9 +145,15 @@ const VPSWelcomePDF = ({
                         </View>
 
                         <View style={styles.commandBox}>
-                            <Text style={styles.commandLabel}>IP PUBLIC</Text>
+                            <Text style={styles.commandLabel}>
+                                IP Private 1
+                                <Text style={styles.separate}> | </Text>
+                                IP Private 2
+                            </Text>
                             <Text style={styles.commandCode}>
-                                {ipPublic}
+                                {credentials.ipAddress}
+                                <Text style={styles.separate}> | </Text>
+                                {credentials.subIpAddress}
                             </Text>
                         </View>
                     </View>
@@ -165,40 +165,49 @@ const VPSWelcomePDF = ({
             ═══════════════════════════════════════════════════════════════════ */}
             <Page size="A4" style={styles.page}>
                 {/* Guide Section 1: Connect via SSH */}
-                <View style={styles.guideSection}>
-                    <Text style={styles.guideTitle}>1. KẾT NỐI VPS QUA SSH (ÁP DỤNG VỚI VPS CÓ OS LINUX)</Text>
+                {!isWindowsOS && (
+                    <View style={styles.guideSection}>
+                        <Text style={styles.guideTitle}>1. KẾT NỐI VPS QUA SSH</Text>
 
-                    <View style={styles.guideContent}>
-                        <Text style={styles.guideText}>
-                            • Mở Terminal
-                        </Text>
-                        <View style={styles.codeBlock}>
-                            <Text style={styles.codeText}>
-                                ssh {credentials.username}@{ipPublic} -p {portPublic}
+                        <View style={styles.guideContent}>
+                            <Text style={styles.guideText}>
+                                • Mở Terminal
+                            </Text>
+                            <View style={styles.codeBlock}>
+                                <Text style={styles.codeText}>
+                                    ssh {credentials.username}@{ipPublic} -p {portPublic}
+                                </Text>
+                            </View>
+                            <Text style={styles.guideText}>
+                                • Nhập password khi được yêu cầu
                             </Text>
                         </View>
-                        <Text style={styles.guideText}>
-                            • Nhập password khi được yêu cầu
-                        </Text>
                     </View>
-                </View>
+                )}
 
                 {/* Guide Section 2: Connect via Remote Desktop (Windows) */}
-                <View style={styles.guideSection}>
-                    <Text style={styles.guideTitle}>2. KẾT NỐI VPS QUA REMOTE DESKTOP (ÁP DỤNG VỚI VPS CÓ OS WINDOWS)</Text>
+                {isWindowsOS && (
+                    <View style={styles.guideSection}>
+                        <Text style={styles.guideTitle}>2. KẾT NỐI VPS QUA REMOTE DESKTOP</Text>
 
-                    <View style={styles.guideContent}>
-                        <Text style={styles.guideText}>
-                            • Nhấn Windows + R, gõ mstsc và nhấn Enter
-                        </Text>
-                        <Text style={styles.guideText}>
-                            • Nhập Computer: {ipPublic}:{portPublic}
-                        </Text>
-                        <Text style={styles.guideText}>
-                            • Click Connect, nhập username và password
-                        </Text>
+                        <View style={styles.guideContent}>
+                            <Text style={styles.guideText}>
+                                • Nhấn Windows + R, gõ mstsc và nhấn Enter
+                            </Text>
+                            <Text style={styles.guideText}>
+                                • Nhập Computer
+                            </Text>
+                            <View style={styles.codeBlock}>
+                                <Text style={styles.codeText}>
+                                    {ipPublic}:{portPublic}
+                                </Text>
+                            </View>
+                            <Text style={styles.guideText}>
+                                • Click Connect, nhập username và password
+                            </Text>
+                        </View>
                     </View>
-                </View>
+                )}
 
                 {/* Guide Section 3: Basic Commands */}
                 <View style={styles.guideSection}>
@@ -298,7 +307,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
     },
     separate: {
-        color: "#5EEAD4",
+        color: "#F97316",
     },
 
     // HEADER
