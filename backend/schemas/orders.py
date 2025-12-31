@@ -72,7 +72,7 @@ class OrderBase(BaseModel):
         if len(v) == 0:
             return None
 
-        phone_pattern = r"^[\d]+$"
+        phone_pattern = r"^\+?[\d]+$"
         if not re.match(phone_pattern, v):
             raise ValueError("Invalid phone number format")
         if len(v) < 10:
@@ -158,7 +158,7 @@ class OrderUpdate(BaseModel):
         if info.field_name == "discount_code" and len(v) > 50:
             raise ValueError(f"{field_name} must not exceed 50 characters")
         if info.field_name == "billing_phone":
-            phone_pattern = r"^[\d]+$"
+            phone_pattern = r"^\+?[\d]+$"
             if not re.match(phone_pattern, v):
                 raise ValueError("Invalid phone number format")
             if len(v) < 10:

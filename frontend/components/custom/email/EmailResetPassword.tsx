@@ -12,7 +12,6 @@ const EmailResetPasswordTemplate = ({
     name = "Khách hàng",
     resetUrl,
 }: EmailResetPasswordTemplateProps) => {
-
     return (
         <EmailLayout preview="Bạn đã yêu cầu đặt lại mật khẩu • Link có hiệu lực trong 60 phút">
             <Section style={wrapper}>

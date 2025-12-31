@@ -12,7 +12,6 @@ const EmailVerificationTemplate = ({
     name = "Khách hàng",
     verificationUrl,
 }: EmailVerificationTemplateProps) => {
-
     return (
         <EmailLayout preview="Chào mừng bạn đến với PCloud! Xác thực email để kích hoạt tài khoản">
             <Section style={wrapper}>

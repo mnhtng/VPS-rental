@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Path, Body
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 from typing import List, Dict, Any, Optional
 import asyncio
@@ -90,6 +91,11 @@ async def list_my_vps(
             .where(VPSInstance.status.notin_(["terminated", "error"]))
             .order_by(VPSInstance.created_at.desc())
             .offset(skip)
+            .options(
+                selectinload(VPSInstance.vps_plan),
+                selectinload(VPSInstance.order_item),
+                selectinload(VPSInstance.vm),
+            )
         )
         if limit is not None:
             statement = statement.limit(limit)
@@ -711,7 +717,16 @@ async def admin_list_all_vps(
         List of VPS instances with user, plan, and VM details
     """
     try:
-        statement = select(VPSInstance).order_by(VPSInstance.created_at.desc())
+        statement = (
+            select(VPSInstance)
+            .order_by(VPSInstance.created_at.desc())
+            .options(
+                selectinload(VPSInstance.user),
+                selectinload(VPSInstance.vps_plan),
+                selectinload(VPSInstance.order_item),
+                selectinload(VPSInstance.vm),
+            )
+        )
 
         if status_filter:
             statement = statement.where(VPSInstance.status == status_filter)
@@ -904,6 +919,95 @@ async def admin_control_vps_power(
         raise
     except Exception as e:
         logger.error(f">>> Failed to control VPS power: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=translator.t("errors.internal_server"),
+        )
+
+
+@admin_router.delete(
+    "/{vps_id}",
+    response_model=OperationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="[Admin] Delete VPS Instance",
+    description="Delete a VPS instance including its VM from Proxmox (Admin Only)",
+)
+async def admin_delete_vps(
+    vps_id: uuid.UUID = Path(..., description="VPS instance ID"),
+    admin_user: User = Depends(get_admin_user),
+    proxmox: ProxmoxConnection = Depends(get_default_proxmox),
+    session: Session = Depends(get_session),
+    translator: Translator = Depends(get_translator),
+):
+    """
+    Delete a VPS instance and its associated VM from Proxmox.
+
+    This will:
+    1. Stop the VM if running
+    2. Delete the VM from Proxmox
+    3. Update VPS status to 'terminated'
+    4. Remove the VM record from database
+
+    Args:
+        vps_id: VPS instance ID
+        admin_user: Current admin user
+        proxmox: Proxmox connection instance
+        session: Database session
+        translator: Translator for error messages
+
+    Raises:
+        HTTPException: 401 if not authenticated
+        HTTPException: 403 if not admin
+        HTTPException: 404 if VPS not found
+        HTTPException: 400 if VPS is already terminated
+        HTTPException: 500 if deletion fails
+
+    Returns:
+        OperationResponse: Result of the deletion
+    """
+    try:
+        vps = session.get(VPSInstance, vps_id)
+        if not vps:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=translator.t("vps.not_found"),
+            )
+
+        if vps.status == "terminated":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=translator.t("vps.already_terminated"),
+            )
+
+        if vps.vm_id:
+            vm = session.get(ProxmoxVM, vps.vm_id)
+            if vm:
+                node = session.get(ProxmoxNode, vm.node_id)
+                if node:
+                    vm_info = await ProxmoxVMService.get_vm_info(
+                        proxmox, node.name, vm.vmid
+                    )
+                    if vm_info.get("status") == "running":
+                        await ProxmoxVMService.stop_vm(proxmox, node.name, vm.vmid)
+                        await asyncio.sleep(5)
+
+                    await ProxmoxVMService.delete_vm(proxmox, node.name, vm.vmid)
+
+                session.delete(vm)
+
+        vps.status = "terminated"
+        session.add(vps)
+        session.commit()
+
+        return OperationResponse(
+            success=True,
+            message=translator.t("vps.deleted_success"),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        logger.error(f">>> Failed to delete VPS {vps_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=translator.t("errors.internal_server"),

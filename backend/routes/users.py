@@ -59,7 +59,11 @@ async def get_users(
         List[UserResponse]: List of users.
     """
     try:
-        statement = select(User).offset(skip)
+        statement = (
+            select(User)
+            .offset(skip)
+            .options(selectinload(User.account))
+        )
 
         if limit is not None:
             statement = statement.limit(limit)
@@ -469,7 +473,8 @@ async def search_users(
     """
     try:
         users = session.exec(
-            select(User).where(
+            select(User)
+            .where(
                 or_(
                     User.name.ilike(f"%{query}%"),
                     User.email.ilike(f"%{query}%"),
@@ -478,6 +483,7 @@ async def search_users(
                     User.role.ilike(f"%{query}%"),
                 )
             )
+            .options(selectinload(User.account))
         ).all()
 
         return users

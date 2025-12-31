@@ -199,12 +199,48 @@ const useAdminVPS = () => {
         }
     }
 
+    const adminDeleteVps = async (vpsId: string): Promise<ApiResponse> => {
+        try {
+            const response = await apiPattern(`${process.env.NEXT_PUBLIC_API_URL}/admin/vps/${vpsId}`, {
+                method: 'DELETE',
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return {
+                    message: "Failed to delete VPS",
+                    error: {
+                        code: "VPS_DELETE_FAILED",
+                        detail: result.detail,
+                    }
+                }
+            }
+
+            return {
+                message: result.message || "VPS deleted successfully",
+                data: result,
+            }
+        } catch (error) {
+            return {
+                message: "Failed to delete VPS",
+                error: {
+                    code: error instanceof Error && error.message === 'NO_ACCESS_TOKEN' ? 'NO_ACCESS_TOKEN' : 'VPS_DELETE_FAILED',
+                    detail: error instanceof Error && error.message === 'NO_ACCESS_TOKEN'
+                        ? "No access token available"
+                        : "An error occurred while deleting VPS",
+                }
+            }
+        }
+    }
+
     return {
         getAllVps,
         getVpsStatistics,
         adminStartVps,
         adminStopVps,
         adminRebootVps,
+        adminDeleteVps,
     }
 }
 

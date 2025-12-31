@@ -4,6 +4,7 @@ import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from backend.db import get_session
@@ -56,8 +57,12 @@ async def get_user_tickets(
         List of tickets
     """
     try:
-        statement = select(SupportTicket).where(
-            SupportTicket.user_id == current_user.id
+        statement = (
+            select(SupportTicket)
+            .where(SupportTicket.user_id == current_user.id)
+            .options(
+                selectinload(SupportTicket.replies),
+            )
         )
 
         if status_filter and status_filter != "all":
@@ -362,7 +367,13 @@ async def admin_get_all_tickets(
         List of all tickets
     """
     try:
-        statement = select(SupportTicket)
+        statement = (
+            select(SupportTicket)
+            .options(
+                selectinload(SupportTicket.user),
+                selectinload(SupportTicket.replies),
+            )
+        )
 
         if status_filter and status_filter != "all":
             statement = statement.where(SupportTicket.status == status_filter)
