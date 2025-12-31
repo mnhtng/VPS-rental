@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  allowedDevOrigins: ['ptitcloud.io.vn', 'cloud.ptitcloud.io.vn', '*.ptitcloud.io.vn'],
+  // allowedDevOrigins: ['ptitcloud.io.vn', 'cloud.ptitcloud.io.vn', '*.ptitcloud.io.vn'],
   images: {
     domains: [
       'lh3.googleusercontent.com',
