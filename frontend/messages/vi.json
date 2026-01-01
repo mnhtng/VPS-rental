@@ -449,7 +449,7 @@
                 "failed": "Thất bại",
                 "cancelled": "Đã hủy",
                 "today": "Hôm nay",
-                "week": "Tuần này",
+                "quarter": "Quý này",
                 "month": "Tháng này",
                 "year": "Năm nay",
                 "placeholder": "Trạng thái",
@@ -496,14 +496,14 @@
                 "search": "Tìm kiếm gói...",
                 "all": "Tất cả",
                 "basic": "Cơ bản",
-                "pro": "Chuyên nghiệp",
+                "standard": "Tiêu chuẩn",
                 "premium": "Cao cấp",
                 "placeholder": "Danh mục",
                 "refresh": "Làm mới"
             },
             "category": {
                 "basic": "Cơ bản",
-                "pro": "Chuyên nghiệp",
+                "standard": "Tiêu chuẩn",
                 "premium": "Cao cấp"
             },
             "status": {
