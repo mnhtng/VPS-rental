@@ -3,7 +3,6 @@
 import { Search, DollarSign, ShoppingCart, CreditCard, TrendingUp, Package, CalendarDays, BarChart3 } from "lucide-react"
 import { Input } from '@/components/ui/input'
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
 import { colorsHex } from "@/utils/color"
 import {
     Table,
@@ -367,7 +366,7 @@ const RevenuePage = () => {
                         <SelectContent>
                             <SelectItem value="all">{t('filter.all')}</SelectItem>
                             <SelectItem value="month">{t('filter.month')}</SelectItem>
-                            <SelectItem value="quarter">{t('filter.week')}</SelectItem>
+                            <SelectItem value="quarter">{t('filter.quarter')}</SelectItem>
                             <SelectItem value="year">{t('filter.year')}</SelectItem>
                         </SelectContent>
                     </Select>

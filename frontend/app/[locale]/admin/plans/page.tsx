@@ -118,7 +118,7 @@ const PlansPage = () => {
             case 'basic':
                 return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">{t('category.basic')}</Badge>
             case 'standard':
-                return <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/30">{t('category.pro')}</Badge>
+                return <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/30">{t('category.standard')}</Badge>
             case 'premium':
                 return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">{t('category.premium')}</Badge>
             default:
@@ -285,7 +285,7 @@ const PlansPage = () => {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">{t('category.pro')}</p>
+                                <p className="text-sm text-muted-foreground">{t('category.standard')}</p>
                                 {isLoading ? (
                                     <Skeleton className="h-8 w-12" />
                                 ) : (
@@ -337,7 +337,7 @@ const PlansPage = () => {
                         <SelectContent>
                             <SelectItem value="all">{t('filter.all')}</SelectItem>
                             <SelectItem value="basic">{t('filter.basic')}</SelectItem>
-                            <SelectItem value="standard">{t('filter.pro')}</SelectItem>
+                            <SelectItem value="standard">{t('filter.standard')}</SelectItem>
                             <SelectItem value="premium">{t('filter.premium')}</SelectItem>
                         </SelectContent>
                     </Select>
