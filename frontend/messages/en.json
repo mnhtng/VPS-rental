@@ -449,7 +449,7 @@
                 "failed": "Failed",
                 "cancelled": "Cancelled",
                 "today": "Today",
-                "week": "This Week",
+                "quarter": "This Quarter",
                 "month": "This Month",
                 "year": "This Year",
                 "placeholder": "Status",
@@ -496,14 +496,14 @@
                 "search": "Search plans...",
                 "all": "All",
                 "basic": "Basic",
-                "pro": "Pro",
+                "standard": "Standard",
                 "premium": "Premium",
                 "placeholder": "Category",
                 "refresh": "Refresh"
             },
             "category": {
                 "basic": "Basic",
-                "pro": "Pro",
+                "standard": "Standard",
                 "premium": "Premium"
             },
             "status": {

@@ -3,6 +3,7 @@ from datetime import datetime
 from calendar import month_abbr
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import extract
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
@@ -176,55 +177,6 @@ async def get_order_by_id(
 
 
 @router.get(
-    "/total-revenue",
-    response_model=float,
-    status_code=status.HTTP_200_OK,
-    summary="Get total revenue from all orders",
-    description="Retrieve the total revenue generated from all orders",
-)
-async def get_total_revenue(
-    month: Optional[int] = Query(
-        None, description="Get revenue for a specific month (1-12)"
-    ),
-    session: Session = Depends(get_session),
-    admin_user: User = Depends(get_admin_user),
-    translator: Translator = Depends(get_translator),
-):
-    """
-    Retrieve the total revenue generated from all orders.
-
-    Args:
-        month (Optional[int], optional): Month to filter (1-12). Defaults to None.
-        session (Session, optional): Database session. Defaults to Depends(get_session).
-        admin_user (optional): The currently authenticated admin user. Defaults to Depends(get_admin_user).
-        translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
-
-    Raises:
-        HTTPException: 500 if there is a server error.
-
-    Returns:
-        float: Total revenue from all orders.
-    """
-    try:
-        statement = select(Order)
-        if month and 1 <= month <= 12:
-            statement = statement.where(Order.created_at.month == month)
-        orders = session.exec(statement).all()
-
-        total_revenue = sum(float(order.price) for order in orders)
-
-        return total_revenue
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f">>> Error calculating total revenue: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=translator.t("errors.internal_server"),
-        )
-
-
-@router.get(
     "/user/total-revenue",
     response_model=float,
     status_code=status.HTTP_200_OK,
@@ -232,6 +184,12 @@ async def get_total_revenue(
     description="Retrieve the total revenue generated from the currently authenticated user's orders",
 )
 async def get_user_total_revenue(
+    year: Optional[int] = Query(
+        None, description="Get revenue for a specific year (defaults to current year)"
+    ),
+    month: Optional[int] = Query(
+        None, description="Get revenue for a specific month (1-12)"
+    ),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     translator: Translator = Depends(get_translator),
@@ -240,6 +198,8 @@ async def get_user_total_revenue(
     Retrieve the total revenue generated from the current user's orders.
 
     Args:
+        year (Optional[int], optional): Year to filter. Defaults to current year.
+        month (Optional[int], optional): Month to filter (1-12). Defaults to None.
         session (Session, optional): Database session. Defaults to Depends(get_session).
         current_user (optional): The currently authenticated user. Defaults to Depends(get_current_user).
         translator (Translator, optional): Translator for i18n messages. Defaults to Depends(get_translator).
@@ -252,6 +212,17 @@ async def get_user_total_revenue(
     """
     try:
         statement = select(Order).where(Order.user_id == current_user.id)
+        filter_year = year if year else datetime.now().year
+        if year:
+            statement = statement.where(
+                extract("year", Order.created_at) == filter_year
+            )
+        if month and 1 <= month <= 12:
+            if not year:
+                statement = statement.where(
+                    extract("year", Order.created_at) == filter_year
+                )
+            statement = statement.where(extract("month", Order.created_at) == month)
         orders = session.exec(statement).all()
 
         total_revenue = sum(float(order.price) for order in orders)
@@ -285,7 +256,9 @@ async def admin_get_all_orders(
     skip: int = Query(0, description="Number of records to skip"),
     limit: int = Query(None, description="Maximum number of records to return"),
     status_filter: Optional[str] = Query(
-        None, alias="status", description="Filter by order status (pending, paid, cancelled)"
+        None,
+        alias="status",
+        description="Filter by order status (pending, paid, cancelled)",
     ),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
@@ -430,7 +403,9 @@ async def admin_get_order_statistics(
     description="Retrieve monthly revenue data for charts (Admin Only)",
 )
 async def admin_get_monthly_revenue(
-    year: Optional[int] = Query(None, description="Year to get data for (defaults to current year)"),
+    year: Optional[int] = Query(
+        None, description="Year to get data for (defaults to current year)"
+    ),
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user),
     translator: Translator = Depends(get_translator),

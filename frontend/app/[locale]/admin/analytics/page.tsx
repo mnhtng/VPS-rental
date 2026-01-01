@@ -92,11 +92,8 @@ export default function AnalyticsPage() {
 
     // Color mapping for OS types
     const osColors: Record<string, string> = {
-        "Ubuntu": colorsHex.amber,
-        "Debian": colorsHex.red,
-        "CentOS": colorsHex.violet,
-        "Windows": colorsHex.blue,
-        "Rocky Linux": colorsHex.green,
+        "windows": colorsHex.teal,
+        "linux": colorsHex.amber,
     }
 
     // Color mapping for payment methods
