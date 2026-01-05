@@ -293,17 +293,18 @@ const credentialsWarning = {
 };
 
 const credentialsGrid = {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '8px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '12px',
     marginBottom: '12px',
 };
 
 const credentialItem = {
     backgroundColor: '#1E293B',
-    padding: '12px',
+    padding: '14px',
     margin: '6px 0',
     borderRadius: '8px',
+    border: '1px solid #334155',
 };
 
 const credentialLabel = {
