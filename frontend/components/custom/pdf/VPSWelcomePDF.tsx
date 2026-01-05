@@ -131,7 +131,7 @@ const VPSWelcomePDF = ({
                                 </Text>
                             </View>
                             <View style={styles.credentialBox}>
-                                <Text style={styles.credLabel}>SSH Port</Text>
+                                <Text style={styles.credLabel}>Port</Text>
                                 <Text style={styles.credValue}>{portPublic}</Text>
                             </View>
                             <View style={styles.credentialBox}>
